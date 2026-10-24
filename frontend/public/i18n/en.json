@@ -14,7 +14,10 @@
     "login": "Sign in",
     "logout": "Sign out",
     "print": "Print",
-    "account": "Account and preferences"
+    "account": "Account and preferences",
+    "privacy": "Privacy",
+    "terms": "Terms of use",
+    "legal": "Legal information"
   },
   "languages": {
     "fr": "Français",
@@ -158,7 +161,13 @@
     "rootReset": "You are using the shared root again.",
     "rootHint": "To choose your root, open a person’s details in the tree.",
     "preferences": "Preferences",
-    "loginPrompt": "Sign in to see your profile and access rights and to choose your tree root."
+    "loginPrompt": "Sign in to see your profile and access rights and to choose your tree root.",
+    "deleteTitle": "Delete my account",
+    "deleteIntro": "Your account, your preferences and the link with your Google, Facebook or Microsoft account will be deleted immediately. You can sign in again later, but without your current rights.",
+    "deleteButton": "Delete my account",
+    "deleteConfirmTitle": "Delete your account?",
+    "deleteConfirmMessage": "This takes effect immediately and cannot be undone.",
+    "deleted": "Your account has been deleted."
   },
   "roles": {
     "ADMIN": "Administrator",
@@ -237,5 +246,70 @@
     "skipped": "{{count}} empty page(s) left out.",
     "loadingTree": "Loading the tree…",
     "computingPages": "Preparing pages…"
+  },
+  "legal": {
+    "updated": "Last updated: October 24, 2026",
+    "privacy": {
+      "title": "Privacy policy",
+      "intro": "This private, non-commercial family website lets you browse the family tree. It is run by an individual, its administrator.",
+      "collected": {
+        "title": "Data we collect",
+        "body": "You can browse the site without an account. If you sign in with Google, Facebook or Microsoft, we receive and keep only: the technical identifier of your account with that provider, your name, your email address and your profile picture, as well as the account creation and last sign-in dates. No password is ever sent or stored."
+      },
+      "purpose": {
+        "title": "How we use it",
+        "body": "This data is only used to identify you and manage your access rights to the tree. It is never sold, shared or used for advertising."
+      },
+      "cookies": {
+        "title": "Cookies",
+        "body": "The site uses a single, strictly necessary cookie to keep you signed in, and a temporary cookie during sign-in. Your language choice is stored in your browser. No advertising cookies or analytics tools are used."
+      },
+      "genealogy": {
+        "title": "Genealogical data",
+        "body": "The tree contains information about family members (names, dates, places, occupations). For people born less than 100 years ago, only the name is publicly visible; details are only available to members authorized by the administrator. Anyone listed in the tree may ask for their information to be corrected or removed."
+      },
+      "retention": {
+        "title": "Retention",
+        "body": "Your account data is kept as long as your account exists. It is deleted as soon as you or the administrator delete your account."
+      },
+      "deletion": {
+        "title": "Deleting your data",
+        "body": "You can delete your account and all associated data yourself at any time: sign in, open the “Account and preferences” page and click “Delete my account”. Deletion is immediate. You can also remove the site’s access from your Google, Facebook or Microsoft account settings, or ask the administrator to delete your data."
+      },
+      "rights": {
+        "title": "Your rights",
+        "body": "Under the GDPR, you have the right to access, correct, erase and object to the processing of your data. You may also lodge a complaint with the French data protection authority, the CNIL (www.cnil.fr)."
+      },
+      "contact": {
+        "title": "Contact",
+        "body": "For any question or request: {{email}}.",
+        "none": "For any question or request, contact the site administrator."
+      }
+    },
+    "terms": {
+      "title": "Terms of use",
+      "intro": "This free, non-commercial family website lets you browse the family tree. By using it, you accept the following terms.",
+      "access": {
+        "title": "Access",
+        "body": "Browsing is open to everyone. Sign-in uses a Google, Facebook or Microsoft account; the administrator decides which rights each account gets and may suspend or delete an account at any time."
+      },
+      "content": {
+        "title": "Content",
+        "body": "The information comes from family research and may contain errors or gaps. It is intended for personal and family use: commercial reuse, or publishing information about living people, is forbidden."
+      },
+      "liability": {
+        "title": "Liability",
+        "body": "The site is provided “as is”, with no guarantee of availability or accuracy. It may be changed or discontinued at any time."
+      },
+      "source": {
+        "title": "Software",
+        "body": "The site runs on free software released under the MIT license:"
+      },
+      "contact": {
+        "title": "Contact",
+        "body": "For any question: {{email}}.",
+        "none": "For any question, contact the site administrator."
+      }
+    }
   }
 }

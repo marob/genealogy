@@ -125,6 +125,14 @@ export class UsersService {
     await this.prisma.user.delete({ where: { id } });
   }
 
+  /** Deletes the current user's account and identities (self-service, required by the identity providers). */
+  async deleteOwnAccount(currentUser: AuthUser): Promise<void> {
+    if (currentUser.role === 'ADMIN' && (await this.prisma.user.count({ where: { role: 'ADMIN' } })) <= 1) {
+      throw new ForbiddenException('The last administrator cannot delete their account.');
+    }
+    await this.prisma.user.delete({ where: { id: currentUser.id } });
+  }
+
   private async getOrThrow(id: number): Promise<User> {
     const user = await this.findById(id);
     if (!user) {

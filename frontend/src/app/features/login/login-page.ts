@@ -1,4 +1,5 @@
 import { Component, inject, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faFacebook, faGoogle, faMicrosoft, faOpenid } from '@fortawesome/free-brands-svg-icons';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -13,7 +14,7 @@ const PROVIDER_ICONS: Record<string, typeof faGoogle> = {
 /** Sign-in through the identity providers configured on the server. */
 @Component({
   selector: 'app-login-page',
-  imports: [FaIconComponent, TranslocoPipe],
+  imports: [FaIconComponent, RouterLink, TranslocoPipe],
   template: `
     <div class="card login">
       <h1>{{ 'login.title' | transloco }}</h1>
@@ -40,6 +41,10 @@ const PROVIDER_ICONS: Record<string, typeof faGoogle> = {
           }
         </div>
       }
+      <p class="legal">
+        <a routerLink="/privacy">{{ 'nav.privacy' | transloco }}</a> ·
+        <a routerLink="/terms">{{ 'nav.terms' | transloco }}</a>
+      </p>
     </div>
   `,
   styles: `
@@ -60,6 +65,10 @@ const PROVIDER_ICONS: Record<string, typeof faGoogle> = {
     }
     .provider {
       justify-content: center;
+    }
+    .legal {
+      margin: 1.5rem 0 0;
+      font-size: 0.85rem;
     }
   `,
 })

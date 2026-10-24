@@ -45,6 +45,10 @@ export class ApiService {
     return firstValueFrom(this.http.get<MeDto>('/api/me'));
   }
 
+  deleteMe(): Promise<void> {
+    return firstValueFrom(this.http.delete<void>('/api/me'));
+  }
+
   logout(): Promise<void> {
     return firstValueFrom(this.http.post<void>('/api/auth/logout', null));
   }

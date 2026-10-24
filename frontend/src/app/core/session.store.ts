@@ -11,6 +11,7 @@ export class SessionStore {
   readonly user = computed(() => this.state().user);
   readonly providers = computed(() => this.state().providers);
   readonly devBypass = computed(() => this.state().devBypass);
+  readonly contactEmail = computed(() => this.state().contactEmail);
   readonly isAuthenticated = computed(() => !!this.user());
   readonly isAdmin = computed(() => this.user()?.role === 'ADMIN');
   readonly canSeeContemporary = computed(() => this.isAdmin() || !!this.user()?.canSeeContemporary);
@@ -30,6 +31,12 @@ export class SessionStore {
 
   async setPersonalRoot(personId: string | null): Promise<void> {
     await this.api.setMyRoot(personId);
+    await this.load();
+  }
+
+  async deleteAccount(): Promise<void> {
+    await this.api.deleteMe();
+    this.api.clearCache();
     await this.load();
   }
 

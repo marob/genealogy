@@ -108,17 +108,18 @@ docker compose pull && docker compose up -d
 
 ### Configuration
 
-| Variable                                                                         | Purpose                                                                             |
-| -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `PUBLIC_URL`                                                                     | Public URL of the application (OIDC callbacks, secure cookies over HTTPS)           |
-| `SESSION_SECRET`                                                                 | Session signing secret (at least 32 characters)                                     |
-| `ADMIN_EMAILS`                                                                   | E-mails promoted to administrator when they sign in (comma-separated)               |
-| `AUTH_DEV_BYPASS`                                                                | Disables authentication (everyone is an admin); localhost only                      |
-| `APP_TIMEZONE`                                                                   | Reference time zone for the 100-year rule                                           |
-| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`                                      | Google sign-in                                                                      |
-| `FACEBOOK_CLIENT_ID` / `FACEBOOK_CLIENT_SECRET`                                  | Facebook sign-in                                                                    |
-| `OIDC_NAME`, `OIDC_LABEL`, `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET` | Generic OpenID Connect provider (Keycloak, Microsoft…)                              |
-| `OIDC_TRUST_EMAIL`                                                               | Accepts the generic provider's e-mail without an `email_verified` claim (Microsoft) |
+| Variable                                                                         | Purpose                                                                                    |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `PUBLIC_URL`                                                                     | Public URL of the application (OIDC callbacks, secure cookies over HTTPS)                  |
+| `SESSION_SECRET`                                                                 | Session signing secret (at least 32 characters)                                            |
+| `ADMIN_EMAILS`                                                                   | E-mails promoted to administrator when they sign in (comma-separated)                      |
+| `AUTH_DEV_BYPASS`                                                                | Disables authentication (everyone is an admin); localhost only                             |
+| `APP_TIMEZONE`                                                                   | Reference time zone for the 100-year rule                                                  |
+| `CONTACT_EMAIL`                                                                  | Contact address shown on the privacy policy (`/privacy`) and terms of use (`/terms`) pages |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`                                      | Google sign-in                                                                             |
+| `FACEBOOK_CLIENT_ID` / `FACEBOOK_CLIENT_SECRET`                                  | Facebook sign-in                                                                           |
+| `OIDC_NAME`, `OIDC_LABEL`, `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET` | Generic OpenID Connect provider (Keycloak, Microsoft…)                                     |
+| `OIDC_TRUST_EMAIL`                                                               | Accepts the generic provider's e-mail without an `email_verified` claim (Microsoft)        |
 
 The redirect URI to register with each provider is `${PUBLIC_URL}/api/auth/<provider>/callback`.
 

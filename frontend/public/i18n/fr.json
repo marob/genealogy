@@ -14,7 +14,10 @@
     "login": "Connexion",
     "logout": "Déconnexion",
     "print": "Impression",
-    "account": "Compte et préférences"
+    "account": "Compte et préférences",
+    "privacy": "Confidentialité",
+    "terms": "Conditions d’utilisation",
+    "legal": "Informations légales"
   },
   "languages": {
     "fr": "Français",
@@ -158,7 +161,13 @@
     "rootReset": "Vous utilisez à nouveau la racine commune.",
     "rootHint": "Pour choisir votre racine, ouvrez la fiche d’une personne dans l’arbre.",
     "preferences": "Préférences",
-    "loginPrompt": "Connectez-vous pour voir votre profil, vos droits et choisir votre racine de l’arbre."
+    "loginPrompt": "Connectez-vous pour voir votre profil, vos droits et choisir votre racine de l’arbre.",
+    "deleteTitle": "Supprimer mon compte",
+    "deleteIntro": "Votre compte, vos préférences et le lien avec votre compte Google, Facebook ou Microsoft seront supprimés immédiatement. Vous pourrez vous reconnecter plus tard, mais sans vos droits actuels.",
+    "deleteButton": "Supprimer mon compte",
+    "deleteConfirmTitle": "Supprimer votre compte ?",
+    "deleteConfirmMessage": "Cette action est immédiate et définitive.",
+    "deleted": "Votre compte a été supprimé."
   },
   "roles": {
     "ADMIN": "Administrateur",
@@ -237,5 +246,70 @@
     "skipped": "{{count}} page(s) vide(s) exclue(s).",
     "loadingTree": "Chargement de l’arbre…",
     "computingPages": "Préparation des pages…"
+  },
+  "legal": {
+    "updated": "Dernière mise à jour : 24 octobre 2026",
+    "privacy": {
+      "title": "Politique de confidentialité",
+      "intro": "Ce site familial, privé et non commercial, permet de consulter l’arbre généalogique de la famille. Il est édité par un particulier, son administrateur.",
+      "collected": {
+        "title": "Données collectées",
+        "body": "Le site se consulte sans compte. Si vous vous connectez avec Google, Facebook ou Microsoft, nous recevons et conservons uniquement : l’identifiant technique de votre compte chez ce fournisseur, votre nom, votre adresse e-mail et votre photo de profil, ainsi que les dates de création du compte et de dernière connexion. Aucun mot de passe n’est transmis ni conservé."
+      },
+      "purpose": {
+        "title": "Utilisation",
+        "body": "Ces données servent uniquement à vous identifier et à gérer vos droits d’accès à l’arbre. Elles ne sont ni vendues, ni partagées, ni utilisées à des fins publicitaires."
+      },
+      "cookies": {
+        "title": "Cookies",
+        "body": "Le site utilise un seul cookie, strictement nécessaire, pour maintenir votre session une fois connecté, et un cookie temporaire pendant la connexion. Votre choix de langue est enregistré dans votre navigateur. Aucun cookie publicitaire ni outil de mesure d’audience n’est utilisé."
+      },
+      "genealogy": {
+        "title": "Données généalogiques",
+        "body": "L’arbre contient des informations sur les membres de la famille (noms, dates, lieux, professions). Pour les personnes nées il y a moins de 100 ans, seul le nom est visible publiquement ; le détail n’est accessible qu’aux membres autorisés par l’administrateur. Toute personne figurant dans l’arbre peut en demander la rectification ou la suppression."
+      },
+      "retention": {
+        "title": "Conservation",
+        "body": "Les données de votre compte sont conservées tant que votre compte existe. Elles sont supprimées dès que vous supprimez votre compte ou que l’administrateur le supprime."
+      },
+      "deletion": {
+        "title": "Suppression de vos données",
+        "body": "Vous pouvez supprimer vous-même votre compte et toutes les données associées à tout moment : connectez-vous, ouvrez la page « Compte et préférences » et cliquez sur « Supprimer mon compte ». La suppression est immédiate. Vous pouvez aussi retirer l’accès du site depuis les paramètres de votre compte Google, Facebook ou Microsoft, ou demander la suppression à l’administrateur."
+      },
+      "rights": {
+        "title": "Vos droits",
+        "body": "Conformément au RGPD, vous disposez d’un droit d’accès, de rectification, d’effacement et d’opposition sur vos données. Vous pouvez également introduire une réclamation auprès de la CNIL (www.cnil.fr)."
+      },
+      "contact": {
+        "title": "Contact",
+        "body": "Pour toute question ou demande : {{email}}.",
+        "none": "Pour toute question ou demande, contactez l’administrateur du site."
+      }
+    },
+    "terms": {
+      "title": "Conditions d’utilisation",
+      "intro": "Ce site familial, gratuit et non commercial, permet de consulter l’arbre généalogique de la famille. En l’utilisant, vous acceptez les conditions suivantes.",
+      "access": {
+        "title": "Accès",
+        "body": "La consultation est libre. La connexion se fait avec un compte Google, Facebook ou Microsoft ; l’administrateur décide des droits accordés à chaque compte et peut suspendre ou supprimer un compte à tout moment."
+      },
+      "content": {
+        "title": "Contenu",
+        "body": "Les informations proviennent de recherches familiales et peuvent comporter des erreurs ou des lacunes. Elles sont destinées à un usage personnel et familial : leur réutilisation commerciale ou la diffusion des informations concernant des personnes vivantes est interdite."
+      },
+      "liability": {
+        "title": "Responsabilité",
+        "body": "Le site est fourni « en l’état », sans garantie de disponibilité ni d’exactitude. Il peut être modifié ou interrompu à tout moment."
+      },
+      "source": {
+        "title": "Logiciel",
+        "body": "Le site repose sur un logiciel libre publié sous licence MIT :"
+      },
+      "contact": {
+        "title": "Contact",
+        "body": "Pour toute question : {{email}}.",
+        "none": "Pour toute question, contactez l’administrateur du site."
+      }
+    }
   }
 }

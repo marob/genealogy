@@ -44,6 +44,8 @@ const envSchema = z.object({
    * that does not let its users pick an arbitrary address.
    */
   OIDC_TRUST_EMAIL: booleanString,
+  /** Contact address shown on the privacy policy page. */
+  CONTACT_EMAIL: z.email().optional(),
   /** Directory containing the frontend build, served statically (Docker image). */
   STATIC_DIR: z.string().optional(),
 });

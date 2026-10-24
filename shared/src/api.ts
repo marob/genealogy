@@ -79,6 +79,8 @@ export interface MeDto {
   providers: AuthProviderDto[];
   /** Development mode: everyone is an admin. */
   devBypass: boolean;
+  /** Contact address of the site owner (privacy policy). */
+  contactEmail?: string;
 }
 
 export type ImportStatus = 'preview' | 'committed';

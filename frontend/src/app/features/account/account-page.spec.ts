@@ -5,6 +5,7 @@ import type { UserDto } from '@genealogie/shared';
 import { person, provideTestTransloco } from '../../../testing/test-helpers';
 import { ApiService } from '../../core/api.service';
 import { SessionStore } from '../../core/session.store';
+import { ConfirmService } from '../../ui/confirm-dialog';
 import { AccountPage } from './account-page';
 
 describe('AccountPage', () => {
@@ -21,19 +22,24 @@ describe('AccountPage', () => {
     return Promise.resolve();
   });
 
+  const deleteAccount = vi.fn(() => Promise.resolve());
+  const confirm = vi.fn(() => Promise.resolve(true));
+
   beforeEach(() => {
+    deleteAccount.mockClear();
     TestBed.configureTestingModule({
       providers: [
         provideTestTransloco(),
         provideRouter([]),
         {
           provide: SessionStore,
-          useValue: { user, setPersonalRoot, canSeeContemporary: () => true },
+          useValue: { user, setPersonalRoot, deleteAccount, canSeeContemporary: () => true },
         },
         {
           provide: ApiService,
           useValue: { person: (id: string) => Promise.resolve(person({ id, givenNames: 'Louis' })) },
         },
+        { provide: ConfirmService, useValue: { confirm } },
       ],
     });
   });
@@ -59,4 +65,23 @@ describe('AccountPage', () => {
     element.querySelector<HTMLButtonElement>('.root button')!.click();
     expect(setPersonalRoot).toHaveBeenCalledWith(null);
   });
+
+  it('deletes the account after confirmation', async () => {
+    const element = await render();
+    element.querySelector<HTMLButtonElement>('.btn-danger')!.click();
+    await vi.waitFor(() => expect(deleteAccount).toHaveBeenCalled());
+    expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ danger: true }));
+  });
+
+  it('does nothing when the deletion is cancelled', async () => {
+    confirm.mockResolvedValueOnce(false);
+    const element = await render();
+    element.querySelector<HTMLButtonElement>('.btn-danger')!.click();
+    await fixtureSettled();
+    expect(deleteAccount).not.toHaveBeenCalled();
+  });
 });
+
+function fixtureSettled(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve));
+}

@@ -1,11 +1,12 @@
 import { DatePipe } from '@angular/common';
 import { Component, inject, resource } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ApiService } from '../../core/api.service';
 import { NotificationsService } from '../../core/notifications.service';
 import { isLanguage, LANGUAGES, LanguageService } from '../../core/language.service';
 import { SessionStore } from '../../core/session.store';
+import { ConfirmService } from '../../ui/confirm-dialog';
 
 @Component({
   selector: 'app-account-page',
@@ -65,6 +66,13 @@ import { SessionStore } from '../../core/session.store';
           <p class="hint">{{ 'account.askAdmin' | transloco }}</p>
         }
       </section>
+      <section class="card">
+        <h2>{{ 'account.deleteTitle' | transloco }}</h2>
+        <p class="hint">{{ 'account.deleteIntro' | transloco }}</p>
+        <button type="button" class="btn btn-danger" (click)="deleteAccount()">
+          {{ 'account.deleteButton' | transloco }}
+        </button>
+      </section>
     } @else {
       <section class="card">
         <p>{{ 'account.loginPrompt' | transloco }}</p>
@@ -73,6 +81,10 @@ import { SessionStore } from '../../core/session.store';
         }}</a>
       </section>
     }
+    <nav class="legal" [attr.aria-label]="'nav.legal' | transloco">
+      <a routerLink="/privacy">{{ 'nav.privacy' | transloco }}</a>
+      <a routerLink="/terms">{{ 'nav.terms' | transloco }}</a>
+    </nav>
   `,
   styles: `
     :host {
@@ -125,6 +137,12 @@ import { SessionStore } from '../../core/session.store';
       color: var(--text-muted);
       font-size: 0.9rem;
     }
+    .legal {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      font-size: 0.9rem;
+    }
   `,
 })
 export class AccountPage {
@@ -140,6 +158,8 @@ export class AccountPage {
   }
   private readonly api = inject(ApiService);
   private readonly notifications = inject(NotificationsService);
+  private readonly confirmService = inject(ConfirmService);
+  private readonly router = inject(Router);
 
   /** Personal root (a root that no longer exists after an import is ignored). */
   protected readonly rootPerson = resource({
@@ -150,5 +170,25 @@ export class AccountPage {
   protected async resetRoot(): Promise<void> {
     await this.session.setPersonalRoot(null);
     this.notifications.show('success', 'account.rootReset');
+  }
+
+  protected async deleteAccount(): Promise<void> {
+    const confirmed = await this.confirmService.confirm({
+      title: 'account.deleteConfirmTitle',
+      message: 'account.deleteConfirmMessage',
+      confirmLabel: 'common.delete',
+      danger: true,
+    });
+    if (!confirmed) {
+      return;
+    }
+    try {
+      await this.session.deleteAccount();
+    } catch (error) {
+      this.notifications.error(error);
+      return;
+    }
+    this.notifications.show('success', 'account.deleted');
+    await this.router.navigateByUrl('/');
   }
 }

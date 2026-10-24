@@ -187,4 +187,25 @@ describe('Authentication and users', () => {
         .expect(403);
     });
   });
+
+  describe('account self-deletion', () => {
+    it('requires a session', async () => {
+      await request(server()).delete('/api/me').expect(401);
+    });
+
+    it('deletes the account and closes the session', async () => {
+      const cookie = await loginAs(ctx, { email: 'leaving@example.com' });
+      const response = await request(server()).delete('/api/me').set('Cookie', cookie).expect(204);
+      expect(String(response.headers['set-cookie'])).toContain('genealogie_session=;');
+      expect(await ctx.prisma.user.findUnique({ where: { email: 'leaving@example.com' } })).toBeNull();
+    });
+
+    it('keeps at least one administrator', async () => {
+      await ctx.prisma.user.deleteMany({ where: { role: 'ADMIN' } });
+      const last = await loginAs(ctx, { email: 'last-admin@example.com', role: 'ADMIN' });
+      await request(server()).delete('/api/me').set('Cookie', last).expect(403);
+      const other = await loginAs(ctx, { email: 'other-admin@example.com', role: 'ADMIN' });
+      await request(server()).delete('/api/me').set('Cookie', other).expect(204);
+    });
+  });
 });

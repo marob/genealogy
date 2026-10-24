@@ -1,4 +1,4 @@
-import { Controller, Get, HttpCode, Logger, Param, Post, Query, Req, Res } from '@nestjs/common';
+import { Controller, Delete, Get, HttpCode, Logger, Param, Post, Query, Req, Res } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { MeDto } from '@genealogie/shared';
 import type { Request, Response } from 'express';
@@ -6,7 +6,7 @@ import type { Env } from '../config/env.js';
 import { toUserDto, UsersService } from '../users/users.service.js';
 import { AuthProvidersService } from './auth-providers.service.js';
 import type { AuthUser } from './auth-user.js';
-import { CurrentUser } from './auth.decorators.js';
+import { Authenticated, CurrentUser } from './auth.decorators.js';
 import { OAUTH_COOKIE, SessionService } from './session.service.js';
 
 /** Only accepts paths internal to the application (no open redirect). */
@@ -19,6 +19,7 @@ export class AuthController {
   private readonly logger = new Logger(AuthController.name);
   private readonly publicUrl: string;
   private readonly devBypass: boolean;
+  private readonly contactEmail: string | undefined;
 
   constructor(
     private readonly providers: AuthProvidersService,
@@ -28,6 +29,7 @@ export class AuthController {
   ) {
     this.publicUrl = config.get('PUBLIC_URL', { infer: true }).replace(/\/$/, '');
     this.devBypass = config.get('AUTH_DEV_BYPASS', { infer: true });
+    this.contactEmail = config.get('CONTACT_EMAIL', { infer: true });
   }
 
   @Get('me')
@@ -37,7 +39,16 @@ export class AuthController {
       ...(user ? { user: toUserDto(user) } : {}),
       providers: this.providers.list(),
       devBypass: this.devBypass,
+      ...(this.contactEmail ? { contactEmail: this.contactEmail } : {}),
     };
+  }
+
+  @Delete('me')
+  @Authenticated()
+  @HttpCode(204)
+  async deleteAccount(@CurrentUser() user: AuthUser, @Res({ passthrough: true }) res: Response): Promise<void> {
+    await this.users.deleteOwnAccount(user);
+    this.sessions.closeSession(res);
   }
 
   @Get('auth/:provider/login')
