@@ -7,12 +7,13 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { ApiService, type SearchCriteria } from '../../core/api.service';
 import { GenealogyDatePipe, PlacePipe } from '../../core/genealogy-pipes';
 import { LanguageService } from '../../core/language.service';
+import { valueOf } from '../../core/resources';
 import { iconSearch } from '../../ui/icons';
 
 const PAGE_SIZE = 50;
 
 function toNumber(value: string | undefined): number | undefined {
-  const number = value === undefined || value === '' ? NaN : Number(value);
+  const number = value === undefined || value === '' ? Number.NaN : Number(value);
   return Number.isInteger(number) ? number : undefined;
 }
 
@@ -67,13 +68,14 @@ export class SearchPage {
     params: () => this.criteria(),
     loader: ({ params }) => this.api.search(params),
   });
+  protected readonly searchResult = computed(() => valueOf(this.results));
 
   protected readonly surnames = resource({ loader: () => this.api.surnames() });
 
   /** Surname index grouped by initial. */
   protected readonly surnameIndex = computed(() => {
     const groups = new Map<string, SurnameDto[]>();
-    for (const entry of this.surnames.value() ?? []) {
+    for (const entry of valueOf(this.surnames) ?? []) {
       const initial = entry.surname.normalize('NFD').replace(/\p{M}/gu, '').charAt(0).toUpperCase() || '?';
       groups.set(initial, [...(groups.get(initial) ?? []), entry]);
     }
@@ -81,7 +83,7 @@ export class SearchPage {
   });
 
   protected readonly pageCount = computed(() => {
-    const value = this.results.value();
+    const value = this.searchResult();
     return value ? Math.max(1, Math.ceil(value.total / value.pageSize)) : 1;
   });
 

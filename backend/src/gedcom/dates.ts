@@ -64,20 +64,62 @@ interface CalendarDate {
   date: PartialDate;
 }
 
-function parseCalendarDate(input: string, defaultCalendar: Calendar): CalendarDate | undefined {
-  let rest = input.trim().toUpperCase();
-  let calendar = defaultCalendar;
-  for (const [escape, cal] of Object.entries(CALENDAR_ESCAPES)) {
-    if (rest.startsWith(escape + ' ')) {
-      calendar = cal;
-      rest = rest.slice(escape.length).trim();
-      break;
+/** Removes a leading calendar escape (`@#DJULIAN@`, `JULIAN`...). */
+function stripCalendarEscape(text: string, defaultCalendar: Calendar): { calendar: Calendar; rest: string } {
+  for (const [escape, calendar] of Object.entries(CALENDAR_ESCAPES)) {
+    if (text.startsWith(escape + ' ')) {
+      return { calendar, rest: text.slice(escape.length).trim() };
     }
   }
+  return { calendar: defaultCalendar, rest: text };
+}
 
-  const bcSuffix = /\s*(B\.?C\.?|BCE)$/.exec(rest);
+/** Year, possibly a dual year ("1720/21": the modern year is the second one). */
+function parseYear(token: string, beforeChrist: boolean): number | undefined {
+  const yearMatch = /^(\d{1,4})(?:\/(\d{1,2}))?$/.exec(token);
+  if (!yearMatch) {
+    return undefined;
+  }
+  const year = Number(yearMatch[1]) + (yearMatch[2] ? 1 : 0);
+  return beforeChrist ? -year : year;
+}
+
+/** Month index (0-based) in its calendar, or `undefined` if unknown. */
+function parseMonth(
+  token: string,
+  calendar: Calendar,
+  defaultCalendar: Calendar,
+): { calendar: Calendar; monthIndex: number } | undefined {
+  const monthIndex = MONTHS[calendar].indexOf(token);
+  if (monthIndex >= 0) {
+    return { calendar, monthIndex };
+  }
+  // Month from another calendar without an explicit escape: detect it.
+  if (calendar !== defaultCalendar) {
+    return undefined;
+  }
+  for (const cal of ['french-republican', 'hebrew'] as const) {
+    const index = MONTHS[cal].indexOf(token);
+    if (index >= 0) {
+      return { calendar: cal, monthIndex: index };
+    }
+  }
+  return undefined;
+}
+
+function parseDay(token: string): number | undefined {
+  const day = Number(token);
+  return Number.isInteger(day) && day >= 1 && day <= 31 ? day : undefined;
+}
+
+function parseCalendarDate(input: string, defaultCalendar: Calendar): CalendarDate | undefined {
+  let { calendar, rest } = stripCalendarEscape(input.trim().toUpperCase(), defaultCalendar);
+
+  // Linear-time patterns (no backtracking on long whitespace runs).
+  rest = rest.trimEnd();
+  const bcSuffix = /(?:B\.?C\.?|BCE)$/.exec(rest);
   if (bcSuffix) {
-    rest = rest.slice(0, bcSuffix.index);
+    rest = rest.slice(0, bcSuffix.index).trimEnd();
   }
 
   const tokens = rest.split(/\s+/).filter(Boolean);
@@ -85,41 +127,22 @@ function parseCalendarDate(input: string, defaultCalendar: Calendar): CalendarDa
     return undefined;
   }
 
-  // Year, possibly a dual year ("1720/21": the modern year is the second one).
-  const yearMatch = /^(\d{1,4})(?:\/(\d{1,2}))?$/.exec(tokens.at(-1)!);
-  if (!yearMatch) {
+  const year = parseYear(tokens.at(-1)!, !!bcSuffix);
+  if (year === undefined) {
     return undefined;
   }
-  let year = Number(yearMatch[1]);
-  if (yearMatch[2]) {
-    year += 1;
-  }
-  if (bcSuffix) {
-    year = -year;
-  }
-
   const date: PartialDate = { year };
   if (tokens.length >= 2) {
-    let monthIndex = MONTHS[calendar].indexOf(tokens.at(-2)!);
-    // Month from another calendar without an explicit escape: detect it.
-    if (monthIndex < 0 && calendar === defaultCalendar) {
-      for (const cal of ['french-republican', 'hebrew'] as const) {
-        const index = MONTHS[cal].indexOf(tokens.at(-2)!);
-        if (index >= 0) {
-          calendar = cal;
-          monthIndex = index;
-          break;
-        }
-      }
-    }
-    if (monthIndex < 0) {
+    const month = parseMonth(tokens.at(-2)!, calendar, defaultCalendar);
+    if (!month) {
       return undefined;
     }
-    date.month = monthIndex + 1;
+    calendar = month.calendar;
+    date.month = month.monthIndex + 1;
   }
   if (tokens.length === 3) {
-    const day = Number(tokens[0]);
-    if (!Number.isInteger(day) || day < 1 || day > 31) {
+    const day = parseDay(tokens[0]!);
+    if (day === undefined) {
       return undefined;
     }
     date.day = day;
@@ -155,6 +178,50 @@ function build(
   return result;
 }
 
+const phrase = (original: string): ParsedDate => build(original, 'phrase', undefined);
+
+/** `BET … AND …` range. */
+function parseBetween(original: string, match: RegExpExecArray): ParsedDate | undefined {
+  const start = parseCalendarDate(match[1]!, 'gregorian');
+  const end = parseCalendarDate(match[2]!, start?.calendar ?? 'gregorian');
+  return start && end ? build(original, 'between', start, end) : undefined;
+}
+
+/** `FROM … [TO …]` period. */
+function parsePeriod(original: string, match: RegExpExecArray): ParsedDate | undefined {
+  const start = parseCalendarDate(match[1]!, 'gregorian');
+  const end = match[2] ? parseCalendarDate(match[2], start?.calendar ?? 'gregorian') : undefined;
+  if (!start || (match[2] && !end)) {
+    return undefined;
+  }
+  return end ? build(original, 'from-to', start, end) : build(original, 'from', start);
+}
+
+/** `TO …` period. */
+function parsePeriodEnd(original: string, match: RegExpExecArray): ParsedDate | undefined {
+  const end = parseCalendarDate(match[1]!, 'gregorian');
+  return end ? build(original, 'to', end) : undefined;
+}
+
+/** `ABT`, `CAL`, `EST`, `BEF`, `AFT` or `INT` followed by a date. */
+function parseQualified(original: string, match: RegExpExecArray): ParsedDate | undefined {
+  // INT 1850 (around 1850 according to the record): ignore the text in parentheses.
+  const dateText = withoutTrailingParenthesis(match[2]!).trim();
+  const start = parseCalendarDate(dateText, 'gregorian');
+  return start ? build(original, SIMPLE_QUALIFIERS[match[1]!]!, start) : undefined;
+}
+
+/**
+ * Forms of a DATE value (upper case), tried in order before an exact date. A
+ * value matching a form but whose dates are unreadable is kept as free text.
+ */
+const DATE_FORMS: [RegExp, (original: string, match: RegExpExecArray) => ParsedDate | undefined][] = [
+  [/^BET (.+) AND (.+)$/, parseBetween],
+  [/^FROM (.+?)(?: TO (.+))?$/, parsePeriod],
+  [/^TO (.+)$/, parsePeriodEnd],
+  [/^(ABT|CAL|EST|BEF|AFT|INT)\.? (.+)$/, parseQualified],
+];
+
 /**
  * Parses a DATE value. Returns `undefined` if the value is empty; an
  * unrecognized value is kept as free text (`phrase`).
@@ -168,40 +235,21 @@ export function parseGedcomDate(value: string | undefined): ParsedDate | undefin
 
   // Free text only: "(during the war)".
   if (/^\(.*\)$/.test(original)) {
-    return build(original, 'phrase', undefined);
+    return phrase(original);
   }
 
-  let match = /^BET (.+) AND (.+)$/.exec(upper);
-  if (match) {
-    const start = parseCalendarDate(match[1]!, 'gregorian');
-    const end = parseCalendarDate(match[2]!, start?.calendar ?? 'gregorian');
-    return start && end ? build(original, 'between', start, end) : build(original, 'phrase', undefined);
-  }
-
-  match = /^FROM (.+?)(?: TO (.+))?$/.exec(upper);
-  if (match) {
-    const start = parseCalendarDate(match[1]!, 'gregorian');
-    const end = match[2] ? parseCalendarDate(match[2], start?.calendar ?? 'gregorian') : undefined;
-    if (!start || (match[2] && !end)) {
-      return build(original, 'phrase', undefined);
+  for (const [pattern, parse] of DATE_FORMS) {
+    const match = pattern.exec(upper);
+    if (match) {
+      return parse(original, match) ?? phrase(original);
     }
-    return end ? build(original, 'from-to', start, end) : build(original, 'from', start);
   }
-
-  match = /^TO (.+)$/.exec(upper);
-  if (match) {
-    const end = parseCalendarDate(match[1]!, 'gregorian');
-    return end ? build(original, 'to', end) : build(original, 'phrase', undefined);
-  }
-
-  match = /^(ABT|CAL|EST|BEF|AFT|INT)\.? (.+)$/.exec(upper);
-  if (match) {
-    // INT 1850 (around 1850 according to the record): ignore the text in parentheses.
-    const dateText = match[2]!.replace(/\(.*\)$/, '').trim();
-    const start = parseCalendarDate(dateText, 'gregorian');
-    return start ? build(original, SIMPLE_QUALIFIERS[match[1]!]!, start) : build(original, 'phrase', undefined);
-  }
-
   const exact = parseCalendarDate(upper, 'gregorian');
-  return exact ? build(original, 'exact', exact) : build(original, 'phrase', undefined);
+  return exact ? build(original, 'exact', exact) : phrase(original);
+}
+
+/** Removes a trailing "(…)" comment, from its first opening parenthesis. */
+function withoutTrailingParenthesis(text: string): string {
+  const open = text.indexOf('(');
+  return open >= 0 && text.trimEnd().endsWith(')') ? text.slice(0, open) : text;
 }

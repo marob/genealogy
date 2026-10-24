@@ -4,9 +4,9 @@ export function normalizeForSearch(text: string): string {
     .normalize('NFD')
     .replace(/\p{M}/gu, '')
     .toLowerCase()
-    .replace(/œ/g, 'oe')
-    .replace(/æ/g, 'ae')
-    .replace(/ß/g, 'ss')
+    .replaceAll('œ', 'oe')
+    .replaceAll('æ', 'ae')
+    .replaceAll('ß', 'ss')
     .replace(/[^\p{L}\p{N}]+/gu, ' ')
     .trim();
 }

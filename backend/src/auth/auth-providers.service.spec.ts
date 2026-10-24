@@ -33,4 +33,12 @@ describe('identityFromClaims', () => {
       emailVerified: false,
     });
   });
+
+  it('drops profile pictures the browser cannot display', () => {
+    const graph = { ...claims, picture: 'https://graph.microsoft.com/v1.0/me/photo/$value' };
+    expect(identityFromClaims('microsoft', graph, true).picture).toBeUndefined();
+    expect(
+      identityFromClaims('oidc', { ...claims, picture: 'http://example.com/p.png' }, true).picture,
+    ).toBeUndefined();
+  });
 });

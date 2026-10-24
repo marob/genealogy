@@ -10,7 +10,10 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
   DATABASE_URL: z.string().startsWith('file:'),
   PUBLIC_URL: z.url().default('http://localhost:4200'),
-  SESSION_SECRET: z.string().min(32),
+  SESSION_SECRET: z
+    .string()
+    .min(32)
+    .refine((secret) => !secret.startsWith('change-me'), 'SESSION_SECRET still has the example value.'),
   ADMIN_EMAILS: z
     .string()
     .default('')
@@ -52,7 +55,7 @@ const envSchema = z.object({
 
 export type Env = z.infer<typeof envSchema>;
 
-const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]']);
+export const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]']);
 
 export function validateEnv(config: Record<string, unknown>): Env {
   // An empty variable ("FOO=") is the same as a missing one.

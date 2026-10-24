@@ -56,7 +56,8 @@
     "expandDescendants": "Expand all descendants",
     "print": "Printable version",
     "setAsMyRoot": "Set as my root",
-    "myRootChanged": "Your tree root has been updated."
+    "myRootChanged": "Your tree root has been updated.",
+    "truncated": "Tree too large: the display stops at {{count}} people. Expand the remaining branches one by one."
   },
   "person": {
     "name": "Name",
@@ -218,7 +219,10 @@
       "none": "No users.",
       "updated": "User updated.",
       "deleteTitle": "Delete this user?",
-      "deleteMessage": "The account {{email}} will be deleted. They can sign in again, but without their rights."
+      "deleteMessage": "The account {{email}} will be deleted. They can sign in again, but without their rights.",
+      "roleOf": "Role of {{name}}",
+      "contemporaryOf": "{{name}} sees contemporaries",
+      "deleteUser": "Delete {{name}}"
     }
   },
   "print": {
@@ -245,7 +249,9 @@
     "skipEmpty": "Leave out pages without anyone",
     "skipped": "{{count}} empty page(s) left out.",
     "loadingTree": "Loading the tree…",
-    "computingPages": "Preparing pages…"
+    "computingPages": "Preparing pages…",
+    "truncated": "Tree too large: printing stops at {{count}} people. Reduce the number of generations.",
+    "personNotFound": "This person cannot be found."
   },
   "legal": {
     "updated": "Last updated: October 24, 2026",

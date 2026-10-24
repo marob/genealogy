@@ -109,9 +109,16 @@ describe('Browsing persons', () => {
       expect(zoe).toMatchObject({ restricted: false, events: [{ type: 'BIRT' }] });
     });
 
-    it('shows persons estimated to be born more than 100 years ago', async () => {
+    it('shows persons whose own dated events prove they were born more than 100 years ago', async () => {
+      // Louise: no birth date, married in 1905.
+      const [louise] = (await get('/api/persons/I5').expect(200)).body as PersonDto[];
+      expect(louise!.restricted).toBe(false);
+    });
+
+    it('treats a person without a sound birth bound as contemporary', async () => {
+      // Jules: no dated event; his parents' births say nothing about his own.
       const [jules] = (await get('/api/persons/I6').expect(200)).body as PersonDto[];
-      expect(jules!.restricted).toBe(false);
+      expect(jules!.restricted).toBe(true);
     });
   });
 
@@ -133,8 +140,8 @@ describe('Browsing persons', () => {
     });
 
     it('validates parameters', async () => {
-      await get('/api/persons/I1/lineage?ancestors=500').expect(400);
-      await get('/api/persons/I999/lineage').expect(404);
+      expect((await get('/api/persons/I1/lineage?ancestors=500')).status).toBe(400);
+      expect((await get('/api/persons/I999/lineage')).status).toBe(404);
     });
   });
 
@@ -144,7 +151,7 @@ describe('Browsing persons', () => {
   });
 
   it('responds 404 for an unknown person', async () => {
-    await get('/api/persons/I999').expect(404);
+    expect((await get('/api/persons/I999')).status).toBe(404);
   });
 
   describe('search', () => {
@@ -187,8 +194,8 @@ describe('Browsing persons', () => {
     });
 
     it('validates parameters', async () => {
-      await get('/api/persons/search?bornFrom=abc').expect(400);
-      await get('/api/persons/search?pageSize=1000').expect(400);
+      expect((await get('/api/persons/search?bornFrom=abc')).status).toBe(400);
+      expect((await get('/api/persons/search?pageSize=1000')).status).toBe(400);
     });
   });
 
@@ -231,9 +238,9 @@ describe('Browsing persons', () => {
     const treeInfo = async (cookie?: string) => (await get('/api/tree', cookie).expect(200)).body as TreeInfoDto;
 
     it('is restricted to logged-in users', async () => {
-      await putRoot('I1').expect(401);
-      await putRoot('nope', member).expect(404);
-      await putRoot('', member).expect(400);
+      expect((await putRoot('I1')).status).toBe(401);
+      expect((await putRoot('nope', member)).status).toBe(404);
+      expect((await putRoot('', member)).status).toBe(400);
     });
 
     it('replaces the shared root for that user only', async () => {

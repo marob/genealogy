@@ -13,12 +13,12 @@ import { PrivacyPolicy, todayKey } from './privacy.js';
 export type Relatives = 'parents' | 'children' | 'unions';
 
 export interface SearchQuery {
-  q?: string | undefined;
-  surname?: string | undefined;
-  place?: string | undefined;
-  bornFrom?: number | undefined;
-  bornTo?: number | undefined;
-  sex?: 'M' | 'F' | 'U' | undefined;
+  q?: string;
+  surname?: string;
+  place?: string;
+  bornFrom?: number;
+  bornTo?: number;
+  sex?: 'M' | 'F' | 'U';
   page: number;
   pageSize: number;
 }
@@ -155,7 +155,7 @@ export class PersonsService {
     if (query.sex) {
       and.push({ sex: query.sex });
     }
-    const usesDetails = query.place !== undefined || query.bornFrom !== undefined || query.bornTo !== undefined;
+    const usesDetails = !!query.place || query.bornFrom !== undefined || query.bornTo !== undefined;
     if (query.place) {
       and.push({ events: { some: { place: { searchName: { contains: normalizeForSearch(query.place) } } } } });
     }
@@ -190,7 +190,10 @@ export class PersonsService {
             orderBy: { id: 'asc' },
           },
         },
-        orderBy: [{ sortName: 'asc' }, { birthKey: 'asc' }, { id: 'asc' }],
+        // Ordering by birth would reveal the relative age of restricted homonyms.
+        orderBy: policy.canSeeContemporary
+          ? [{ sortName: 'asc' }, { birthKey: 'asc' }, { id: 'asc' }]
+          : [{ sortName: 'asc' }, { id: 'asc' }],
         skip: (query.page - 1) * query.pageSize,
         take: query.pageSize,
       }),

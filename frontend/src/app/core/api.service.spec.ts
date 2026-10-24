@@ -46,8 +46,8 @@ describe('ApiService', () => {
     await commit;
 
     const reload = api.people(['I1']);
-    http.expectOne('/api/persons?ids=I1').flush([person({ id: 'I1' })]);
-    await reload;
+    http.expectOne('/api/persons?ids=I1').flush([person({ id: 'I1', givenNames: 'Reloaded' })]);
+    expect((await reload)[0]?.givenNames).toBe('Reloaded');
   });
 
   it('sends only the filled-in search criteria', async () => {
@@ -55,7 +55,7 @@ describe('ApiService', () => {
     http
       .expectOne('/api/persons/search?q=martin&bornFrom=1850&page=1')
       .flush({ items: [], total: 0, page: 1, pageSize: 50 });
-    await promise;
+    await expect(promise).resolves.toMatchObject({ total: 0 });
   });
 
   it('sends the GEDCOM file as multipart', async () => {

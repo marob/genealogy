@@ -24,6 +24,14 @@ function staticModules(): DynamicModule[] {
   ];
 }
 
+/** Drops the query string (OAuth code and state) of the authentication routes. */
+function withoutAuthQuery(req: { url?: string; query?: unknown }): unknown {
+  if (req.url?.startsWith('/api/auth/')) {
+    return { ...req, url: req.url.split('?')[0], query: {} };
+  }
+  return req;
+}
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -36,7 +44,9 @@ function staticModules(): DynamicModule[] {
       pinoHttp: {
         level: process.env.NODE_ENV === 'test' ? 'silent' : 'info',
         transport: process.env.LOG_FORMAT === 'pretty' ? { target: 'pino-pretty' } : undefined,
-        redact: ['req.headers.cookie', 'req.headers.authorization'],
+        // Session and OAuth cookies, OAuth codes: never in the logs.
+        redact: ['req.headers.cookie', 'req.headers.authorization', 'res.headers["set-cookie"]'],
+        serializers: { req: withoutAuthQuery },
       },
     }),
     PrismaModule,

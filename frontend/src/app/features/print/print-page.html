@@ -22,11 +22,18 @@
         >
       </p>
     }
-    @if (candidates.value(); as people) {
-      <ul class="candidates" role="listbox" [attr.aria-label]="'print.person' | transloco">
+    @if (candidates.error()) {
+      <p class="error">{{ 'common.error' | transloco }}</p>
+    } @else if (candidateList(); as people) {
+      <ul class="candidates" [attr.aria-label]="'print.person' | transloco">
         @for (candidate of people; track candidate.id) {
-          <li role="option" [attr.aria-selected]="candidate.id === person()">
-            <button type="button" class="link" (click)="choose(candidate)">
+          <li>
+            <button
+              type="button"
+              class="link"
+              [attr.aria-pressed]="candidate.id === person()"
+              (click)="choose(candidate)"
+            >
               <span class="surname">{{ candidate.surname }}</span> {{ candidate.givenNames }}
               @if (candidate.birth?.date?.start; as start) {
                 <span class="muted">({{ start.year }})</span>
@@ -45,7 +52,7 @@
     <input
       type="number"
       min="0"
-      [max]="depth.value()?.ancestors ?? 0"
+      [max]="available()?.ancestors ?? 0"
       [ngModel]="ancestors()"
       name="up"
       (change)="update({ up: $any($event.target).value })"
@@ -56,7 +63,7 @@
     <input
       type="number"
       min="0"
-      [max]="depth.value()?.descendants ?? 0"
+      [max]="available()?.descendants ?? 0"
       [ngModel]="descendants()"
       name="down"
       (change)="update({ down: $any($event.target).value })"
@@ -131,19 +138,31 @@
       }
     }
   </p>
+  @if (tree.truncated()) {
+    <p class="hint warning" role="alert">{{ 'print.truncated' | transloco: { count: maxNodes } }}</p>
+  }
 </form>
 
 <div class="print-preview" #preview>
   @if (busy()) {
-    <div class="loader no-print" role="status">
+    <output class="loader no-print">
       <span class="spinner" aria-hidden="true"></span>
       {{ (tree.loading() || depth.isLoading() ? 'print.loadingTree' : 'print.computingPages') | transloco }}
-    </div>
+    </output>
   }
-  <div class="print-area" [class.offscreen]="printMode() === 'paper'">
+  @if (!tree.root() && loadError(); as message) {
+    <p class="error no-print empty" role="alert">{{ message | transloco }}</p>
+  }
+  <!-- In paper mode, the tree is only the off-screen source of the pages: hidden from assistive technologies. -->
+  <div
+    class="print-area"
+    [class.offscreen]="printMode() === 'paper'"
+    [attr.inert]="printMode() === 'paper' ? '' : null"
+    [attr.aria-hidden]="printMode() === 'paper' ? 'true' : null"
+  >
     @if (tree.root(); as root) {
-      <table #chart appChartNode [node]="root" part="root"></table>
-    } @else if (!busy()) {
+      <table role="presentation" #chart appChartNode [node]="root" part="root"></table>
+    } @else if (!busy() && !loadError()) {
       <p class="muted no-print empty">{{ 'print.choosePerson' | transloco }}</p>
     }
   </div>
@@ -181,7 +200,7 @@
                     />
                   }
                 </svg>
-                <div #tileContent class="tile-content"></div>
+                <div #tileContent class="tile-content" inert aria-hidden="true"></div>
               </div>
             </div>
           </div>

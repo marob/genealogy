@@ -24,7 +24,7 @@ export interface DecodedGedcom {
 const strictUtf8 = new TextDecoder('utf-8', { fatal: true });
 
 function readCharset(head: string): string | undefined {
-  return /^\s*1\s+CHAR\s+(.+?)\s*$/im.exec(head)?.[1]?.toUpperCase();
+  return /^[ \t]*1[ \t]+CHAR[ \t]+([^\r\n]+)/im.exec(head)?.[1]?.trim().toUpperCase();
 }
 
 function readDeclaredCharset(bytes: Uint8Array): string | undefined {
@@ -51,75 +51,104 @@ function decodeWith(bytes: Uint8Array, encoding: GedcomEncoding): string {
   return new TextDecoder(label).decode(bytes);
 }
 
-export function decodeGedcom(bytes: Uint8Array): DecodedGedcom {
-  const warnings: string[] = [];
-  const declaredCharset = readDeclaredCharset(bytes);
-  const result = (encoding: GedcomEncoding, text = decodeWith(bytes, encoding)): DecodedGedcom => {
-    const decoded: DecodedGedcom = { text: text.replace(/^\ufeff/, ''), encoding, warnings };
-    // In UTF-16, the header is only readable once the text is decoded.
-    const charset = encoding.startsWith('UTF-16') ? readCharset(decoded.text.slice(0, 4096)) : declaredCharset;
-    if (charset) {
-      decoded.declaredCharset = charset;
-    }
-    return decoded;
-  };
+/** Charsets declaring UTF-8. */
+const UTF8_CHARSETS = new Set(['UTF-8', 'UTF8', 'UNICODE']);
+/** Known 8-bit charsets decoded as Windows-1252. */
+const WINDOWS_1252_CHARSETS = new Set(['ANSI', 'ASCII', 'IBMPC', 'IBM WINDOWS', 'WINDOWS', 'CP1252']);
 
-  if (bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
-    return result('UTF-8');
+/** Chosen encoding, with the decoded text when it needs a dedicated decoder. */
+interface EncodingChoice {
+  encoding: GedcomEncoding;
+  text?: string;
+}
+
+/** Encoding revealed by a BOM or by the null bytes of UTF-16 without a BOM. */
+function detectUnicodeSignature(bytes: Uint8Array): GedcomEncoding | undefined {
+  const [first, second, third] = bytes;
+  if (first === 0xef && second === 0xbb && third === 0xbf) {
+    return 'UTF-8';
   }
-  if (bytes[0] === 0xff && bytes[1] === 0xfe) {
-    return result('UTF-16LE');
+  if (first === 0xff && second === 0xfe) {
+    return 'UTF-16LE';
   }
-  if (bytes[0] === 0xfe && bytes[1] === 0xff) {
-    return result('UTF-16BE');
+  if (first === 0xfe && second === 0xff) {
+    return 'UTF-16BE';
   }
   // "0 " in UTF-16 without a BOM: 30 00 20 00 (LE) or 00 30 00 20 (BE).
-  if (bytes[0] === 0x30 && bytes[1] === 0x00) {
-    return result('UTF-16LE');
+  if (first === 0x30 && second === 0x00) {
+    return 'UTF-16LE';
   }
-  if (bytes[0] === 0x00 && bytes[1] === 0x30) {
-    return result('UTF-16BE');
+  if (first === 0x00 && second === 0x30) {
+    return 'UTF-16BE';
   }
+  return undefined;
+}
 
-  const charset = declaredCharset ?? '';
-  const utf8 = isValidUtf8(bytes);
-
-  if (charset === 'ANSEL') {
-    // Some software writes "ANSEL" but encodes in UTF-8.
-    if (utf8 && hasHighBytes(bytes)) {
-      warnings.push('The file declares ANSEL but is encoded in UTF-8: decoding as UTF-8.');
-      return result('UTF-8');
-    }
-    const ansel = decodeAnsel(bytes);
-    if (ansel.invalidBytes > 0) {
-      warnings.push(`${ansel.invalidBytes} invalid ANSEL byte(s) replaced with "\ufffd".`);
-    }
-    return result('ANSEL', ansel.text);
+function chooseAnsel(bytes: Uint8Array, utf8: boolean, warnings: string[]): EncodingChoice {
+  // Some software writes "ANSEL" but encodes in UTF-8.
+  if (utf8 && hasHighBytes(bytes)) {
+    warnings.push('The file declares ANSEL but is encoded in UTF-8: decoding as UTF-8.');
+    return { encoding: 'UTF-8' };
   }
-
-  if (charset === 'UTF-8' || charset === 'UTF8' || charset === 'UNICODE') {
-    if (utf8) {
-      return result('UTF-8');
-    }
-    warnings.push(`The file declares ${charset} but is not valid UTF-8: decoding as Windows-1252.`);
-    return result('WINDOWS-1252');
+  const ansel = decodeAnsel(bytes);
+  if (ansel.invalidBytes > 0) {
+    warnings.push(`${ansel.invalidBytes} invalid ANSEL byte(s) replaced with "\ufffd".`);
   }
+  return { encoding: 'ANSEL', text: ansel.text };
+}
 
-  if (charset === 'MACINTOSH') {
-    return result('MACINTOSH');
+function chooseUtf8(charset: string, utf8: boolean, warnings: string[]): EncodingChoice {
+  if (utf8) {
+    return { encoding: 'UTF-8' };
   }
+  warnings.push(`The file declares ${charset} but is not valid UTF-8: decoding as Windows-1252.`);
+  return { encoding: 'WINDOWS-1252' };
+}
 
-  // ANSI, ASCII, IBMPC, missing or unknown.
+/** ANSI, ASCII, IBMPC, missing or unknown charset. */
+function chooseWindows1252(bytes: Uint8Array, charset: string, utf8: boolean, warnings: string[]): EncodingChoice {
   if (utf8 && hasHighBytes(bytes)) {
     if (charset) {
       warnings.push(`The file declares ${charset} but is encoded in UTF-8: decoding as UTF-8.`);
     }
-    return result('UTF-8');
+    return { encoding: 'UTF-8' };
   }
-  if (charset && !['ANSI', 'ASCII', 'IBMPC', 'IBM WINDOWS', 'WINDOWS', 'CP1252'].includes(charset)) {
-    warnings.push(`Unknown declared encoding (${charset}): decoding as Windows-1252.`);
-  } else if (!charset) {
+  if (!charset) {
     warnings.push('No declared encoding (1 CHAR): decoding as Windows-1252.');
+  } else if (!WINDOWS_1252_CHARSETS.has(charset)) {
+    warnings.push(`Unknown declared encoding (${charset}): decoding as Windows-1252.`);
   }
-  return result('WINDOWS-1252');
+  return { encoding: 'WINDOWS-1252' };
+}
+
+/** Encoding of a file without a Unicode signature, from its `1 CHAR` header and its bytes. */
+function chooseFromCharset(bytes: Uint8Array, charset: string, warnings: string[]): EncodingChoice {
+  const utf8 = isValidUtf8(bytes);
+  if (charset === 'ANSEL') {
+    return chooseAnsel(bytes, utf8, warnings);
+  }
+  if (UTF8_CHARSETS.has(charset)) {
+    return chooseUtf8(charset, utf8, warnings);
+  }
+  if (charset === 'MACINTOSH') {
+    return { encoding: 'MACINTOSH' };
+  }
+  return chooseWindows1252(bytes, charset, utf8, warnings);
+}
+
+export function decodeGedcom(bytes: Uint8Array): DecodedGedcom {
+  const warnings: string[] = [];
+  const declaredCharset = readDeclaredCharset(bytes);
+  const signature = detectUnicodeSignature(bytes);
+  const { encoding, text = decodeWith(bytes, encoding) } = signature
+    ? { encoding: signature }
+    : chooseFromCharset(bytes, declaredCharset ?? '', warnings);
+
+  const decoded: DecodedGedcom = { text: text.replace(/^\ufeff/, ''), encoding, warnings };
+  // In UTF-16, the header is only readable once the text is decoded.
+  const charset = encoding.startsWith('UTF-16') ? readCharset(decoded.text.slice(0, 4096)) : declaredCharset;
+  if (charset) {
+    decoded.declaredCharset = charset;
+  }
+  return decoded;
 }

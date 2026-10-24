@@ -8,11 +8,11 @@
     <input #file type="file" accept=".ged,.GED,.gedcom" [disabled]="busy()" (change)="upload(file)" hidden />
   </label>
   @if (busy()) {
-    <span class="muted" role="status">{{ 'common.loading' | transloco }}</span>
+    <output class="muted">{{ 'common.loading' | transloco }}</output>
   }
 
   @if (preview(); as run) {
-    <div class="preview" role="region" [attr.aria-label]="'admin.imports.preview' | transloco">
+    <section class="preview" [attr.aria-label]="'admin.imports.preview' | transloco">
       <h3>{{ 'admin.imports.preview' | transloco }} — {{ run.fileName }}</h3>
       <dl class="stats">
         <dt>{{ 'admin.imports.stats.persons' | transloco }}</dt>
@@ -69,7 +69,7 @@
           <fa-icon [icon]="icons.iconCheck" /> {{ 'admin.imports.apply' | transloco }}
         </button>
       </div>
-    </div>
+    </section>
   }
 
   <h3>{{ 'admin.imports.history' | transloco }}</h3>
@@ -87,7 +87,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (run of history.value(); track run.id) {
+        @for (run of runs(); track run.id) {
           <tr>
             <td>{{ run.fileName }}</td>
             <td>{{ run.createdAt | date: 'short' : undefined : lang() }}</td>
@@ -118,7 +118,11 @@
           </tr>
         } @empty {
           <tr>
-            <td colspan="5" class="muted">{{ 'admin.imports.none' | transloco }}</td>
+            @if (history.error()) {
+              <td colspan="5" class="error">{{ 'common.error' | transloco }}</td>
+            } @else {
+              <td colspan="5" class="muted">{{ 'admin.imports.none' | transloco }}</td>
+            }
           </tr>
         }
       </tbody>

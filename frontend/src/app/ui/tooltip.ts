@@ -41,12 +41,14 @@ const POSITIONS: Record<TooltipPosition, ConnectedPosition[]> = {
 
 @Component({
   selector: 'app-tooltip-text',
-  template: '{{ text }}',
-  host: { class: 'tooltip', role: 'tooltip' },
+  template: '{{ text() }}',
+  host: { class: 'tooltip' },
 })
 class TooltipText {
-  text = '';
+  readonly text = input('');
 }
+
+let nextId = 1;
 
 /**
  * Lightweight tooltip (text or template) based on the CDK overlay.
@@ -71,6 +73,8 @@ export class Tooltip implements OnDestroy {
   private readonly viewContainer = inject(ViewContainerRef);
   private overlayRef?: OverlayRef;
   private hideTimer?: ReturnType<typeof setTimeout>;
+  /** Identifier of the tooltip, referenced by the trigger's `aria-describedby`. */
+  private readonly id = `tooltip-${nextId++}`;
 
   show(): void {
     clearTimeout(this.hideTimer);
@@ -88,10 +92,16 @@ export class Tooltip implements OnDestroy {
     if (content instanceof TemplateRef) {
       this.overlayRef.attach(new TemplatePortal(content, this.viewContainer));
     } else {
-      this.overlayRef.attach(new ComponentPortal(TooltipText)).instance.text = content;
+      this.overlayRef.attach(new ComponentPortal(TooltipText)).setInput('text', content);
+    }
+    const pane = this.overlayRef.overlayElement;
+    pane.id = this.id;
+    pane.setAttribute('role', 'tooltip');
+    // A tooltip repeating the trigger's accessible name would be announced twice.
+    if (content !== this.element.nativeElement.getAttribute('aria-label')) {
+      this.setDescribedBy(true);
     }
     // Keep the tooltip open while hovering it (rich content).
-    const pane = this.overlayRef.overlayElement;
     pane.onmouseenter = () => clearTimeout(this.hideTimer);
     pane.onmouseleave = () => this.scheduleHide();
   }
@@ -104,10 +114,25 @@ export class Tooltip implements OnDestroy {
   hide(): void {
     clearTimeout(this.hideTimer);
     this.overlayRef?.detach();
+    this.setDescribedBy(false);
   }
 
   ngOnDestroy(): void {
     clearTimeout(this.hideTimer);
     this.overlayRef?.dispose();
+  }
+
+  /** Adds or removes the tooltip from the trigger's description, keeping other references. */
+  private setDescribedBy(shown: boolean): void {
+    const element = this.element.nativeElement;
+    const ids = (element.getAttribute('aria-describedby') ?? '').split(/\s+/).filter((id) => id && id !== this.id);
+    if (shown) {
+      ids.push(this.id);
+    }
+    if (ids.length) {
+      element.setAttribute('aria-describedby', ids.join(' '));
+    } else {
+      element.removeAttribute('aria-describedby');
+    }
   }
 }

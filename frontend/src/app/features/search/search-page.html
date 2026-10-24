@@ -41,7 +41,7 @@
       <p class="muted">{{ 'common.loading' | transloco }}</p>
     } @else if (results.error()) {
       <p class="error">{{ 'common.error' | transloco }}</p>
-    } @else if (results.value(); as result) {
+    } @else if (searchResult(); as result) {
       <h2>{{ 'search.results' | transloco: { count: result.total } }}</h2>
       @if (result.items.length) {
         <div class="table-wrapper">
@@ -104,6 +104,9 @@
 } @else {
   <section>
     <h2>{{ 'search.surnames' | transloco }}</h2>
+    @if (surnames.error()) {
+      <p class="error">{{ 'common.error' | transloco }}</p>
+    }
     @for (group of surnameIndex(); track group[0]) {
       <h3 class="initial">{{ group[0] }}</h3>
       <ul class="surnames">

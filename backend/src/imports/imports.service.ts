@@ -1,4 +1,11 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  type OnApplicationBootstrap,
+} from '@nestjs/common';
 import type { ImportDto, ImportStatsDto, ImportStatus } from '@genealogie/shared';
 import type { AuthUser } from '../auth/auth-user.js';
 import { parseGedcom } from '../gedcom/gedcom-parser.js';
@@ -9,6 +16,13 @@ import { replaceGenealogy } from './genealogy-writer.js';
 
 /** Maximum number of warnings kept for an import. */
 const MAX_WARNINGS = 500;
+
+/**
+ * Version of the data derived at import time (privacy birth keys, date keys).
+ * Bumping it re-applies the current import at startup.
+ */
+const DERIVED_DATA_VERSION = '2';
+const DERIVED_DATA_KEY = 'derivedDataVersion';
 
 type ImportSummary = Omit<ImportRun, 'content'>;
 const summarySelect = {
@@ -26,11 +40,26 @@ const summarySelect = {
 } as const;
 
 @Injectable()
-export class ImportsService {
+export class ImportsService implements OnApplicationBootstrap {
+  private readonly logger = new Logger(ImportsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly settings: SettingsService,
   ) {}
+
+  /** Recomputes the derived data when the rules changed since the last import. */
+  async onApplicationBootstrap(): Promise<void> {
+    if ((await this.settings.get(DERIVED_DATA_KEY)) === DERIVED_DATA_VERSION) {
+      return;
+    }
+    const currentId = await this.currentImportId();
+    if (currentId !== undefined) {
+      this.logger.log(`Re-applying import ${currentId} (derived data version ${DERIVED_DATA_VERSION})`);
+      await this.commit(currentId);
+    }
+    await this.settings.set(DERIVED_DATA_KEY, DERIVED_DATA_VERSION);
+  }
 
   private toDto(run: ImportSummary, currentId: number | undefined): ImportDto {
     const stats = JSON.parse(run.stats) as ImportStatsDto & { declaredCharset?: string };

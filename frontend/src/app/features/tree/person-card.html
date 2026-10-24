@@ -11,7 +11,7 @@
   </button>
 }
 <button type="button" class="name" (click)="tree.select(p)">
-  <fa-icon class="sex" [icon]="sexIcon()" [attr.aria-label]="'sex.' + p.sex | transloco" />
+  <fa-icon class="sex" role="img" [icon]="sexIcon()" [attr.aria-label]="'sex.' + p.sex | transloco" />
   <span class="surname">{{ p.surname }}</span> {{ p.givenNames }}
 </button>
 @if (p.restricted) {

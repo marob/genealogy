@@ -35,6 +35,14 @@ interface ProviderDefinition {
   fetchProfile?: (config: oidc.Configuration, accessToken: string) => Promise<Omit<ExternalIdentity, 'provider'>>;
 }
 
+/**
+ * Keeps a profile picture only if the browser can display it as is. Microsoft
+ * returns a Graph API URL that requires the access token.
+ */
+function publicPicture(url: string | undefined): string | undefined {
+  return url?.startsWith('https://') && !url.startsWith('https://graph.microsoft.com/') ? url : undefined;
+}
+
 /** Identity extracted from OIDC claims (ID token and userinfo). */
 export function identityFromClaims(
   provider: string,
@@ -44,7 +52,7 @@ export function identityFromClaims(
   const text = (value: unknown): string | undefined => (typeof value === 'string' && value ? value : undefined);
   const email = text(claims.email);
   const displayName = text(claims.name);
-  const picture = text(claims.picture);
+  const picture = publicPicture(text(claims.picture));
   const verified =
     email !== undefined && (claims.email_verified === true || (trustEmail && claims.email_verified === undefined));
   return {

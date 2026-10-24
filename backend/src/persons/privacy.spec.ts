@@ -33,11 +33,31 @@ describe('PrivacyPolicy', () => {
     expect(policy.isContemporary(20_000_101)).toBe(true);
   });
 
-  it('computes an event key by filling unknown parts with the latest value', () => {
-    const base = { dateEndYear: null };
-    expect(PrivacyPolicy.eventKey({ ...base, dateSortKey: 19_260_000 })).toBe(19_261_231);
-    expect(PrivacyPolicy.eventKey({ ...base, dateSortKey: 19_260_300 })).toBe(19_260_331);
-    expect(PrivacyPolicy.eventKey({ ...base, dateSortKey: 19_000_000, dateEndYear: 1930 })).toBe(19_301_231);
-    expect(PrivacyPolicy.eventKey({ ...base, dateSortKey: null })).toBeUndefined();
+  it('computes the latest possible date of an event', () => {
+    const exact = { dateQualifier: 'exact', dateEndSortKey: null };
+    expect(PrivacyPolicy.eventKey({ ...exact, dateSortKey: 19_260_000 })).toBe(19_261_231);
+    expect(PrivacyPolicy.eventKey({ ...exact, dateSortKey: 19_260_300 })).toBe(19_260_331);
+    expect(PrivacyPolicy.eventKey({ ...exact, dateSortKey: null })).toBeUndefined();
+    // BET 1900 AND 1930 (end bound already converted to the Gregorian calendar).
+    expect(
+      PrivacyPolicy.eventKey({ dateQualifier: 'between', dateSortKey: 19_000_000, dateEndSortKey: 19_300_000 }),
+    ).toBe(19_301_231);
+  });
+
+  it('adds a margin to approximate dates', () => {
+    expect(PrivacyPolicy.eventKey({ dateQualifier: 'about', dateSortKey: 19_200_000, dateEndSortKey: null })).toBe(
+      19_251_231,
+    );
+  });
+
+  it('gives no upper bound to open-ended dates', () => {
+    for (const dateQualifier of ['after', 'from']) {
+      expect(PrivacyPolicy.eventKey({ dateQualifier, dateSortKey: 19_000_000, dateEndSortKey: null })).toBe(
+        Number.POSITIVE_INFINITY,
+      );
+    }
+    expect(PrivacyPolicy.eventKey({ dateQualifier: 'from', dateSortKey: 19_000_000, dateEndSortKey: 19_100_000 })).toBe(
+      19_101_231,
+    );
   });
 });

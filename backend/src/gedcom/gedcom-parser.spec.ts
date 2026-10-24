@@ -64,10 +64,10 @@ describe('parseGedcom', () => {
     expect(result.birthKeys.get('I0')).toEqual({ key: 17_991_109, estimated: false });
     // BET 1854 AND 1856: the latest bound is used.
     expect(result.birthKeys.get('I2')).toEqual({ key: 18_561_231, estimated: false });
-    // Louise: married in 1905, partner born in 1880 → estimate 1880.
-    expect(result.birthKeys.get('I5')).toEqual({ key: 18_800_202, estimated: true });
-    // Jules: parents born around 1880 → 1880 + 30 years.
-    expect(result.birthKeys.get('I6')).toEqual({ key: 19_100_202, estimated: true });
+    // Louise: married in 1905, so born before the end of 1905.
+    expect(result.birthKeys.get('I5')).toEqual({ key: 19_051_231, estimated: true });
+    // Jules: no dated event; his parents' births give no upper bound.
+    expect(result.birthKeys.has('I6')).toBe(false);
   });
 
   it.each([
@@ -112,6 +112,33 @@ describe('parseGedcom', () => {
     ]);
     expect(looped.families.find((f) => f.id === 'F1')?.childIds).toEqual([]);
     expect(looped.persons.find((p) => p.id === 'I1')?.parentFamilies).toEqual([{ familyId: 'F2' }]);
+  });
+
+  it('ignores duplicate children and a parent declared as their own child on the person side', () => {
+    const parsed = parseGedcom(
+      new TextEncoder().encode(
+        [
+          '0 HEAD',
+          '1 CHAR UTF-8',
+          '0 @I1@ INDI',
+          '1 NAME A /B/',
+          '1 FAMC @F1@',
+          '0 @I2@ INDI',
+          '1 NAME C /D/',
+          '0 @F1@ FAM',
+          '1 HUSB @I1@',
+          '1 CHIL @I2@',
+          '1 CHIL @I2@',
+          '0 TRLR',
+        ].join('\n'),
+      ),
+    );
+    expect(parsed.warnings).toEqual([
+      'Family F1 lists child I2 more than once: duplicate ignored.',
+      'Person I1 is both a parent and a child in family F1: parent-child link ignored.',
+    ]);
+    expect(parsed.families[0]?.childIds).toEqual(['I2']);
+    expect(parsed.persons.find((p) => p.id === 'I1')?.parentFamilies).toEqual([]);
   });
 
   it('reports broken references and completes one-way links', () => {

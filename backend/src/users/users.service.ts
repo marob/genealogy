@@ -101,7 +101,7 @@ export class UsersService {
   async update(
     currentUser: AuthUser,
     id: number,
-    changes: { role?: Role | undefined; canSeeContemporary?: boolean | undefined },
+    changes: { role?: Role; canSeeContemporary?: boolean },
   ): Promise<UserDto> {
     if (id === currentUser.id && changes.role && changes.role !== currentUser.role) {
       throw new ForbiddenException('You cannot change your own role.');

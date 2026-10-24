@@ -6,7 +6,8 @@ services:
     build: .
     image: genealogie:local
     ports:
-      - '8080:3000'
+      # Local only: with AUTH_DEV_BYPASS, anyone reaching the port is an administrator.
+      - '127.0.0.1:8080:3000'
     environment:
       PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8080}
       SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET (at least 32 characters) in .env}

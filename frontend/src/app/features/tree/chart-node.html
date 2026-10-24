@@ -3,11 +3,11 @@
   @if (showParents()) {
     <tr>
       <td [attr.colspan]="colspan()">
-        <table class="parents">
+        <table role="presentation" class="parents">
           <tr>
             @for (parent of n.parents(); track parent.person.id) {
               <td colspan="2" class="parent-cell">
-                <table appChartNode [node]="parent" part="parents"></table>
+                <table role="presentation" appChartNode [node]="parent" part="parents"></table>
               </td>
             }
           </tr>
@@ -114,7 +114,7 @@
     <tr>
       @for (child of n.children(); track child.person.id) {
         <td colspan="2" class="child-cell">
-          <table appChartNode [node]="child" part="children"></table>
+          <table role="presentation" appChartNode [node]="child" part="children"></table>
         </td>
       }
     </tr>

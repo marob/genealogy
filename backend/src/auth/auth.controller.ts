@@ -78,7 +78,7 @@ export class AuthController {
     try {
       // The public URL is authoritative (the backend may be behind a proxy).
       const currentUrl = new URL(
-        `${this.providers.callbackUrl(provider)}?${new URL(req.url, 'http://x').searchParams}`,
+        `${this.providers.callbackUrl(provider)}?${new URL(req.url, this.publicUrl).searchParams}`,
       );
       const identity = await this.providers.handleCallback(provider, currentUrl, transaction);
       const user = await this.users.loginWithIdentity(identity);

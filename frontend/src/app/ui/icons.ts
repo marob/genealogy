@@ -1,3 +1,5 @@
+import { faMars, faVenus, faVenusMars } from '@fortawesome/free-solid-svg-icons';
+
 /** Font Awesome icons used in the application (explicit imports for tree-shaking). */
 export {
   faAnglesDown as iconExpandDescendants,
@@ -24,14 +26,18 @@ export {
   faHouse as iconRoot,
   faLocationDot as iconPlace,
   faMagnifyingGlass as iconSearch,
-  faMars as iconMale,
   faMinus as iconZoomOut,
   faPlus as iconZoomIn,
   faRing as iconUnion,
   faRotateLeft as iconReset,
   faTrash as iconDelete,
   faUserTie as iconOccupation,
-  faVenus as iconFemale,
-  faVenusMars as iconUnknownSex,
   faXmark as iconClose,
 } from '@fortawesome/free-solid-svg-icons';
+
+const SEX_ICONS: Record<string, typeof faMars> = { M: faMars, F: faVenus };
+
+/** Icon for a person's sex (M, F, or unknown). */
+export function sexIcon(sex: string) {
+  return SEX_ICONS[sex] ?? faVenusMars;
+}

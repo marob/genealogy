@@ -7,7 +7,7 @@ import { NotificationsService } from '../core/notifications.service';
   imports: [TranslocoPipe],
   template: `
     @for (item of notifications.items(); track item.id) {
-      <div class="toast" [class]="'toast toast-' + item.kind" role="status">
+      <div class="toast" [class]="'toast toast-' + item.kind" [attr.role]="item.kind === 'error' ? 'alert' : 'status'">
         <span>{{ item.message | transloco: item.params }}</span>
         <button
           type="button"

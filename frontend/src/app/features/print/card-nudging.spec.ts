@@ -61,6 +61,19 @@ describe('moveCutCards', () => {
     );
   });
 
+  it('stretches the horizontal line beyond its end when the drop leaves it', () => {
+    // The drop (x=70) hangs from the middle of a line drawn from right to left;
+    // the right side is blocked (the pushed neighbour would leave the sheet).
+    const result = moveCutCards(
+      [card(60, 50, 120, 90), card(125, 50, 395, 90)],
+      [line(300, 20, 65, 20), line(70, 20, 70, 50)],
+      { x: [100], y: [] },
+      size,
+    );
+    expect(result.cards[0]).toEqual(card(36, 50, 96, 90));
+    expect(sorted(result.segments)).toEqual(sorted([line(300, 20, 46, 20), line(46, 20, 46, 50)]));
+  });
+
   it('pushes the neighbouring card when it blocks the move', () => {
     const result = moveCutCards(
       [card(80, 50, 140, 90), card(150, 50, 200, 90), card(0, 50, 60, 90)],

@@ -33,10 +33,18 @@ const people = [
   { id: 'I4', givenNames: 'Zoé', surname: 'MARTIN', sex: 'F' as const, restricted: true },
 ];
 
+/** Search debounce of the component, in milliseconds. */
+const DEBOUNCE_MS = 200;
+
 describe('QuickSearch', () => {
   const search = vi.fn();
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   beforeEach(() => {
+    vi.useFakeTimers();
     search.mockReset().mockResolvedValue({ items: people, total: 2, page: 1, pageSize: 8 });
     TestBed.configureTestingModule({
       providers: [provideTestTransloco(), provideRouter([]), { provide: ApiService, useValue: { search } }],
@@ -50,8 +58,8 @@ describe('QuickSearch', () => {
     input.dispatchEvent(new Event('focus'));
     input.value = text;
     input.dispatchEvent(new Event('input'));
-    await new Promise((resolve) => setTimeout(resolve, 260));
-    await fixture.whenStable();
+    await vi.advanceTimersByTimeAsync(DEBOUNCE_MS);
+    await vi.runOnlyPendingTimersAsync();
     fixture.detectChanges();
     return { fixture, input, element: fixture.nativeElement as HTMLElement };
   }

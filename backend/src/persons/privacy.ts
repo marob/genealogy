@@ -1,3 +1,5 @@
+import { latestKey } from '../gedcom/privacy-bound.js';
+
 /**
  * Privacy rule: the details of persons born less than 100 years ago are
  * only visible to authorized users.
@@ -33,16 +35,12 @@ export class PrivacyPolicy {
     return !this.canSeeContemporary && this.isContemporary(birthKey);
   }
 
-  /** Privacy key of an event date (unknown parts filled with the latest value). */
-  static eventKey(event: { dateEndYear: number | null; dateSortKey: number | null }): number | undefined {
-    if (event.dateSortKey === null) {
-      return undefined;
-    }
-    // The sort key is Gregorian: fill in the unknown parts.
-    const year = Math.floor(event.dateSortKey / 10_000);
-    const month = Math.floor(event.dateSortKey / 100) % 100 || 12;
-    const day = event.dateSortKey % 100 || 31;
-    const endYear = event.dateEndYear ?? year;
-    return Math.max(year, endYear) * 10_000 + month * 100 + day;
+  /** Latest possible date of an event (`Infinity` for open-ended dates such as "after 1920"). */
+  static eventKey(event: {
+    dateQualifier: string | null;
+    dateSortKey: number | null;
+    dateEndSortKey: number | null;
+  }): number | undefined {
+    return latestKey(event.dateQualifier, event.dateSortKey, event.dateEndSortKey);
   }
 }

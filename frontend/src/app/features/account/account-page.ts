@@ -1,10 +1,11 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject, resource } from '@angular/core';
+import { Component, computed, inject, resource } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ApiService } from '../../core/api.service';
 import { NotificationsService } from '../../core/notifications.service';
 import { isLanguage, LANGUAGES, LanguageService } from '../../core/language.service';
+import { valueOf } from '../../core/resources';
 import { SessionStore } from '../../core/session.store';
 import { ConfirmService } from '../../ui/confirm-dialog';
 
@@ -31,7 +32,7 @@ import { ConfirmService } from '../../ui/confirm-dialog';
             <img [src]="user.avatarUrl" alt="" width="64" height="64" referrerpolicy="no-referrer" />
           }
           <div>
-            <h1>{{ user.displayName ?? user.email }}</h1>
+            <h2>{{ user.displayName ?? user.email }}</h2>
             <p class="muted">{{ user.email }}</p>
           </div>
         </div>
@@ -49,7 +50,7 @@ import { ConfirmService } from '../../ui/confirm-dialog';
           <dd>{{ user.createdAt | date: 'longDate' : undefined : lang() }}</dd>
           <dt>{{ 'account.root' | transloco }}</dt>
           <dd class="root">
-            @if (rootPerson.value(); as root) {
+            @if (rootValue(); as root) {
               <a [routerLink]="['/tree', root.id]"
                 ><span class="surname">{{ root.surname }}</span> {{ root.givenNames }}</a
               >
@@ -108,7 +109,7 @@ import { ConfirmService } from '../../ui/confirm-dialog';
       img {
         border-radius: 50%;
       }
-      h1 {
+      h2 {
         margin: 0;
       }
     }
@@ -167,9 +168,15 @@ export class AccountPage {
     loader: ({ params }) => this.api.person(params).catch(() => undefined),
   });
 
+  protected readonly rootValue = computed(() => valueOf(this.rootPerson));
+
   protected async resetRoot(): Promise<void> {
-    await this.session.setPersonalRoot(null);
-    this.notifications.show('success', 'account.rootReset');
+    try {
+      await this.session.setPersonalRoot(null);
+      this.notifications.show('success', 'account.rootReset');
+    } catch (error) {
+      this.notifications.error(error);
+    }
   }
 
   protected async deleteAccount(): Promise<void> {

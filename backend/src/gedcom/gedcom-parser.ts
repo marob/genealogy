@@ -118,9 +118,11 @@ function readEvent(node: GedcomNode, ctx: Context): EventRecord {
 function readName(node: GedcomNode): { givenNames: string; surname: string } {
   const nameNode = child(node, 'NAME');
   const raw = nameNode?.value ?? '';
-  const match = /^([^/]*)\/([^/]*)\/?(.*)$/.exec(raw);
-  const givenFromValue = match ? `${match[1]!} ${match[3]!}` : raw;
-  const surnameFromValue = match ? match[2]! : '';
+  // "Given /Surname/ suffix": the surname sits between the first two slashes.
+  const [before = '', surnamePart, ...after] = raw.split('/');
+  const hasSurname = surnamePart !== undefined;
+  const givenFromValue = hasSurname ? `${before} ${after.join('/')}` : raw;
+  const surnameFromValue = surnamePart ?? '';
   const clean = (text: string): string => text.replace(/\s+/g, ' ').trim();
   return {
     givenNames: clean(childValue(nameNode, 'GIVN') ?? givenFromValue),
@@ -191,7 +193,6 @@ function readFamily(node: GedcomNode, ctx: Context): FamilyRecord {
 /** Checks cross-references and fills in missing links. */
 function linkRecords(persons: PersonRecord[], families: FamilyRecord[], warnings: string[]): void {
   const personById = new Map(persons.map((p) => [p.id, p]));
-  const familyIds = new Set(families.map((f) => f.id));
 
   for (const family of families) {
     const missingPartner = (id: string | undefined): boolean => {
@@ -207,8 +208,14 @@ function linkRecords(persons: PersonRecord[], families: FamilyRecord[], warnings
     if (missingPartner(family.partner2Id)) {
       delete family.partner2Id;
     }
+    const seenChildren = new Set<string>();
     family.childIds = family.childIds.filter((childId) => {
       const person = personById.get(childId);
+      if (seenChildren.has(childId)) {
+        warnings.push(`Family ${family.id} lists child ${childId} more than once: duplicate ignored.`);
+        return false;
+      }
+      seenChildren.add(childId);
       if (!person) {
         warnings.push(`Family ${family.id} references a nonexistent child (${childId}).`);
         return false;
@@ -228,24 +235,28 @@ function linkRecords(persons: PersonRecord[], families: FamilyRecord[], warnings
     });
   }
 
+  // Link declared only on the person side: check it, then add it to the family's children.
+  const familyById = new Map(families.map((f) => [f.id, { family: f, children: new Set(f.childIds) }]));
   for (const person of persons) {
     person.parentFamilies = person.parentFamilies.filter(({ familyId }) => {
-      if (!familyIds.has(familyId)) {
+      const entry = familyById.get(familyId);
+      if (!entry) {
         warnings.push(`Person ${person.id} references a nonexistent family (${familyId}).`);
         return false;
       }
-      return true;
-    });
-  }
-  // Link declared only on the person side: add it to the family's children.
-  const familyById = new Map(families.map((f) => [f.id, f]));
-  for (const person of persons) {
-    for (const { familyId } of person.parentFamilies) {
-      const family = familyById.get(familyId)!;
-      if (!family.childIds.includes(person.id)) {
+      const { family, children } = entry;
+      if (person.id === family.partner1Id || person.id === family.partner2Id) {
+        warnings.push(
+          `Person ${person.id} is both a parent and a child in family ${family.id}: parent-child link ignored.`,
+        );
+        return false;
+      }
+      if (!children.has(person.id)) {
+        children.add(person.id);
         family.childIds.push(person.id);
       }
-    }
+      return true;
+    });
   }
 }
 

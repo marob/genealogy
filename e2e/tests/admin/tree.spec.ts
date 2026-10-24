@@ -85,7 +85,7 @@ test('prepares a printable version of the tree', async ({ page }) => {
   await page.goto('/print');
   await page.getByLabel('Personne centrale').fill('emile');
   await page
-    .getByRole('option')
+    .getByRole('list', { name: 'Personne centrale' })
     .getByRole('button', { name: /MARTIN Émile Joseph/ })
     .click();
   await expect(page).toHaveURL(/person=I1/);

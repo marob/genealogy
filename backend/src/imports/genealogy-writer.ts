@@ -1,3 +1,4 @@
+import { sortKey } from '@genealogie/shared';
 import { normalizeForSearch } from '../common/normalize.js';
 import type { Prisma } from '../generated/prisma/client.js';
 import type { EventRecord, GenealogyData } from '../gedcom/model.js';
@@ -32,6 +33,7 @@ function eventData(
     dateEndMonth: date?.date.end?.month ?? null,
     dateEndDay: date?.date.end?.day ?? null,
     dateSortKey: date?.sortKey ?? null,
+    dateEndSortKey: date?.gregorianEnd ? sortKey(date.gregorianEnd) : null,
     placeId: event.place ? (placeIds.get(event.place) ?? null) : null,
   };
 }

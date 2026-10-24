@@ -99,7 +99,7 @@ export function decodeAnsel(bytes: Uint8Array): AnselResult {
 
   for (const byte of bytes) {
     if (byte < 0x80) {
-      const char = String.fromCharCode(byte);
+      const char = String.fromCodePoint(byte);
       // A diacritic does not apply to a line ending.
       if (pending && (byte === 0x0a || byte === 0x0d)) {
         text += pending;

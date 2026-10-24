@@ -82,4 +82,15 @@ describe('parseGedcomDate', () => {
     expect(parseGedcomDate('32 JAN 1900')!.date.qualifier).toBe('phrase');
     expect(parseGedcomDate('vers la Toussaint')!.sortKey).toBeUndefined();
   });
+
+  it('keeps dates with an unknown month or too many parts as free text', () => {
+    // A month of another calendar is only detected without an explicit escape.
+    expect(parseGedcomDate('@#DJULIAN@ 18 BRUM 8')!.date.qualifier).toBe('phrase');
+    expect(parseGedcomDate('18 FOO 1900')!.date.qualifier).toBe('phrase');
+    expect(parseGedcomDate('1 2 JAN 1900')!.date.qualifier).toBe('phrase');
+    expect(parseGedcomDate('BET 1900 AND later')!.date.qualifier).toBe('phrase');
+    expect(parseGedcomDate('FROM 1900 TO later')!.date.qualifier).toBe('phrase');
+    expect(parseGedcomDate('TO later')!.date.qualifier).toBe('phrase');
+    expect(parseGedcomDate('ABT later')!.date.qualifier).toBe('phrase');
+  });
 });

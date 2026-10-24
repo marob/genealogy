@@ -22,6 +22,12 @@ describe('validateEnv', () => {
     expect(() => validateEnv({ ...base, SESSION_SECRET: 'short' })).toThrow();
   });
 
+  it('rejects the example session secret', () => {
+    expect(() => validateEnv({ ...base, SESSION_SECRET: 'change-me-change-me-change-me-change-me' })).toThrow(
+      /example value/,
+    );
+  });
+
   it('only allows the authentication bypass locally', () => {
     expect(validateEnv({ ...base, AUTH_DEV_BYPASS: 'true', PUBLIC_URL: 'http://localhost:8080' }).AUTH_DEV_BYPASS).toBe(
       true,

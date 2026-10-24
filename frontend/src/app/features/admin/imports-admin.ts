@@ -1,11 +1,12 @@
 import { DatePipe, DecimalPipe, KeyValuePipe } from '@angular/common';
-import { Component, inject, resource, signal } from '@angular/core';
+import { Component, computed, inject, resource, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import type { ImportDto } from '@genealogie/shared';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ApiService } from '../../core/api.service';
 import { LanguageService } from '../../core/language.service';
 import { NotificationsService } from '../../core/notifications.service';
+import { valueOf } from '../../core/resources';
 import { ConfirmService } from '../../ui/confirm-dialog';
 import { iconCheck, iconDelete, iconImport } from '../../ui/icons';
 
@@ -25,6 +26,7 @@ export class ImportsAdmin {
   protected readonly lang = inject(LanguageService).current;
 
   protected readonly history = resource({ loader: () => this.api.imports() });
+  protected readonly runs = computed(() => valueOf(this.history) ?? []);
   protected readonly preview = signal<ImportDto | undefined>(undefined);
   protected readonly busy = signal(false);
 

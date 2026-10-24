@@ -6,6 +6,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { ApiService } from '../core/api.service';
 import { formatGenealogyDate } from '../core/genealogy-format';
 import { LanguageService } from '../core/language.service';
+import { valueOf } from '../core/resources';
 import { iconClose, iconSearch } from './icons';
 
 /** Delay before searching while typing. */
@@ -81,7 +82,13 @@ let nextId = 1;
             </li>
           } @empty {
             <li class="empty" role="presentation">
-              {{ (suggestions.isLoading() ? 'common.loading' : 'search.noMatch') | transloco }}
+              @if (suggestions.isLoading()) {
+                {{ 'common.loading' | transloco }}
+              } @else if (suggestions.error()) {
+                {{ 'common.error' | transloco }}
+              } @else {
+                {{ 'search.noMatch' | transloco }}
+              }
             </li>
           }
         </ul>
@@ -212,7 +219,7 @@ export class QuickSearch {
       return (await this.api.search({ q: params, pageSize: MAX_RESULTS })).items;
     },
   });
-  protected readonly results = computed(() => this.suggestions.value() ?? []);
+  protected readonly results = computed(() => valueOf(this.suggestions) ?? []);
   protected readonly open = computed(
     () => this.focused() && !this.dismissed() && this.query().trim().length >= MIN_LENGTH,
   );

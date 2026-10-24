@@ -121,8 +121,13 @@ export class PersonMapper {
       (a, b) => Number(!!a.pedigree && a.pedigree !== 'birth') - Number(!!b.pedigree && b.pedigree !== 'birth'),
     )[0]?.family;
     const unions = [...person.asPartner1, ...person.asPartner2]
-      .map((family) => this.toUnion(person, family))
-      .sort((a, b) => unionSortKey(a) - unionSortKey(b));
+      .map((family) => {
+        const union = this.toUnion(person, family);
+        // Gregorian key: unions dated in other calendars sort correctly. Hidden dates sort last.
+        return { union, key: union.restricted ? Number.MAX_SAFE_INTEGER : familySortKey(family) };
+      })
+      .sort((a, b) => a.key - b.key)
+      .map(({ union }) => union);
 
     return {
       id: person.id,
@@ -141,8 +146,8 @@ export class PersonMapper {
 
   toSummary(person: Person & { events: EventWithPlace[] }): PersonSummaryDto {
     const restricted = this.isRestricted(person.id);
-    const birth = person.events.find((event) => ['BIRT', 'CHR', 'BAPM'].includes(event.type));
-    const death = person.events.find((event) => ['DEAT', 'BURI', 'CREM'].includes(event.type));
+    const birth = firstOfTypes(person.events, ['BIRT', 'CHR', 'BAPM']);
+    const death = firstOfTypes(person.events, ['DEAT', 'BURI', 'CREM']);
     return {
       id: person.id,
       givenNames: person.givenNames,
@@ -155,7 +160,18 @@ export class PersonMapper {
   }
 }
 
-function unionSortKey(union: UnionDto): number {
-  const date = union.events.find((event) => event.date?.start)?.date?.start;
-  return date ? date.year * 10_000 + (date.month ?? 0) * 100 + (date.day ?? 0) : Number.MAX_SAFE_INTEGER;
+/** First event of the first type present, in order of preference. */
+function firstOfTypes<T extends { type: string }>(events: T[], types: string[]): T | undefined {
+  for (const type of types) {
+    const event = events.find((candidate) => candidate.type === type);
+    if (event) {
+      return event;
+    }
+  }
+  return undefined;
+}
+
+function familySortKey(family: { events: { dateSortKey: number | null }[] }): number {
+  const keys = family.events.flatMap((event) => (event.dateSortKey === null ? [] : [event.dateSortKey]));
+  return keys.length ? Math.min(...keys) : Number.MAX_SAFE_INTEGER;
 }

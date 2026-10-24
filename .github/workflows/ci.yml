@@ -13,13 +13,16 @@ jobs:
     name: Lint, types and tests
     runs-on: ubuntu-latest
     env:
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      # Only whether the token exists: the token itself is given to the Sonar step alone,
+      # not to npm scripts and tests.
+      HAS_SONAR_TOKEN: ${{ secrets.SONAR_TOKEN != '' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
+          persist-credentials: false
           # Full history for SonarCloud (blame, new code detection).
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -37,22 +40,26 @@ jobs:
           sed -i 's|^SF:|SF:frontend/|' frontend/coverage/genealogie/lcov.info
       - name: SonarCloud analysis
         # The token is not available to pull requests from forks.
-        if: env.SONAR_TOKEN != ''
+        if: env.HAS_SONAR_TOKEN == 'true'
         uses: SonarSource/sonarqube-scan-action@v8
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   e2e:
     name: End-to-end tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npx -w @genealogie/e2e playwright install --with-deps chromium
       - run: npm run test:e2e
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-report
@@ -79,20 +86,22 @@ jobs:
     env:
       PUBLISH: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - id: arch
         run: echo "name=${PLATFORM#linux/}" >> "$GITHUB_OUTPUT"
         env:
           PLATFORM: ${{ matrix.platform }}
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
         if: env.PUBLISH == 'true'
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - id: build
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           platforms: ${{ matrix.platform }}
@@ -104,7 +113,7 @@ jobs:
         run: mkdir -p /tmp/digests && touch "/tmp/digests/${DIGEST#sha256:}"
         env:
           DIGEST: ${{ steps.build.outputs.digest }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: env.PUBLISH == 'true'
         with:
           name: digest-${{ steps.arch.outputs.name }}
@@ -120,13 +129,13 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           path: /tmp/digests
           pattern: digest-*
           merge-multiple: true
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}

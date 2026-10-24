@@ -25,7 +25,12 @@ export class NotificationsService {
   error(error: unknown): void {
     const body: unknown = error instanceof HttpErrorResponse ? error.error : undefined;
     const message = body && typeof body === 'object' && 'message' in body ? body.message : undefined;
-    const detail = Array.isArray(message) ? message.join(' ; ') : typeof message === 'string' ? message : undefined;
+    let detail: string | undefined;
+    if (Array.isArray(message)) {
+      detail = message.join(' ; ');
+    } else if (typeof message === 'string') {
+      detail = message;
+    }
     if (detail) {
       this.show('error', 'common.errorWithDetail', { detail });
     } else {

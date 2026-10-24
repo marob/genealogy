@@ -56,7 +56,8 @@
     "expandDescendants": "Desplegar todos los descendientes",
     "print": "Versión imprimible",
     "setAsMyRoot": "Definir como mi raíz",
-    "myRootChanged": "Se ha actualizado la raíz de su árbol."
+    "myRootChanged": "Se ha actualizado la raíz de su árbol.",
+    "truncated": "Árbol demasiado grande: la visualización se detiene en {{count}} personas. Despliegue las ramas restantes una a una."
   },
   "person": {
     "name": "Nombre",
@@ -218,7 +219,10 @@
       "none": "No hay usuarios.",
       "updated": "Usuario actualizado.",
       "deleteTitle": "¿Eliminar este usuario?",
-      "deleteMessage": "Se eliminará la cuenta {{email}}. Podrá volver a iniciar sesión, pero sin sus permisos."
+      "deleteMessage": "Se eliminará la cuenta {{email}}. Podrá volver a iniciar sesión, pero sin sus permisos.",
+      "roleOf": "Rol de {{name}}",
+      "contemporaryOf": "{{name}} ve a los contemporáneos",
+      "deleteUser": "Eliminar a {{name}}"
     }
   },
   "print": {
@@ -245,7 +249,9 @@
     "skipEmpty": "Excluir las páginas sin personas",
     "skipped": "{{count}} página(s) vacía(s) excluida(s).",
     "loadingTree": "Cargando el árbol…",
-    "computingPages": "Preparando las páginas…"
+    "computingPages": "Preparando las páginas…",
+    "truncated": "Árbol demasiado grande: la impresión se detiene en {{count}} personas. Reduzca el número de generaciones.",
+    "personNotFound": "No se encuentra a esta persona."
   },
   "legal": {
     "updated": "Última actualización: 24 de octubre de 2026",

@@ -6,20 +6,10 @@ import { ApiService } from '../../core/api.service';
 import { GenealogyDatePipe } from '../../core/genealogy-pipes';
 import { LanguageService } from '../../core/language.service';
 import { NotificationsService } from '../../core/notifications.service';
+import { valueOf } from '../../core/resources';
 import { SessionStore } from '../../core/session.store';
 import { eventIcon } from '../../ui/event-icons';
-import {
-  iconClose,
-  iconDate,
-  iconFamily,
-  iconFemale,
-  iconFocus,
-  iconMale,
-  iconNote,
-  iconPlace,
-  iconRoot,
-  iconUnknownSex,
-} from '../../ui/icons';
+import { iconClose, iconDate, iconFamily, iconFocus, iconNote, iconPlace, iconRoot, sexIcon } from '../../ui/icons';
 
 /** Side panel with a person's full record. */
 @Component({
@@ -53,22 +43,28 @@ export class PersonDetails {
   });
 
   protected relative(id: string | undefined): PersonDto | undefined {
-    return id ? this.relatives.value()?.get(id) : undefined;
+    return id ? valueOf(this.relatives)?.get(id) : undefined;
   }
 
   protected async setAsMyRoot(): Promise<void> {
-    await this.session.setPersonalRoot(this.person().id);
-    this.notifications.show('success', 'tree.myRootChanged');
+    try {
+      await this.session.setPersonalRoot(this.person().id);
+      this.notifications.show('success', 'tree.myRootChanged');
+    } catch (error) {
+      this.notifications.error(error);
+    }
   }
 
   protected async setAsRoot(): Promise<void> {
-    await this.api.setRootPerson(this.person().id);
-    this.notifications.show('success', 'tree.rootChanged');
+    try {
+      await this.api.setRootPerson(this.person().id);
+      this.notifications.show('success', 'tree.rootChanged');
+    } catch (error) {
+      this.notifications.error(error);
+    }
   }
 
-  protected sexIcon(sex: string) {
-    return sex === 'M' ? iconMale : sex === 'F' ? iconFemale : iconUnknownSex;
-  }
+  protected readonly sexIcon = sexIcon;
 
   protected readonly eventIcon = eventIcon;
   protected readonly icons = {

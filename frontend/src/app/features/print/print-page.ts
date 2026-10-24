@@ -20,9 +20,11 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import type { PersonSummaryDto } from '@genealogie/shared';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ApiService } from '../../core/api.service';
+import { NotificationsService } from '../../core/notifications.service';
+import { isNotFound, valueOf } from '../../core/resources';
 import { iconPrint, iconSearch } from '../../ui/icons';
 import { ChartNode } from '../tree/chart-node';
-import { MAX_GENERATIONS, TreeController } from '../tree/tree-controller';
+import { MAX_GENERATIONS, MAX_RENDERED_NODES, TreeController } from '../tree/tree-controller';
 import { type ChartDrawing, measureChart, placedCopy } from './chart-drawing';
 import { lineageDepth } from './lineage-depth';
 import { type Layout, type LayoutInput, layoutPages } from './pagination';
@@ -76,6 +78,7 @@ export class PrintPage implements OnDestroy {
 
   protected readonly tree = inject(TreeController);
   private readonly api = inject(ApiService);
+  private readonly notifications = inject(NotificationsService);
   private readonly router = inject(Router);
   private readonly document = inject(DOCUMENT);
   private readonly pageStyle = this.document.createElement('style');
@@ -89,8 +92,18 @@ export class PrintPage implements OnDestroy {
     loader: async ({ params: id }) =>
       lineageDepth(id, await this.api.lineage(id, { ancestors: MAX_GENERATIONS, descendants: MAX_GENERATIONS })),
   });
-  protected readonly ancestors = computed(() => generations(this.up(), this.depth.value()?.ancestors ?? 0));
-  protected readonly descendants = computed(() => generations(this.down(), this.depth.value()?.descendants ?? 0));
+  protected readonly available = computed(() => valueOf(this.depth));
+  protected readonly ancestors = computed(() => generations(this.up(), this.available()?.ancestors ?? 0));
+  protected readonly descendants = computed(() => generations(this.down(), this.available()?.descendants ?? 0));
+  /** Translation key of the message shown when the chosen person cannot be displayed. */
+  protected readonly loadError = computed(() => {
+    const error = this.depth.error();
+    if (error) {
+      return isNotFound(error) ? 'print.personNotFound' : 'common.error';
+    }
+    return this.tree.notFound() ? 'print.personNotFound' : undefined;
+  });
+  protected readonly maxNodes = MAX_RENDERED_NODES;
 
   protected readonly printMode = computed<Mode>(() => (this.mode() === 'paper' ? 'paper' : 'pdf'));
   protected readonly paperFormat = computed<Paper>(() => {
@@ -141,13 +154,14 @@ export class PrintPage implements OnDestroy {
       return (await this.api.search({ q: params, pageSize: 10 })).items;
     },
   });
+  protected readonly candidateList = computed(() => valueOf(this.candidates));
 
   constructor() {
     this.document.head.appendChild(this.pageStyle);
 
     effect(() => {
       const id = this.person();
-      if (!id) {
+      if (!id || this.depth.error()) {
         untracked(() => this.tree.root.set(undefined));
         return;
       }
@@ -248,12 +262,31 @@ export class PrintPage implements OnDestroy {
         this.computing.set(false);
       }
     };
+    const fail = (error: unknown) => {
+      if (request === this.request) {
+        this.layout.set(undefined);
+        this.computing.set(false);
+        this.notifications.error(error);
+      }
+    };
     if (typeof Worker === 'undefined') {
-      done(layoutPages(input));
+      try {
+        done(layoutPages(input));
+      } catch (error) {
+        fail(error);
+      }
       return;
     }
     this.worker ??= new Worker(new URL('./pagination.worker', import.meta.url), { type: 'module' });
-    this.worker.onmessage = ({ data }: MessageEvent<Layout>) => done(data);
+    this.worker.onmessage = ({ data }: MessageEvent<Layout | { error: string }>) =>
+      'error' in data ? fail(new Error(data.error)) : done(data);
+    this.worker.onmessageerror = fail;
+    this.worker.onerror = (event) => {
+      // The worker may be unusable (script failed to load): a new one is created next time.
+      this.worker?.terminate();
+      this.worker = undefined;
+      fail(event);
+    };
     this.worker.postMessage(input);
   }
 

@@ -44,9 +44,12 @@
   @if (tree.notFound()) {
     <p class="empty">{{ 'tree.empty' | transloco }}</p>
   }
+  @if (tree.truncated()) {
+    <output class="truncated no-pan">{{ 'tree.truncated' | transloco: { count: maxNodes } }}</output>
+  }
   <div class="canvas" #canvas>
     @if (tree.root(); as root) {
-      <table appChartNode [node]="root" part="root"></table>
+      <table role="presentation" appChartNode [node]="root" part="root"></table>
     }
   </div>
 </div>

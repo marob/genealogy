@@ -15,6 +15,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import type { PersonDto } from '@genealogie/shared';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ApiService } from '../../core/api.service';
+import { NotificationsService } from '../../core/notifications.service';
 import {
   iconExpandAncestors,
   iconExpandDescendants,
@@ -25,7 +26,7 @@ import {
 } from '../../ui/icons';
 import { ChartNode } from './chart-node';
 import { PersonDetails } from './person-details';
-import { TreeController } from './tree-controller';
+import { MAX_RENDERED_NODES, TreeController } from './tree-controller';
 
 /** Tree page: `/tree` (default root) or `/tree/:id`. */
 @Component({
@@ -40,8 +41,10 @@ export class TreePage implements OnDestroy {
   readonly id = input<string>();
 
   protected readonly tree = inject(TreeController);
+  protected readonly maxNodes = MAX_RENDERED_NODES;
   private readonly api = inject(ApiService);
   private readonly router = inject(Router);
+  private readonly notifications = inject(NotificationsService);
 
   private readonly viewport = viewChild<ElementRef<HTMLElement>>('viewport');
   private readonly canvas = viewChild<ElementRef<HTMLElement>>('canvas');
@@ -112,11 +115,15 @@ export class TreePage implements OnDestroy {
       await this.tree.load(id);
       return;
     }
-    const info = await this.api.treeInfo();
-    if (info.rootPersonId) {
-      await this.router.navigate(['/tree', info.rootPersonId], { replaceUrl: true });
-    } else {
-      this.tree.notFound.set(true);
+    try {
+      const info = await this.api.treeInfo();
+      if (info.rootPersonId) {
+        await this.router.navigate(['/tree', info.rootPersonId], { replaceUrl: true });
+      } else {
+        this.tree.notFound.set(true);
+      }
+    } catch (error) {
+      this.notifications.error(error);
     }
   }
 

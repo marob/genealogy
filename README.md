@@ -18,7 +18,8 @@ Web application for browsing a family tree, fed by a **GEDCOM** file exported fr
 
 The rule is enforced **on the server**: hidden information never leaves the API.
 
-- An unknown birth date is estimated from the person's events (one is born before marrying or dying), and from their parents, spouses and children. When no estimate is possible, the person is treated as a contemporary.
+- An unknown birth date is bounded only by facts that prove it: the person's own dated events and those of their unions (one is born before marrying or dying), and their children's births minus 12 years. Guesses such as a spouse's or parents' birth are never used. Without such a bound, the person is treated as a contemporary.
+- Dates are taken at their latest possible value: unknown parts are filled with the end of the year, approximate dates (`ABT`, `EST`, `CAL`) get a 5-year margin, and open-ended dates (`AFT`, `FROM`) give no bound at all.
 - Searches by place or date exclude contemporaries for unauthorized users, so that nothing is revealed indirectly.
 - "Today" is computed in the `APP_TIMEZONE` time zone (Europe/Paris by default).
 

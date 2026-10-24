@@ -1,11 +1,12 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject, resource } from '@angular/core';
+import { Component, computed, inject, resource } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import type { Role, UserDto } from '@genealogie/shared';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ApiService } from '../../core/api.service';
 import { LanguageService } from '../../core/language.service';
 import { NotificationsService } from '../../core/notifications.service';
+import { valueOf } from '../../core/resources';
 import { SessionStore } from '../../core/session.store';
 import { ConfirmService } from '../../ui/confirm-dialog';
 import { iconDelete } from '../../ui/icons';
@@ -32,8 +33,9 @@ import { iconDelete } from '../../ui/icons';
             </tr>
           </thead>
           <tbody>
-            @for (user of users.value(); track user.id) {
+            @for (user of userList(); track user.id) {
               @let self = user.id === session.user()?.id;
+              @let name = nameOf(user);
               <tr>
                 <td>
                   {{ user.displayName ?? user.email }}
@@ -43,8 +45,8 @@ import { iconDelete } from '../../ui/icons';
                   <select
                     [value]="user.role"
                     [disabled]="self"
-                    [attr.aria-label]="'account.role' | transloco"
-                    (change)="update(user, { role: $any($event.target).value })"
+                    [attr.aria-label]="'admin.users.roleOf' | transloco: { name }"
+                    (change)="update(user, { role: $any($event.target).value }, $any($event.target))"
                   >
                     <option value="MEMBER">{{ 'roles.MEMBER' | transloco }}</option>
                     <option value="ADMIN">{{ 'roles.ADMIN' | transloco }}</option>
@@ -55,8 +57,8 @@ import { iconDelete } from '../../ui/icons';
                     type="checkbox"
                     [checked]="user.canSeeContemporary || user.role === 'ADMIN'"
                     [disabled]="user.role === 'ADMIN'"
-                    [attr.aria-label]="'admin.users.contemporary' | transloco"
-                    (change)="update(user, { canSeeContemporary: $any($event.target).checked })"
+                    [attr.aria-label]="'admin.users.contemporaryOf' | transloco: { name }"
+                    (change)="update(user, { canSeeContemporary: $any($event.target).checked }, $any($event.target))"
                   />
                 </td>
                 <td>{{ user.lastLoginAt | date: 'short' : undefined : lang() }}</td>
@@ -65,7 +67,7 @@ import { iconDelete } from '../../ui/icons';
                     <button
                       type="button"
                       class="btn-icon"
-                      [attr.aria-label]="'common.delete' | transloco"
+                      [attr.aria-label]="'admin.users.deleteUser' | transloco: { name }"
                       (click)="remove(user)"
                     >
                       <fa-icon [icon]="iconDelete" />
@@ -75,7 +77,11 @@ import { iconDelete } from '../../ui/icons';
               </tr>
             } @empty {
               <tr>
-                <td colspan="5" class="muted">{{ 'admin.users.none' | transloco }}</td>
+                @if (users.error()) {
+                  <td colspan="5" class="error">{{ 'common.error' | transloco }}</td>
+                } @else {
+                  <td colspan="5" class="muted">{{ 'admin.users.none' | transloco }}</td>
+                }
               </tr>
             }
           </tbody>
@@ -92,13 +98,33 @@ export class UsersAdmin {
   protected readonly lang = inject(LanguageService).current;
 
   protected readonly users = resource({ loader: () => this.api.users() });
+  protected readonly userList = computed(() => valueOf(this.users) ?? []);
 
-  protected async update(user: UserDto, changes: { role?: Role; canSeeContemporary?: boolean }): Promise<void> {
+  /** Name used in the labels of a user's row controls. */
+  protected nameOf(user: UserDto): string {
+    return user.displayName ? `${user.displayName} (${user.email})` : user.email;
+  }
+
+  /**
+   * Applies a change made with a row control. On failure, the control is put
+   * back to the saved value (the binding does not change, so Angular would
+   * leave the attempted value displayed).
+   */
+  protected async update(
+    user: UserDto,
+    changes: { role?: Role; canSeeContemporary?: boolean },
+    control?: HTMLInputElement | HTMLSelectElement,
+  ): Promise<void> {
     try {
       await this.api.updateUser(user.id, changes);
       this.notifications.show('success', 'admin.users.updated');
     } catch (error) {
       this.notifications.error(error);
+      if (control instanceof HTMLSelectElement) {
+        control.value = user.role;
+      } else if (control) {
+        control.checked = user.canSeeContemporary || user.role === 'ADMIN';
+      }
     }
     this.users.reload();
   }
@@ -111,10 +137,15 @@ export class UsersAdmin {
       confirmLabel: 'common.delete',
       danger: true,
     });
-    if (confirmed) {
-      await this.api.deleteUser(user.id);
-      this.users.reload();
+    if (!confirmed) {
+      return;
     }
+    try {
+      await this.api.deleteUser(user.id);
+    } catch (error) {
+      this.notifications.error(error);
+    }
+    this.users.reload();
   }
 
   protected readonly iconDelete = iconDelete;

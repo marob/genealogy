@@ -19,4 +19,11 @@ describe('Development mode (AUTH_DEV_BYPASS)', () => {
     expect(me).toMatchObject({ devBypass: true, user: { email: 'dev@localhost', role: 'ADMIN' } });
     await request(ctx.app.getHttpServer()).get('/api/admin/users').expect(200);
   });
+
+  it('ignores requests addressed to another host (LAN IP, other host name)', async () => {
+    const me = (await request(ctx.app.getHttpServer()).get('/api/me').set('Host', '192.168.1.10:8080').expect(200))
+      .body as MeDto;
+    expect(me.user).toBeUndefined();
+    await request(ctx.app.getHttpServer()).get('/api/admin/users').set('Host', 'example.com').expect(401);
+  });
 });

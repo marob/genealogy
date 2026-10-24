@@ -20,7 +20,7 @@ export interface ParsedLines {
   warnings: string[];
 }
 
-const LINE = /^\s*(\d{1,2})\s+(?:(@[^@]+@)\s+)?([A-Za-z0-9_]+)(?: (.*))?$/;
+const LINE = /^\s*(\d{1,2})\s+(?:(@[^@]+@)\s+)?(\w+)(?: (.*))?$/;
 
 export function parseLines(text: string): ParsedLines {
   const records: GedcomNode[] = [];

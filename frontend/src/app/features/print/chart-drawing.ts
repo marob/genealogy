@@ -49,12 +49,12 @@ export function measureChart(chart: HTMLElement): ChartDrawing {
   // Lines extended up to the cards (::before / ::after pseudo-elements).
   for (const node of all('.node-center.line-above')) {
     const box = rect(node);
-    const height = parseFloat(getComputedStyle(node, '::before').height) || 0;
+    const height = Number.parseFloat(getComputedStyle(node, '::before').height) || 0;
     vertical((box.left + box.right) / 2, box.top, box.top + height);
   }
   for (const node of all('.node-center.line-below')) {
     const box = rect(node);
-    const height = parseFloat(getComputedStyle(node, '::after').height) || 0;
+    const height = Number.parseFloat(getComputedStyle(node, '::after').height) || 0;
     vertical((box.left + box.right) / 2, box.bottom - height, box.bottom);
   }
 

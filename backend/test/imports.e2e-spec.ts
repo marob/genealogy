@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { ImportDto } from '@genealogie/shared';
 import request from 'supertest';
+import { ImportsService } from '../src/imports/imports.service.js';
 import { encodeAnsel } from './utils/encodings.js';
 import { createTestApp, loginAs, type TestContext } from './utils/test-app.js';
 
@@ -35,7 +36,9 @@ describe('Import GEDCOM (/api/admin/imports)', () => {
   });
 
   it('rejects a file that is not a GEDCOM', async () => {
-    await upload(admin, 'hello').expect(400);
+    const response = await upload(admin, 'hello');
+    expect(response.status).toBe(400);
+    expect((response.body as { message: string }).message).toMatch(/not a valid GEDCOM/);
   });
 
   it('parses then applies an ANSEL file', async () => {
@@ -98,5 +101,18 @@ describe('Import GEDCOM (/api/admin/imports)', () => {
       .delete(`/api/admin/imports/${preview.id - 1}`)
       .set('Cookie', admin)
       .expect(204);
+  });
+
+  it('re-applies the current import at startup when the derived data rules changed', async () => {
+    await ctx.prisma.person.updateMany({ data: { birthKey: 18_000_101 } });
+    await ctx.prisma.setting.upsert({
+      where: { key: 'derivedDataVersion' },
+      create: { key: 'derivedDataVersion', value: '1' },
+      update: { value: '1' },
+    });
+    await ctx.app.get(ImportsService).onApplicationBootstrap();
+    // Louise: recomputed from her 1905 marriage.
+    expect((await ctx.prisma.person.findUniqueOrThrow({ where: { id: 'I5' } })).birthKey).toBe(19_051_231);
+    expect((await ctx.prisma.setting.findUniqueOrThrow({ where: { key: 'derivedDataVersion' } })).value).toBe('2');
   });
 });

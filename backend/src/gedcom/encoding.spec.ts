@@ -33,6 +33,36 @@ describe('decodeGedcom', () => {
     expect(decodeGedcom(be).text).toContain('Zoé');
   });
 
+  it('decodes UTF-16 BE with a BOM', () => {
+    const text = header('UNICODE') + 'Zoé';
+    const be = new Uint8Array(text.length * 2);
+    [...text].forEach((char, i) => {
+      be[i * 2 + 1] = char.charCodeAt(0);
+    });
+    const result = decodeGedcom(new Uint8Array([0xfe, 0xff, ...be]));
+    expect(result).toMatchObject({ encoding: 'UTF-16BE', declaredCharset: 'UNICODE' });
+    expect(result.text.startsWith('0 HEAD')).toBe(true);
+  });
+
+  it('reports invalid ANSEL bytes', () => {
+    const result = decodeGedcom(new Uint8Array([...latin1(header('ANSEL') + 'a'), 0x80, ...latin1('b')]));
+    expect(result.encoding).toBe('ANSEL');
+    expect(result.text).toContain('a\ufffdb');
+    expect(result.warnings).toEqual(['1 invalid ANSEL byte(s) replaced with "\ufffd".']);
+  });
+
+  it('decodes declared MACINTOSH', () => {
+    const result = decodeGedcom(new Uint8Array([...latin1(header('MACINTOSH') + 'Ren'), 0x8e]));
+    expect(result).toMatchObject({ encoding: 'MACINTOSH', declaredCharset: 'MACINTOSH', warnings: [] });
+    expect(result.text).toContain('René');
+  });
+
+  it('reports an unknown declared encoding', () => {
+    const result = decodeGedcom(latin1(header('EBCDIC') + 'Paul'));
+    expect(result.encoding).toBe('WINDOWS-1252');
+    expect(result.warnings).toEqual(['Unknown declared encoding (EBCDIC): decoding as Windows-1252.']);
+  });
+
   it('decodes declared ANSEL', () => {
     const bytes = new Uint8Array([...latin1(header('ANSEL') + 'Ren'), 0xe2, ...latin1('e')]);
     const result = decodeGedcom(bytes);

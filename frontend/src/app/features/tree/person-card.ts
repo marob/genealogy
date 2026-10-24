@@ -5,7 +5,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { GenealogyDatePipe, PlacePipe } from '../../core/genealogy-pipes';
 import { LanguageService } from '../../core/language.service';
 import { eventIcon } from '../../ui/event-icons';
-import { iconDate, iconFemale, iconFocus, iconMale, iconOccupation, iconPlace, iconUnknownSex } from '../../ui/icons';
+import { iconDate, iconFocus, iconOccupation, iconPlace, sexIcon } from '../../ui/icons';
 import { Tooltip } from '../../ui/tooltip';
 import { TreeController } from './tree-controller';
 import type { TreePart } from './tree-node';
@@ -34,14 +34,11 @@ export class PersonCard {
     return [
       { key: 'BIRT', event: find('BIRT') },
       { key: 'CHR', event: find('CHR', 'BAPM') },
-      { key: 'DEAT', event: find('DEAT') ?? find('BURI') },
+      { key: 'DEAT', event: find('DEAT') ?? find('BURI') ?? find('CREM') },
     ].flatMap(({ key, event }) => (event ? [{ key, event, icon: eventIcon(event.type) }] : []));
   });
 
-  protected readonly sexIcon = computed(() => {
-    const sex = this.person().sex;
-    return sex === 'M' ? iconMale : sex === 'F' ? iconFemale : iconUnknownSex;
-  });
+  protected readonly sexIcon = computed(() => sexIcon(this.person().sex));
 
   protected readonly icons = { iconFocus, iconOccupation, iconDate, iconPlace };
 }

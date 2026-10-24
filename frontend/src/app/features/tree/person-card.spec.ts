@@ -67,4 +67,32 @@ describe('PersonCard', () => {
     element.querySelector<HTMLButtonElement>('.name')!.click();
     expect(select).toHaveBeenCalledWith(expect.objectContaining({ id: 'I2' }));
   });
+
+  it('falls back on burial, then cremation, for the death milestone', () => {
+    const date = (year: number) => ({
+      original: String(year),
+      qualifier: 'exact' as const,
+      calendar: 'gregorian' as const,
+      start: { year },
+    });
+    const cremated = render(person({ id: 'I1', events: [{ type: 'CREM', date: date(1921) }] }));
+    expect(cremated.textContent).toContain('1921');
+    const buried = render(
+      person({
+        id: 'I2',
+        events: [
+          { type: 'CREM', date: date(1931) },
+          { type: 'BURI', date: date(1930) },
+        ],
+      }),
+    );
+    expect(buried.textContent).toContain('1930');
+    expect(buried.textContent).not.toContain('1931');
+  });
+
+  it('announces the sex to assistive technologies', () => {
+    const icon = render(person({ id: 'I4', sex: 'F' })).querySelector('.sex')!;
+    expect(icon.getAttribute('role')).toBe('img');
+    expect(icon.getAttribute('aria-label')).toBe('Femme');
+  });
 });

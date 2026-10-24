@@ -101,6 +101,8 @@ model Event {
   dateEndDay    Int?
   /// Gregorian YYYYMMDD sort key (00 for unknown parts).
   dateSortKey   Int?
+  /// Gregorian YYYYMMDD key of the second bound (between, from-to).
+  dateEndSortKey Int?
 
   placeId Int?
 

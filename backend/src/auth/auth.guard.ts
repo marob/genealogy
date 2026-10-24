@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
-import type { Env } from '../config/env.js';
+import { type Env, LOCAL_HOSTS } from '../config/env.js';
 import { toAuthUser, UsersService } from '../users/users.service.js';
 import { type Access, ACCESS_KEY, type AuthenticatedRequest } from './auth.decorators.js';
 import { SESSION_COOKIE, SessionService } from './session.service.js';
@@ -36,7 +36,8 @@ export class AuthGuard implements CanActivate {
     const user = userId === undefined ? null : await this.users.findById(userId);
     if (user) {
       request.user = toAuthUser(user);
-    } else if (this.devBypass) {
+    } else if (this.devBypass && LOCAL_HOSTS.has(request.hostname)) {
+      // Dev mode only for requests addressed to localhost: not through another host name or the LAN IP.
       request.user = toAuthUser(await this.users.devUser());
     }
 

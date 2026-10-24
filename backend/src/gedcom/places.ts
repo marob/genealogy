@@ -30,6 +30,17 @@ const FIELD_PATTERNS: [PlaceField, RegExp][] = [
  */
 const DEFAULT_LONG_FORM: (PlaceField | undefined)[] = ['locality', 'postalCode', 'county', 'region', 'country'];
 
+/** Field layout of an unlabeled place: long form, single locality, or locality … country. */
+function defaultForm(count: number): readonly (PlaceField | undefined)[] {
+  if (count >= 5) {
+    return DEFAULT_LONG_FORM;
+  }
+  if (count === 1) {
+    return ['locality'];
+  }
+  return ['locality', ...new Array<undefined>(count - 2), 'country'];
+}
+
 export function parsePlaceForm(form: string | undefined): (PlaceField | undefined)[] | undefined {
   if (!form?.trim()) {
     return undefined;
@@ -45,7 +56,7 @@ export function parsePlaceForm(form: string | undefined): (PlaceField | undefine
 }
 
 function parseCoordinate(value: string | undefined, positive: string, negative: string): number | undefined {
-  const match = /^\s*([NSEW])?\s*(-?\d+(?:[.,]\d+)?)\s*$/i.exec(value ?? '');
+  const match = /^([NSEW])? *(-?\d+(?:[.,]\d+)?)$/i.exec((value ?? '').trim());
   if (!match) {
     return undefined;
   }
@@ -72,13 +83,7 @@ export function parsePlace(
   const parts = fullName.split(',').map((part) => part.trim());
   const place: ParsedPlace = { fullName };
 
-  const fields =
-    form ??
-    (parts.length >= 5
-      ? DEFAULT_LONG_FORM
-      : parts.length === 1
-        ? ['locality']
-        : ['locality', ...Array<undefined>(parts.length - 2), 'country']);
+  const fields = form ?? defaultForm(parts.length);
 
   parts.forEach((part, index) => {
     const field = fields[index];
