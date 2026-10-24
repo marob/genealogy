@@ -5,17 +5,17 @@ import type { AuthUser } from './auth-user.js';
 export const ACCESS_KEY = 'genealogie:access';
 export type Access = 'authenticated' | 'admin';
 
-/** Réserve la route aux utilisateurs connectés. */
+/** Restricts the route to logged-in users. */
 export const Authenticated = (): MethodDecorator & ClassDecorator => SetMetadata(ACCESS_KEY, 'authenticated');
 
-/** Réserve la route aux administrateurs. */
+/** Restricts the route to administrators. */
 export const AdminOnly = (): MethodDecorator & ClassDecorator => SetMetadata(ACCESS_KEY, 'admin');
 
 export interface AuthenticatedRequest extends Request {
   user?: AuthUser;
 }
 
-/** Utilisateur courant (undefined pour un visiteur anonyme). */
+/** Current user (undefined for an anonymous visitor). */
 export const CurrentUser = createParamDecorator(
   (_data: unknown, ctx: ExecutionContext): AuthUser | undefined =>
     ctx.switchToHttp().getRequest<AuthenticatedRequest>().user,

@@ -2,10 +2,10 @@ import { type Calendar, type DateQualifier, type GenealogyDate, type PartialDate
 import { toGregorian } from './calendars.js';
 
 /**
- * Analyse des valeurs DATE GEDCOM 5.5.x / 7.0 :
- * `[@#Dcalendrier@] [qualificatif] [[jour] mois] année[/aa] [B.C.]`, plages
- * `BET … AND …`, périodes `FROM … TO …`, dates interprétées `INT … (texte)` et
- * textes libres `(texte)`.
+ * Parses GEDCOM 5.5.x / 7.0 DATE values:
+ * `[@#Dcalendar@] [qualifier] [[day] month] year[/yy] [B.C.]`, ranges
+ * `BET … AND …`, periods `FROM … TO …`, interpreted dates `INT … (text)` and
+ * free-text phrases `(text)`.
  */
 
 const MONTHS: Record<Calendar, string[]> = {
@@ -52,10 +52,10 @@ const SIMPLE_QUALIFIERS: Record<string, DateQualifier> = {
 
 export interface ParsedDate {
   date: GenealogyDate;
-  /** Date grégorienne de début (ou unique), pour le tri et les calculs. */
+  /** Gregorian start (or single) date, for sorting and computations. */
   gregorianStart?: PartialDate;
   gregorianEnd?: PartialDate;
-  /** Clé de tri AAAAMMJJ grégorienne. */
+  /** Gregorian YYYYMMDD sort key. */
   sortKey?: number;
 }
 
@@ -85,7 +85,7 @@ function parseCalendarDate(input: string, defaultCalendar: Calendar): CalendarDa
     return undefined;
   }
 
-  // Année, éventuellement double (« 1720/21 » : l'année moderne est la seconde).
+  // Year, possibly a dual year ("1720/21": the modern year is the second one).
   const yearMatch = /^(\d{1,4})(?:\/(\d{1,2}))?$/.exec(tokens.at(-1)!);
   if (!yearMatch) {
     return undefined;
@@ -101,7 +101,7 @@ function parseCalendarDate(input: string, defaultCalendar: Calendar): CalendarDa
   const date: PartialDate = { year };
   if (tokens.length >= 2) {
     let monthIndex = MONTHS[calendar].indexOf(tokens.at(-2)!);
-    // Mois d'un autre calendrier sans échappement explicite : on le détecte.
+    // Month from another calendar without an explicit escape: detect it.
     if (monthIndex < 0 && calendar === defaultCalendar) {
       for (const cal of ['french-republican', 'hebrew'] as const) {
         const index = MONTHS[cal].indexOf(tokens.at(-2)!);
@@ -156,8 +156,8 @@ function build(
 }
 
 /**
- * Analyse une valeur DATE. Renvoie `undefined` si la valeur est vide ; une
- * valeur non reconnue est conservée comme texte libre (`phrase`).
+ * Parses a DATE value. Returns `undefined` if the value is empty; an
+ * unrecognized value is kept as free text (`phrase`).
  */
 export function parseGedcomDate(value: string | undefined): ParsedDate | undefined {
   const original = (value ?? '').trim().replace(/\s+/g, ' ');
@@ -166,7 +166,7 @@ export function parseGedcomDate(value: string | undefined): ParsedDate | undefin
   }
   const upper = original.toUpperCase();
 
-  // Texte libre seul : « (pendant la guerre) ».
+  // Free text only: "(during the war)".
   if (/^\(.*\)$/.test(original)) {
     return build(original, 'phrase', undefined);
   }
@@ -196,7 +196,7 @@ export function parseGedcomDate(value: string | undefined): ParsedDate | undefin
 
   match = /^(ABT|CAL|EST|BEF|AFT|INT)\.? (.+)$/.exec(upper);
   if (match) {
-    // INT 1850 (vers 1850 selon l'acte) : on ignore le texte entre parenthèses.
+    // INT 1850 (around 1850 according to the record): ignore the text in parentheses.
     const dateText = match[2]!.replace(/\(.*\)$/, '').trim();
     const start = parseCalendarDate(dateText, 'gregorian');
     return start ? build(original, SIMPLE_QUALIFIERS[match[1]!]!, start) : build(original, 'phrase', undefined);

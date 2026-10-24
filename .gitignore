@@ -19,7 +19,7 @@ coverage/
 *.sqlite
 *.ged
 *.GED
-# Fichiers GEDCOM fictifs utilisés par les tests
+# Fictitious GEDCOM files used by the tests
 !**/test/fixtures/*.ged
 data/
 private/
@@ -42,5 +42,5 @@ blob-report/
 # Legacy code (kept locally for reference until removal)
 legacy/
 
-# Configuration locale de Claude Code
+# Local Claude Code configuration
 .claude/

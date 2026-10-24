@@ -1,6 +1,6 @@
-// Démarre l'application compilée pour les tests e2e.
-//   node start-server.mjs admin   → mode sans authentification (tout le monde est admin), applique les migrations
-//   node start-server.mjs public  → visiteur anonyme, attend que le serveur admin ait préparé la base
+// Starts the built application for the e2e tests.
+//   node start-server.mjs admin   → authentication disabled (everyone is an admin), applies the migrations
+//   node start-server.mjs public  → anonymous visitor, waits for the admin server to prepare the database
 import { spawn, spawnSync } from 'node:child_process';
 import { mkdirSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -35,14 +35,14 @@ if (role === 'admin') {
     process.exit(migrate.status ?? 1);
   }
 } else {
-  // Base partagée : on attend que le serveur admin l'ait créée.
+  // Shared database: wait for the admin server to create it.
   for (;;) {
     try {
       if ((await fetch('http://localhost:3101/api/health')).ok) {
         break;
       }
     } catch {
-      // Pas encore prêt.
+      // Not ready yet.
     }
     await new Promise((resolve) => setTimeout(resolve, 300));
   }

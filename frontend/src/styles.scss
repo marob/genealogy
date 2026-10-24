@@ -1,6 +1,6 @@
 @use '@angular/cdk/overlay-prebuilt.css';
 
-/* Jetons de design : thème clair par défaut, sombre selon le système. */
+/* Design tokens: light theme by default, dark depending on the system. */
 :root {
   color-scheme: light dark;
   --bg: #f6f7f9;
@@ -94,7 +94,7 @@ h1 {
   }
 }
 
-/* Formulaires */
+/* Forms */
 input:not([type='checkbox'], [type='radio']),
 select {
   width: 100%;
@@ -123,7 +123,7 @@ input[type='checkbox'] {
   }
 }
 
-/* Boutons */
+/* Buttons */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -199,7 +199,7 @@ input[type='checkbox'] {
   }
 }
 
-/* Conteneurs */
+/* Containers */
 .card {
   padding: 1.25rem;
   border: 1px solid var(--border);
@@ -266,7 +266,7 @@ input[type='checkbox'] {
   color: var(--danger);
 }
 
-/* Import GEDCOM */
+/* GEDCOM import */
 .file-button {
   cursor: pointer;
 }
@@ -309,9 +309,9 @@ input[type='checkbox'] {
   margin-top: 1rem;
 }
 
-/* Infobulles, dialogues et notifications */
+/* Tooltips, dialogs and notifications */
 .tooltip-panel {
-  // Le conteneur de la CDK est en flex ligne : le contenu s'empile ici en colonne.
+  // The CDK container is a flex row: content is stacked in a column here.
   flex-direction: column;
   align-items: flex-start;
   gap: 0.15rem;
@@ -382,13 +382,13 @@ input[type='checkbox'] {
   border-left-color: var(--danger);
 }
 
-/* Aperçu des pages d'impression : sans les boutons de l'arbre. */
+/* Print page preview: without the tree buttons. */
 .sheet .toggle,
 .sheet app-person-card .focus {
   visibility: hidden;
 }
 
-/* Impression : uniquement le contenu, en clair, sans couper les cartes. */
+/* Printing: content only, in light mode, without cutting cards. */
 @media print {
   :root {
     color-scheme: light;

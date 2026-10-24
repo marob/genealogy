@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 
 export const ROOT_PERSON_KEY = 'rootPersonId';
 
-/** Paramètres de l'application stockés en base (clé/valeur). */
+/** Application settings stored in the database (key/value). */
 @Injectable()
 export class SettingsService {
   constructor(private readonly prisma: PrismaService) {}

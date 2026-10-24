@@ -1,14 +1,14 @@
 /**
- * Décodeur ANSEL (ANSI/NISO Z39.47), l'encodage historique des fichiers
- * GEDCOM 5.x.
+ * ANSEL (ANSI/NISO Z39.47) decoder, the historical encoding of GEDCOM 5.x
+ * files.
  *
- * Particularité : les diacritiques sont des caractères combinants placés
- * AVANT la lettre qu'ils modifient (ex. 0xE2 0x65 = « é »). Unicode les place
- * après : on les accumule puis on les émet après le caractère de base, avant
- * de normaliser en NFC.
+ * Peculiarity: diacritics are combining characters placed BEFORE the letter
+ * they modify (e.g. 0xE2 0x65 = "é"). Unicode places them after: they are
+ * accumulated and emitted after the base character, then the text is
+ * normalized to NFC.
  */
 
-/** Caractères simples de la plage haute (0xA1–0xCF). */
+/** Spacing characters of the high range (0xA1–0xCF). */
 const SPACING: Record<number, string> = {
   0xa1: '\u0141', // Ł
   0xa2: '\u00d8', // Ø
@@ -37,8 +37,8 @@ const SPACING: Record<number, string> = {
   0xba: '\u00f0', // ð
   0xbc: '\u01a1', // ơ
   0xbd: '\u01b0', // ư
-  0xbe: '\u25a1', // □ (extension GEDCOM)
-  0xbf: '\u25a0', // ■ (extension GEDCOM)
+  0xbe: '\u25a1', // □ (GEDCOM extension)
+  0xbf: '\u25a0', // ■ (GEDCOM extension)
   0xc0: '\u00b0', // °
   0xc1: '\u2113', // ℓ
   0xc2: '\u2117', // ℗
@@ -48,47 +48,47 @@ const SPACING: Record<number, string> = {
   0xc6: '\u00a1', // ¡
   0xc7: '\u00df', // ß
   0xc8: '\u20ac', // €
-  0xcd: 'e', // e (extension GEDCOM)
-  0xce: 'o', // o (extension GEDCOM)
-  0xcf: '\u00df', // ß (extension GEDCOM)
+  0xcd: 'e', // e (GEDCOM extension)
+  0xce: 'o', // o (GEDCOM extension)
+  0xcf: '\u00df', // ß (GEDCOM extension)
 };
 
-/** Diacritiques combinants (0xE0–0xFE), placés avant la lettre de base. */
+/** Combining diacritics (0xE0–0xFE), placed before the base letter. */
 const COMBINING: Record<number, string> = {
-  0xe0: '\u0309', // crochet en chef
+  0xe0: '\u0309', // hook above
   0xe1: '\u0300', // grave
-  0xe2: '\u0301', // aigu
-  0xe3: '\u0302', // circonflexe
+  0xe2: '\u0301', // acute
+  0xe3: '\u0302', // circumflex
   0xe4: '\u0303', // tilde
   0xe5: '\u0304', // macron
-  0xe6: '\u0306', // brève
-  0xe7: '\u0307', // point en chef
-  0xe8: '\u0308', // tréma
+  0xe6: '\u0306', // breve
+  0xe7: '\u0307', // dot above
+  0xe8: '\u0308', // diaeresis
   0xe9: '\u030c', // caron
-  0xea: '\u030a', // rond en chef
-  0xeb: '\ufe20', // ligature (moitié gauche)
-  0xec: '\ufe21', // ligature (moitié droite)
-  0xed: '\u0315', // virgule en chef à droite
-  0xee: '\u030b', // double aigu
+  0xea: '\u030a', // ring above
+  0xeb: '\ufe20', // ligature (left half)
+  0xec: '\ufe21', // ligature (right half)
+  0xed: '\u0315', // comma above right
+  0xee: '\u030b', // double acute
   0xef: '\u0310', // candrabindu
-  0xf0: '\u0327', // cédille
+  0xf0: '\u0327', // cedilla
   0xf1: '\u0328', // ogonek
-  0xf2: '\u0323', // point souscrit
-  0xf3: '\u0324', // tréma souscrit
-  0xf4: '\u0325', // rond souscrit
-  0xf5: '\u0333', // double soulignement
-  0xf6: '\u0332', // soulignement
-  0xf7: '\u0326', // virgule souscrite
-  0xf8: '\u031c', // demi-rond gauche souscrit
-  0xf9: '\u032e', // brève souscrite
-  0xfa: '\ufe22', // double tilde (moitié gauche)
-  0xfb: '\ufe23', // double tilde (moitié droite)
-  0xfe: '\u0313', // virgule en chef
+  0xf2: '\u0323', // dot below
+  0xf3: '\u0324', // diaeresis below
+  0xf4: '\u0325', // ring below
+  0xf5: '\u0333', // double underline
+  0xf6: '\u0332', // underline
+  0xf7: '\u0326', // comma below
+  0xf8: '\u031c', // left half ring below
+  0xf9: '\u032e', // breve below
+  0xfa: '\ufe22', // double tilde (left half)
+  0xfb: '\ufe23', // double tilde (right half)
+  0xfe: '\u0313', // comma above
 };
 
 export interface AnselResult {
   text: string;
-  /** Nombre d'octets non définis en ANSEL, remplacés par U+FFFD. */
+  /** Number of bytes undefined in ANSEL, replaced with U+FFFD. */
   invalidBytes: number;
 }
 
@@ -100,7 +100,7 @@ export function decodeAnsel(bytes: Uint8Array): AnselResult {
   for (const byte of bytes) {
     if (byte < 0x80) {
       const char = String.fromCharCode(byte);
-      // Un diacritique ne s'applique pas à une fin de ligne.
+      // A diacritic does not apply to a line ending.
       if (pending && (byte === 0x0a || byte === 0x0d)) {
         text += pending;
         pending = '';

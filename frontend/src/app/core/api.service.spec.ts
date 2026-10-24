@@ -16,17 +16,17 @@ describe('ApiService', () => {
 
   afterEach(() => http.verify());
 
-  it('charge une personne avec ses proches et met les proches en cache', async () => {
+  it('loads a person with their relatives and caches the relatives', async () => {
     const promise = api.person('I1', ['parents', 'children']);
     http.expectOne('/api/persons/I1?include=parents,children').flush([person({ id: 'I1' }), person({ id: 'I0' })]);
     expect((await promise)?.id).toBe('I1');
 
-    // Le parent est déjà en cache : aucune requête.
+    // The parent is already cached: no request.
     expect((await api.people(['I0']))[0]?.id).toBe('I0');
     http.expectNone('/api/persons?ids=I0');
   });
 
-  it('ne demande que les personnes absentes du cache, en une requête', async () => {
+  it('requests only uncached people, in a single request', async () => {
     const first = api.people(['I1', undefined, 'I2', 'I1']);
     http.expectOne('/api/persons?ids=I1,I2').flush([person({ id: 'I2' }), person({ id: 'I1' })]);
     expect((await first).map((p) => p.id)).toEqual(['I1', 'I2']);
@@ -36,7 +36,7 @@ describe('ApiService', () => {
     expect((await second).map((p) => p.id)).toEqual(['I2', 'I3']);
   });
 
-  it('vide le cache après l’application d’un import', async () => {
+  it('clears the cache after an import is applied', async () => {
     const load = api.people(['I1']);
     http.expectOne('/api/persons?ids=I1').flush([person({ id: 'I1' })]);
     await load;
@@ -50,7 +50,7 @@ describe('ApiService', () => {
     await reload;
   });
 
-  it('n’envoie que les critères de recherche renseignés', async () => {
+  it('sends only the filled-in search criteria', async () => {
     const promise = api.search({ q: 'martin', place: '', bornFrom: 1850, page: 1 });
     http
       .expectOne('/api/persons/search?q=martin&bornFrom=1850&page=1')
@@ -58,7 +58,7 @@ describe('ApiService', () => {
     await promise;
   });
 
-  it('envoie le fichier GEDCOM en multipart', async () => {
+  it('sends the GEDCOM file as multipart', async () => {
     const file = new File(['0 HEAD'], 'arbre.ged');
     const promise = api.uploadGedcom(file);
     const request = http.expectOne({ method: 'POST', url: '/api/admin/imports' });

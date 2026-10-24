@@ -17,8 +17,8 @@ function toNumber(value: string | undefined): number | undefined {
 }
 
 /**
- * Recherche multicritère (nom, lieu, période de naissance, sexe) et index des
- * patronymes. Les critères sont portés par l'URL pour être partageables.
+ * Multi-criteria search (name, place, birth period, sex) and surname index.
+ * Criteria are carried by the URL so they can be shared.
  */
 @Component({
   selector: 'app-search-page',
@@ -27,7 +27,7 @@ function toNumber(value: string | undefined): number | undefined {
   styleUrl: './search-page.scss',
 })
 export class SearchPage {
-  // Paramètres de requête liés par le routeur.
+  // Query parameters bound by the router.
   readonly q = input<string>();
   readonly surname = input<string>();
   readonly place = input<string>();
@@ -70,7 +70,7 @@ export class SearchPage {
 
   protected readonly surnames = resource({ loader: () => this.api.surnames() });
 
-  /** Index des patronymes groupés par initiale. */
+  /** Surname index grouped by initial. */
   protected readonly surnameIndex = computed(() => {
     const groups = new Map<string, SurnameDto[]>();
     for (const entry of this.surnames.value() ?? []) {
@@ -86,7 +86,7 @@ export class SearchPage {
   });
 
   constructor() {
-    // Le formulaire reflète les critères de l'URL.
+    // The form reflects the URL criteria.
     effect(() => {
       const values = {
         q: this.q() ?? '',

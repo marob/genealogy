@@ -1,10 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Tests de bout en bout sur l'application compilée (`npm run build` au
- * préalable). Deux instances partagent la même base SQLite :
- *  - « admin » (port 3101) en mode sans authentification, pour importer ;
- *  - « public » (port 3102) pour vérifier ce que voit un visiteur anonyme.
+ * End-to-end tests against the built application (run `npm run build`
+ * first). Two instances share the same SQLite database:
+ *  - "admin" (port 3101) with authentication disabled, used to import;
+ *  - "public" (port 3102) to check what an anonymous visitor sees.
  */
 export default defineConfig({
   testDir: './tests',

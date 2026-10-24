@@ -24,7 +24,7 @@ export interface SearchQuery {
 }
 
 const BIRTH_TYPES = ['BIRT', 'CHR', 'BAPM'];
-/** Nombre maximal de personnes renvoyées pour une lignée. */
+/** Maximum number of persons returned for a lineage. */
 const MAX_LINEAGE_PERSONS = 5000;
 const DEATH_TYPES = ['DEAT', 'BURI', 'CREM'];
 
@@ -53,7 +53,7 @@ export class PersonsService {
       where: { id: { in: unique } },
       include: personInclude,
     });
-    // Les dates de naissance des conjoints servent à masquer les unions contemporaines.
+    // Partners' birth dates are used to hide contemporary unions.
     const partnerIds = persons.flatMap((person) =>
       [...person.asPartner1, ...person.asPartner2].flatMap((family) => [family.partner1Id, family.partner2Id]),
     );
@@ -77,11 +77,11 @@ export class PersonsService {
     return this.load(ids, user);
   }
 
-  /** Une personne (en premier) suivie des proches demandés. */
+  /** A person (first) followed by the requested relatives. */
   async findWithRelatives(id: string, relatives: Relatives[], user: AuthUser | undefined): Promise<PersonDto[]> {
     const [person] = await this.load([id], user);
     if (!person) {
-      throw new NotFoundException(`Personne introuvable : ${id}`);
+      throw new NotFoundException(`Person not found: ${id}`);
     }
     const ids: string[] = [];
     if (relatives.includes('parents')) {
@@ -105,9 +105,9 @@ export class PersonsService {
   }
 
   /**
-   * Lignée d'une personne : ses ascendants et ses descendants sur le nombre
-   * de générations demandé, ainsi que ses conjoints. Le parcours ignore les
-   * personnes déjà rencontrées (protection contre les boucles des fichiers).
+   * Lineage of a person: their ancestors and descendants over the requested
+   * number of generations, plus their partners. The traversal skips persons
+   * already visited (protection against loops in files).
    */
   async lineage(
     id: string,
@@ -116,7 +116,7 @@ export class PersonsService {
   ): Promise<PersonDto[]> {
     const [root] = await this.load([id], user);
     if (!root) {
-      throw new NotFoundException(`Personne introuvable : ${id}`);
+      throw new NotFoundException(`Person not found: ${id}`);
     }
     const found = new Map<string, PersonDto>([[root.id, root]]);
     const walk = async (next: (person: PersonDto) => (string | undefined)[], depth: number): Promise<void> => {
@@ -172,8 +172,8 @@ export class PersonsService {
         },
       });
     }
-    // Rechercher par date ou lieu ne doit pas révéler d'informations sur les
-    // contemporains : ils sont alors exclus pour les utilisateurs non autorisés.
+    // Searching by date or place must not reveal information about
+    // contemporaries: they are then excluded for unauthorized users.
     if (usesDetails && !policy.canSeeContemporary) {
       and.push({ birthKey: { not: null, lte: policy.threshold } });
     }
@@ -211,7 +211,7 @@ export class PersonsService {
       .sort((a, b) => normalizeForSearch(a.surname).localeCompare(normalizeForSearch(b.surname)));
   }
 
-  /** Racine de l'arbre : celle de l'utilisateur connecté si elle existe encore, sinon la racine commune. */
+  /** Tree root: the logged-in user's root if it still exists, otherwise the shared root. */
   async treeInfo(user?: AuthUser): Promise<TreeInfoDto> {
     const [globalRootPersonId, persons, account] = await Promise.all([
       this.settings.get(ROOT_PERSON_KEY),
@@ -231,7 +231,7 @@ export class PersonsService {
     };
   }
 
-  /** Racine personnelle de l'utilisateur ; `null` pour revenir à la racine commune. */
+  /** User's personal root; `null` to revert to the shared root. */
   async setPersonalRoot(user: AuthUser, personId: string | null): Promise<TreeInfoDto> {
     if (personId !== null) {
       await this.assertExists(personId);
@@ -242,7 +242,7 @@ export class PersonsService {
 
   private async assertExists(personId: string): Promise<void> {
     if (!(await this.prisma.person.findUnique({ where: { id: personId }, select: { id: true } }))) {
-      throw new NotFoundException(`Personne introuvable : ${personId}`);
+      throw new NotFoundException(`Person not found: ${personId}`);
     }
   }
 

@@ -141,7 +141,7 @@ export class AccountPage {
   private readonly api = inject(ApiService);
   private readonly notifications = inject(NotificationsService);
 
-  /** Racine personnelle (une racine qui n'existe plus après un import est ignorée). */
+  /** Personal root (a root that no longer exists after an import is ignored). */
   protected readonly rootPerson = resource({
     params: () => this.session.user()?.rootPersonId,
     loader: ({ params }) => this.api.person(params).catch(() => undefined),

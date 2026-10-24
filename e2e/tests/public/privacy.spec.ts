@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('un visiteur anonyme ne voit que le nom des contemporains', async ({ page }) => {
+test('an anonymous visitor only sees the name of contemporaries', async ({ page }) => {
   await page.goto('/tree/I1');
   const zoe = page.locator('app-person-card', { hasText: 'MARTIN Zoé' });
   await expect(zoe).toContainText('Contemporain');
@@ -10,17 +10,17 @@ test('un visiteur anonyme ne voit que le nom des contemporains', async ({ page }
   await expect(page.getByRole('complementary')).toContainText('née il y a moins de 100 ans');
 });
 
-test('un visiteur anonyme voit le détail des personnes de plus de 100 ans', async ({ page }) => {
+test('an anonymous visitor sees the details of people over 100 years old', async ({ page }) => {
   await page.goto('/tree/I1');
   await expect(page.locator('app-person-card.part-root')).toContainText('12 mars 1850');
 });
 
-test('la recherche par date n’expose pas les contemporains', async ({ page }) => {
+test('searching by date does not expose contemporaries', async ({ page }) => {
   await page.goto('/search?bornFrom=1980');
   await expect(page.getByRole('heading', { name: '0 résultat(s)' })).toBeVisible();
 });
 
-test('l’administration est inaccessible et la connexion propose les fournisseurs configurés', async ({ page }) => {
+test('the admin page is inaccessible and the login page offers the configured providers', async ({ page }) => {
   await page.goto('/admin');
   await expect(page).toHaveURL(/\/tree/);
   await page.goto('/login');

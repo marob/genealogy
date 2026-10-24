@@ -1,7 +1,7 @@
 import { BadRequestException, type PipeTransform } from '@nestjs/common';
 import type { z } from 'zod';
 
-/** Valide et transforme un paramètre (body, query…) avec un schéma Zod. */
+/** Validates and transforms a parameter (body, query...) with a Zod schema. */
 export class ZodValidationPipe<T extends z.ZodType> implements PipeTransform<unknown, z.infer<T>> {
   constructor(private readonly schema: T) {}
 

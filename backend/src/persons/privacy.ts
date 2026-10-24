@@ -1,11 +1,11 @@
 /**
- * Règle de confidentialité : le détail des personnes nées il y a moins de
- * 100 ans n'est visible que des utilisateurs autorisés.
+ * Privacy rule: the details of persons born less than 100 years ago are
+ * only visible to authorized users.
  */
 
 const HUNDRED_YEARS = 100 * 10_000;
 
-/** Date du jour AAAAMMJJ dans le fuseau horaire de référence. */
+/** Today's date as YYYYMMDD in the reference time zone. */
 export function todayKey(timeZone: string, now = new Date()): number {
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' })
     .formatToParts(now)
@@ -14,7 +14,7 @@ export function todayKey(timeZone: string, now = new Date()): number {
 }
 
 export class PrivacyPolicy {
-  /** Clé AAAAMMJJ au-delà de laquelle une naissance est « contemporaine ». */
+  /** YYYYMMDD key beyond which a birth is "contemporary". */
   readonly threshold: number;
 
   constructor(
@@ -24,7 +24,7 @@ export class PrivacyPolicy {
     this.threshold = today - HUNDRED_YEARS;
   }
 
-  /** Une date inconnue est considérée comme contemporaine. */
+  /** An unknown date is considered contemporary. */
   isContemporary(birthKey: number | null | undefined): boolean {
     return birthKey === null || birthKey === undefined || birthKey > this.threshold;
   }
@@ -33,12 +33,12 @@ export class PrivacyPolicy {
     return !this.canSeeContemporary && this.isContemporary(birthKey);
   }
 
-  /** Clé de confidentialité d'une date d'événement (parties inconnues au plus tard). */
+  /** Privacy key of an event date (unknown parts filled with the latest value). */
   static eventKey(event: { dateEndYear: number | null; dateSortKey: number | null }): number | undefined {
     if (event.dateSortKey === null) {
       return undefined;
     }
-    // La clé de tri est grégorienne : on complète les parties inconnues.
+    // The sort key is Gregorian: fill in the unknown parts.
     const year = Math.floor(event.dateSortKey / 10_000);
     const month = Math.floor(event.dateSortKey / 100) % 100 || 12;
     const day = event.dateSortKey % 100 || 31;

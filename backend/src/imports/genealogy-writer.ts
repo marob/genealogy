@@ -37,8 +37,8 @@ function eventData(
 }
 
 /**
- * Remplace l'intégralité des données généalogiques par celles du fichier
- * importé. Doit être appelé dans une transaction.
+ * Replaces all genealogy data with that of the imported file. Must be called
+ * within a transaction.
  */
 export async function replaceGenealogy(tx: Prisma.TransactionClient, data: GenealogyData): Promise<void> {
   await tx.event.deleteMany();

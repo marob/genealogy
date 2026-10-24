@@ -1,11 +1,11 @@
 import type { GenealogyDate, PartialDate, PlaceDto } from '@genealogie/shared';
 
 /**
- * Mise en forme des dates généalogiques dans la langue de l'interface. Les
- * dates partielles et approximatives sont restituées telles quelles
- * (« vers 1850 », « entre 1700 et 1710 », « 18 brumaire an VIII »).
+ * Formatting of genealogical dates in the interface language. Partial and
+ * approximate dates are rendered as such
+ * ("about 1850", "between 1700 and 1710", "18 brumaire an VIII").
  *
- * Les dates grégoriennes passent par Intl en UTC : aucun décalage de fuseau.
+ * Gregorian dates go through Intl in UTC: no time zone shift.
  */
 
 interface DateWords {
@@ -189,7 +189,7 @@ export function formatGenealogyDate(date: GenealogyDate | undefined, lang: strin
   }
 }
 
-/** Lieu court : « Lyon (69123), France », comme dans la version historique. */
+/** Short place: "Lyon (69123), France", as in the legacy version. */
 export function formatPlace(place: PlaceDto | undefined): string {
   if (!place) {
     return '';

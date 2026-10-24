@@ -6,7 +6,7 @@ import { registerLocales } from '../app/core/locales';
 
 registerLocales();
 
-/** Transloco avec les vraies traductions françaises, chargées de façon synchrone. */
+/** Transloco with the real French translations, loaded synchronously. */
 export function provideTestTransloco(): (Provider | EnvironmentProviders)[] {
   return (
     TranslocoTestingModule.forRoot({

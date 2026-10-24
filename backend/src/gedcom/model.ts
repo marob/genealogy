@@ -2,13 +2,13 @@ import type { Sex } from '@genealogie/shared';
 import type { ParsedDate } from './dates.js';
 import type { ParsedPlace } from './places.js';
 
-/** Modèle intermédiaire issu d'un fichier GEDCOM, prêt à être enregistré. */
+/** Intermediate model built from a GEDCOM file, ready to be saved. */
 
 export interface EventRecord {
   type: string;
   value?: string;
   date?: ParsedDate;
-  /** Libellé complet du lieu (clé dans `GenealogyData.places`). */
+  /** Full place label (key in `GenealogyData.places`). */
   place?: string;
 }
 
@@ -20,7 +20,7 @@ export interface PersonRecord {
   occupation?: string;
   note?: string;
   events: EventRecord[];
-  /** Familles dont la personne est l'enfant. */
+  /** Families in which the person is a child. */
   parentFamilies: { familyId: string; pedigree?: string }[];
 }
 
@@ -42,9 +42,9 @@ interface ImportStats {
   families: number;
   events: number;
   places: number;
-  /** Personnes dont l'année de naissance est connue ou a pu être estimée. */
+  /** Persons whose birth year is known or could be estimated. */
   datedPersons: number;
-  /** Tags rencontrés mais non importés, avec leur nombre d'occurrences. */
+  /** Tags encountered but not imported, with their number of occurrences. */
   ignoredTags: Record<string, number>;
 }
 
@@ -53,7 +53,7 @@ export interface GenealogyData {
   persons: PersonRecord[];
   families: FamilyRecord[];
   places: Map<string, ParsedPlace>;
-  /** Clé de naissance AAAAMMJJ (connue ou estimée) par personne. */
+  /** YYYYMMDD birth key (known or estimated) per person. */
   birthKeys: Map<string, { key: number; estimated: boolean }>;
   stats: ImportStats;
   warnings: string[];

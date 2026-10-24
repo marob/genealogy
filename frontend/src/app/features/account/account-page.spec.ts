@@ -45,11 +45,11 @@ describe('AccountPage', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  it('indique la racine commune quand aucune racine personnelle n’est définie', async () => {
+  it('shows the shared root when no personal root is set', async () => {
     expect((await render()).querySelector('.root')?.textContent).toContain('Racine commune');
   });
 
-  it('affiche la racine personnelle et permet de revenir à la racine commune', async () => {
+  it('shows the personal root and allows going back to the shared root', async () => {
     user.update((value) => ({ ...value, rootPersonId: 'I23' }));
     const element = await render();
     const link = element.querySelector<HTMLAnchorElement>('.root a')!;

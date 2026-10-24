@@ -22,7 +22,7 @@ describe('PersonCard', () => {
     });
   });
 
-  it('affiche le nom, la profession et les dates clés', () => {
+  it('shows the name, occupation and key dates', () => {
     const element = render(
       person({
         id: 'I1',
@@ -52,14 +52,14 @@ describe('PersonCard', () => {
     expect(element.classList).toContain('sex-M');
   });
 
-  it('ne montre que le nom d’un contemporain', () => {
+  it('shows only the name of a living person', () => {
     const element = render(person({ id: 'I4', givenNames: 'Zoé', sex: 'F', restricted: true }));
     expect(element.textContent).toContain('MARTIN Zoé');
     expect(element.textContent).toContain('Contemporain');
     expect(element.classList).toContain('restricted');
   });
 
-  it('propose de recentrer l’arbre sauf sur la racine', () => {
+  it('offers to recentre the tree except on the root', () => {
     expect(render(person({ id: 'I1' }), 'root').querySelector('.focus')).toBeNull();
     const element = render(person({ id: 'I2' }), 'parents');
     element.querySelector<HTMLButtonElement>('.focus')!.click();

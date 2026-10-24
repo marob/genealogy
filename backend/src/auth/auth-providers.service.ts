@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import * as oidc from 'openid-client';
 import type { Env } from '../config/env.js';
 
-/** Identité renvoyée par un fournisseur après authentification. */
+/** Identity returned by a provider after authentication. */
 export interface ExternalIdentity {
   provider: string;
   subject: string;
@@ -26,11 +26,35 @@ interface ProviderDefinition {
   scope: string;
   clientId: string;
   clientSecret: string;
-  /** Découverte OIDC, ou métadonnées OAuth2 statiques (Facebook). */
+  /** OIDC discovery, or static OAuth2 metadata (Facebook). */
   issuer?: URL;
+  /** Email considered verified when there is no `email_verified` claim. */
+  trustEmail?: boolean;
   serverMetadata?: oidc.ServerMetadata;
-  /** Lecture du profil pour les fournisseurs OAuth2 non OIDC. */
+  /** Profile retrieval for non-OIDC OAuth2 providers. */
   fetchProfile?: (config: oidc.Configuration, accessToken: string) => Promise<Omit<ExternalIdentity, 'provider'>>;
+}
+
+/** Identity extracted from OIDC claims (ID token and userinfo). */
+export function identityFromClaims(
+  provider: string,
+  claims: Record<string, unknown> & { sub: string },
+  trustEmail: boolean,
+): ExternalIdentity {
+  const text = (value: unknown): string | undefined => (typeof value === 'string' && value ? value : undefined);
+  const email = text(claims.email);
+  const displayName = text(claims.name);
+  const picture = text(claims.picture);
+  const verified =
+    email !== undefined && (claims.email_verified === true || (trustEmail && claims.email_verified === undefined));
+  return {
+    provider,
+    subject: claims.sub,
+    emailVerified: verified,
+    ...(email ? { email } : {}),
+    ...(displayName ? { name: displayName } : {}),
+    ...(picture ? { picture } : {}),
+  };
 }
 
 const FACEBOOK_GRAPH = 'https://graph.facebook.com/v23.0';
@@ -53,7 +77,7 @@ async function fetchFacebookProfile(
   };
   return {
     subject: profile.id,
-    // Facebook ne renvoie que des adresses confirmées.
+    // Facebook only returns confirmed addresses.
     emailVerified: !!profile.email,
     ...(profile.email ? { email: profile.email } : {}),
     ...(profile.name ? { name: profile.name } : {}),
@@ -114,6 +138,7 @@ export class AuthProvidersService {
         clientId: oidcId,
         clientSecret: oidcSecret,
         issuer: new URL(oidcIssuer),
+        trustEmail: get('OIDC_TRUST_EMAIL'),
       });
     }
   }
@@ -125,7 +150,7 @@ export class AuthProvidersService {
   private definition(name: string): ProviderDefinition {
     const definition = this.definitions.get(name);
     if (!definition) {
-      throw new NotFoundException(`Fournisseur d'identité inconnu : ${name}`);
+      throw new NotFoundException(`Unknown identity provider: ${name}`);
     }
     return definition;
   }
@@ -138,7 +163,7 @@ export class AuthProvidersService {
         : Promise.resolve(
             new oidc.Configuration(definition.serverMetadata!, definition.clientId, definition.clientSecret),
           );
-      // En cas d'échec (réseau…), on retentera au prochain appel.
+      // On failure (network...), retry on the next call.
       configuration.catch(() => this.configurations.delete(definition.name));
       this.configurations.set(definition.name, configuration);
     }
@@ -187,18 +212,6 @@ export class AuthProvidersService {
 
     const claims = tokens.claims()!;
     const info = await oidc.fetchUserInfo(config, tokens.access_token, claims.sub).catch(() => undefined);
-    const merged = { ...claims, ...info };
-    const text = (value: unknown): string | undefined => (typeof value === 'string' && value ? value : undefined);
-    const email = text(merged.email);
-    const displayName = text(merged.name);
-    const picture = text(merged.picture);
-    return {
-      provider: name,
-      subject: claims.sub,
-      emailVerified: merged.email_verified === true,
-      ...(email ? { email } : {}),
-      ...(displayName ? { name: displayName } : {}),
-      ...(picture ? { picture } : {}),
-    };
+    return identityFromClaims(name, { ...claims, ...info }, definition.trustEmail ?? false);
   }
 }

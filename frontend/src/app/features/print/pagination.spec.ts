@@ -1,11 +1,11 @@
 import { countCutCards, gridCuts, layoutPages, paginate } from './pagination';
 
 describe('gridCuts', () => {
-  it('ne coupe pas ce qui tient dans une page', () => {
+  it('does not cut what fits on one page', () => {
     expect(gridCuts([[10, 50]], 80, 100)).toEqual({ cuts: [0, 80], offset: 0 });
   });
 
-  it('espace les coupes d’une page exactement, la première page étant partielle', () => {
+  it('spaces cuts exactly one page apart, the first page being partial', () => {
     const { cuts, offset } = gridCuts([[0, 10]], 350, 100);
     for (let i = 2; i < cuts.length - 1; i++) {
       expect(cuts[i]! - cuts[i - 1]!).toBe(100);
@@ -14,15 +14,15 @@ describe('gridCuts', () => {
     expect(cuts.at(-1)).toBe(350);
   });
 
-  it('décale la grille pour que les coupes passent entre les cartes', () => {
-    // Rangées de cartes de 80 tous les 100, avec 20 d'espace : une grille de 100
-    // décalée coupe dans les espaces.
+  it('shifts the grid so that cuts fall between cards', () => {
+    // Rows of 80-high cards every 100, with 20 of space: a shifted 100 grid
+    // cuts through the gaps.
     const spans: [number, number][] = Array.from({ length: 5 }, (_, i) => [i * 100, i * 100 + 80]);
     const { cuts } = gridCuts(spans, 480, 100);
     expect(spans.filter(([from, to]) => cuts.some((cut) => from < cut && cut < to))).toEqual([]);
   });
 
-  it('coupe le moins de cartes possible quand aucune grille ne les évite toutes', () => {
+  it('cuts as few cards as possible when no grid avoids them all', () => {
     const spans: [number, number][] = [
       [0, 60],
       [65, 125],
@@ -38,7 +38,7 @@ describe('gridCuts', () => {
 });
 
 describe('paginate', () => {
-  it('cale la première rangée en bas et la première colonne à droite', () => {
+  it('aligns the first row to the bottom and the first column to the right', () => {
     const tiles = paginate(
       [
         { left: 0, top: 0, right: 40, bottom: 20 },
@@ -54,14 +54,14 @@ describe('paginate', () => {
       expect(tile.offsetX === 0 || tile.col === 0).toBe(true);
       expect(tile.offsetY === 0 || tile.row === 0).toBe(true);
     }
-    // Les pages intérieures sont pleines : seules la dernière rangée et la dernière colonne sont partielles.
+    // Inner pages are full: only the last row and the last column are partial.
     const rows = Math.max(...tiles.map((t) => t.row));
     for (const tile of tiles.filter((t) => t.row > 0 && t.row < rows)) {
       expect(tile.height).toBe(100);
     }
   });
 
-  it('utilise les mêmes colonnes à chaque rangée pour un assemblage en damier', () => {
+  it('uses the same columns in every row for a grid assembly', () => {
     const tiles = paginate(
       [
         { left: 0, top: 0, right: 40, bottom: 20 },
@@ -78,7 +78,7 @@ describe('paginate', () => {
     }
   });
 
-  it('ne cale pas une page unique', () => {
+  it('does not align a single page', () => {
     expect(paginate([], { width: 50, height: 50 }, { width: 100, height: 100 })).toEqual([
       { x: 0, y: 0, width: 50, height: 50, offsetX: 0, offsetY: 0, row: 0, col: 0 },
     ]);
@@ -86,7 +86,7 @@ describe('paginate', () => {
 });
 
 describe('countCutCards', () => {
-  it('compte les cartes à cheval sur deux pages', () => {
+  it('counts the cards straddling two pages', () => {
     const tile = { y: 0, height: 100, offsetX: 0, offsetY: 0, row: 0 };
     const tiles = [
       { ...tile, x: 0, width: 100, col: 0 },
@@ -116,7 +116,7 @@ describe('layoutPages', () => {
     page: { width: 100, height: 70 },
   };
 
-  it('répartit cartes, repères et traits sur les pages', () => {
+  it('distributes cards, markers and lines across pages', () => {
     const layout = layoutPages({ ...input, skipEmpty: false });
     expect(layout.pages.length).toBeGreaterThanOrEqual(3);
     const withCard = layout.pages.filter((page) => page.cards.length > 0);
@@ -126,7 +126,7 @@ describe('layoutPages', () => {
     expect(layout.cutCards).toBe(0);
   });
 
-  it('peut écarter les pages sans carte', () => {
+  it('can drop pages without cards', () => {
     const all = layoutPages({ ...input, skipEmpty: false });
     const kept = layoutPages({ ...input, skipEmpty: true });
     expect(kept.pages.every((page) => page.cards.length > 0)).toBe(true);

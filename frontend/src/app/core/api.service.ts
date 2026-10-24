@@ -26,9 +26,9 @@ export interface SearchCriteria {
 }
 
 /**
- * Accès à l'API REST. Les personnes sont mises en cache : elles ne changent
- * qu'à l'import d'un nouveau fichier ou à un changement d'utilisateur, deux
- * situations qui appellent `clearCache()`.
+ * REST API access. People are cached: they only change when a new file is
+ * imported or when the user changes, two situations that call
+ * `clearCache()`.
  */
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -53,7 +53,7 @@ export class ApiService {
     return firstValueFrom(this.http.get<TreeInfoDto>('/api/tree'));
   }
 
-  /** Charge une personne et ses proches ; les proches alimentent le cache. */
+  /** Loads a person and their relatives; the relatives feed the cache. */
   person(id: string, relatives: Relatives[] = []): Promise<PersonDto | undefined> {
     const cached = this.cache.get(id);
     if (cached && relatives.length === 0) {
@@ -74,7 +74,7 @@ export class ApiService {
     return person;
   }
 
-  /** Charge plusieurs personnes en une requête pour celles absentes du cache. */
+  /** Loads several people in a single request for those missing from the cache. */
   async people(ids: (string | undefined)[]): Promise<PersonDto[]> {
     const wanted = [...new Set(ids.filter((id): id is string => !!id))];
     const missing = wanted.filter((id) => !this.cache.has(id));
@@ -92,7 +92,7 @@ export class ApiService {
     return people.filter((person): person is PersonDto => !!person);
   }
 
-  /** Ascendants, descendants et conjoints d'une personne ; tous alimentent le cache. */
+  /** Ancestors, descendants and spouses of a person; all of them feed the cache. */
   lineage(id: string, generations: { ancestors: number; descendants: number }): Promise<PersonDto[]> {
     const key = `${id}/${generations.ancestors}/${generations.descendants}`;
     let lineage = this.lineages.get(key);
@@ -167,7 +167,7 @@ export class ApiService {
     return firstValueFrom(this.http.delete<void>(`/api/admin/imports/${id}`));
   }
 
-  /** Racine personnelle de l'utilisateur connecté ; `null` pour revenir à la racine commune. */
+  /** Personal root of the signed-in user; `null` to go back to the shared root. */
   setMyRoot(personId: string | null): Promise<TreeInfoDto> {
     return firstValueFrom(this.http.put<TreeInfoDto>('/api/me/root', { personId }));
   }

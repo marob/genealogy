@@ -1,12 +1,16 @@
 import { Component, inject, input } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faFacebook, faGoogle, faOpenid } from '@fortawesome/free-brands-svg-icons';
+import { faFacebook, faGoogle, faMicrosoft, faOpenid } from '@fortawesome/free-brands-svg-icons';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { SessionStore } from '../../core/session.store';
 
-const PROVIDER_ICONS: Record<string, typeof faGoogle> = { google: faGoogle, facebook: faFacebook };
+const PROVIDER_ICONS: Record<string, typeof faGoogle> = {
+  google: faGoogle,
+  facebook: faFacebook,
+  microsoft: faMicrosoft,
+};
 
-/** Connexion via les fournisseurs d'identité configurés côté serveur. */
+/** Sign-in through the identity providers configured on the server. */
 @Component({
   selector: 'app-login-page',
   imports: [FaIconComponent, TranslocoPipe],

@@ -10,8 +10,8 @@ import { ConfirmService } from '../../ui/confirm-dialog';
 import { iconCheck, iconDelete, iconImport } from '../../ui/icons';
 
 /**
- * Import GEDCOM en deux temps : analyse (aperçu, statistiques, avertissements)
- * puis application. L'historique permet de réappliquer un import précédent.
+ * Two-step GEDCOM import: analysis (preview, statistics, warnings), then
+ * application. The history allows re-applying a previous import.
  */
 @Component({
   selector: 'app-imports-admin',

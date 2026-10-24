@@ -1,14 +1,14 @@
 import { decodeAnsel } from './ansel.js';
 
 /**
- * Détection de l'encodage d'un fichier GEDCOM et décodage en texte Unicode.
+ * Detects the encoding of a GEDCOM file and decodes it to Unicode text.
  *
- * Ordre de priorité :
- *  1. BOM (UTF-8, UTF-16 LE/BE) ;
- *  2. motif d'octets nuls révélant de l'UTF-16 sans BOM ;
- *  3. en-tête `1 CHAR` du fichier (ANSEL, UTF-8, UNICODE, ANSI, ASCII…).
- * Les incohérences fréquentes (fichier déclaré ANSI mais réellement en UTF-8,
- * ou l'inverse) sont corrigées et signalées par un avertissement.
+ * Priority order:
+ *  1. BOM (UTF-8, UTF-16 LE/BE);
+ *  2. null-byte pattern revealing UTF-16 without a BOM;
+ *  3. the file's `1 CHAR` header (ANSEL, UTF-8, UNICODE, ANSI, ASCII...).
+ * Common inconsistencies (file declared as ANSI but actually UTF-8, or the
+ * reverse) are corrected and reported with a warning.
  */
 
 type GedcomEncoding = 'UTF-8' | 'UTF-16LE' | 'UTF-16BE' | 'ANSEL' | 'WINDOWS-1252' | 'MACINTOSH';
@@ -16,7 +16,7 @@ type GedcomEncoding = 'UTF-8' | 'UTF-16LE' | 'UTF-16BE' | 'ANSEL' | 'WINDOWS-125
 export interface DecodedGedcom {
   text: string;
   encoding: GedcomEncoding;
-  /** Valeur de `1 CHAR` telle que déclarée dans le fichier. */
+  /** Value of `1 CHAR` as declared in the file. */
   declaredCharset?: string;
   warnings: string[];
 }
@@ -28,8 +28,8 @@ function readCharset(head: string): string | undefined {
 }
 
 function readDeclaredCharset(bytes: Uint8Array): string | undefined {
-  // L'en-tête est en ASCII quel que soit l'encodage 8 bits : on lit le début
-  // du fichier en latin1, ce qui ne peut pas échouer.
+  // The header is ASCII whatever the 8-bit encoding: read the start of the
+  // file as latin1, which cannot fail.
   return readCharset(new TextDecoder('latin1').decode(bytes.subarray(0, 4096)));
 }
 
@@ -56,7 +56,7 @@ export function decodeGedcom(bytes: Uint8Array): DecodedGedcom {
   const declaredCharset = readDeclaredCharset(bytes);
   const result = (encoding: GedcomEncoding, text = decodeWith(bytes, encoding)): DecodedGedcom => {
     const decoded: DecodedGedcom = { text: text.replace(/^\ufeff/, ''), encoding, warnings };
-    // En UTF-16, l'en-tête n'est lisible qu'une fois le texte décodé.
+    // In UTF-16, the header is only readable once the text is decoded.
     const charset = encoding.startsWith('UTF-16') ? readCharset(decoded.text.slice(0, 4096)) : declaredCharset;
     if (charset) {
       decoded.declaredCharset = charset;
@@ -73,7 +73,7 @@ export function decodeGedcom(bytes: Uint8Array): DecodedGedcom {
   if (bytes[0] === 0xfe && bytes[1] === 0xff) {
     return result('UTF-16BE');
   }
-  // "0 " en UTF-16 sans BOM : 30 00 20 00 (LE) ou 00 30 00 20 (BE).
+  // "0 " in UTF-16 without a BOM: 30 00 20 00 (LE) or 00 30 00 20 (BE).
   if (bytes[0] === 0x30 && bytes[1] === 0x00) {
     return result('UTF-16LE');
   }
@@ -85,14 +85,14 @@ export function decodeGedcom(bytes: Uint8Array): DecodedGedcom {
   const utf8 = isValidUtf8(bytes);
 
   if (charset === 'ANSEL') {
-    // Certains logiciels écrivent « ANSEL » mais encodent en UTF-8.
+    // Some software writes "ANSEL" but encodes in UTF-8.
     if (utf8 && hasHighBytes(bytes)) {
-      warnings.push('Le fichier déclare ANSEL mais est encodé en UTF-8 : décodage en UTF-8.');
+      warnings.push('The file declares ANSEL but is encoded in UTF-8: decoding as UTF-8.');
       return result('UTF-8');
     }
     const ansel = decodeAnsel(bytes);
     if (ansel.invalidBytes > 0) {
-      warnings.push(`${ansel.invalidBytes} octet(s) invalide(s) en ANSEL ont été remplacés par « \ufffd ».`);
+      warnings.push(`${ansel.invalidBytes} invalid ANSEL byte(s) replaced with "\ufffd".`);
     }
     return result('ANSEL', ansel.text);
   }
@@ -101,7 +101,7 @@ export function decodeGedcom(bytes: Uint8Array): DecodedGedcom {
     if (utf8) {
       return result('UTF-8');
     }
-    warnings.push(`Le fichier déclare ${charset} mais n'est pas de l'UTF-8 valide : décodage en Windows-1252.`);
+    warnings.push(`The file declares ${charset} but is not valid UTF-8: decoding as Windows-1252.`);
     return result('WINDOWS-1252');
   }
 
@@ -109,17 +109,17 @@ export function decodeGedcom(bytes: Uint8Array): DecodedGedcom {
     return result('MACINTOSH');
   }
 
-  // ANSI, ASCII, IBMPC, absent ou inconnu.
+  // ANSI, ASCII, IBMPC, missing or unknown.
   if (utf8 && hasHighBytes(bytes)) {
     if (charset) {
-      warnings.push(`Le fichier déclare ${charset} mais est encodé en UTF-8 : décodage en UTF-8.`);
+      warnings.push(`The file declares ${charset} but is encoded in UTF-8: decoding as UTF-8.`);
     }
     return result('UTF-8');
   }
   if (charset && !['ANSI', 'ASCII', 'IBMPC', 'IBM WINDOWS', 'WINDOWS', 'CP1252'].includes(charset)) {
-    warnings.push(`Encodage déclaré inconnu (${charset}) : décodage en Windows-1252.`);
+    warnings.push(`Unknown declared encoding (${charset}): decoding as Windows-1252.`);
   } else if (!charset) {
-    warnings.push('Aucun encodage déclaré (1 CHAR) : décodage en Windows-1252.');
+    warnings.push('No declared encoding (1 CHAR): decoding as Windows-1252.');
   }
   return result('WINDOWS-1252');
 }

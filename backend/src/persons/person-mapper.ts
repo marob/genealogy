@@ -16,7 +16,7 @@ import { PrivacyPolicy } from './privacy.js';
 export type EventWithPlace = Event & { place: Place | null };
 export type FamilyWithDetails = Family & { events: EventWithPlace[]; children: FamilyChild[] };
 
-/** Relations Prisma à charger pour construire un `PersonDto` (événements dans l’ordre du fichier). */
+/** Prisma relations to load to build a `PersonDto` (events in file order). */
 export const personInclude = {
   events: { include: { place: true }, orderBy: { id: 'asc' } },
   childOf: { include: { family: true } },
@@ -85,9 +85,9 @@ function toEvent(event: EventWithPlace): EventDto {
 }
 
 /**
- * Construction des DTO en appliquant la règle de confidentialité. Les dates
- * de naissance des proches sont nécessaires pour savoir si une union est
- * contemporaine : elles sont fournies par `birthKeys`.
+ * Builds DTOs while applying the privacy rule. The birth dates of relatives
+ * are needed to know whether a union is contemporary: they are provided by
+ * `birthKeys`.
  */
 export class PersonMapper {
   constructor(

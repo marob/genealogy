@@ -1,7 +1,7 @@
 import { parsePlace, parsePlaceForm } from './places.js';
 
 describe('parsePlaceForm', () => {
-  it('reconnaît les juridictions en français et en anglais', () => {
+  it('recognizes jurisdictions in French and English', () => {
     expect(parsePlaceForm('Town, Area code, County, Region, Country, Subdivision')).toEqual([
       'locality',
       'postalCode',
@@ -22,7 +22,7 @@ describe('parsePlaceForm', () => {
 });
 
 describe('parsePlace', () => {
-  it('découpe selon le format déclaré', () => {
+  it('splits according to the declared format', () => {
     const form = parsePlaceForm('Ville, Code, Département, Région, Pays');
     expect(parsePlace('Lyon, 69123, Rhône, Auvergne-Rhône-Alpes, France', form)).toEqual({
       fullName: 'Lyon, 69123, Rhône, Auvergne-Rhône-Alpes, France',
@@ -34,21 +34,21 @@ describe('parsePlace', () => {
     });
   });
 
-  it('tolère les parties vides', () => {
+  it('tolerates empty parts', () => {
     expect(parsePlace('Lyon, , , , France', undefined)).toMatchObject({ locality: 'Lyon', country: 'France' });
     expect(parsePlace('Lyon, , , , France', undefined)?.postalCode).toBeUndefined();
   });
 
-  it('devine commune et pays sans format déclaré', () => {
+  it('guesses town and country without a declared format', () => {
     expect(parsePlace('Paris', undefined)).toEqual({ fullName: 'Paris', locality: 'Paris' });
     expect(parsePlace('Bruxelles, Belgique', undefined)).toMatchObject({ locality: 'Bruxelles', country: 'Belgique' });
   });
 
-  it('ignore les lieux vides', () => {
+  it('ignores empty places', () => {
     expect(parsePlace(' , , ', undefined)).toBeUndefined();
   });
 
-  it('lit les coordonnées GPS', () => {
+  it('reads GPS coordinates', () => {
     expect(parsePlace('Quito', undefined, { latitude: 'S0.22', longitude: 'W78.5' })).toMatchObject({
       latitude: -0.22,
       longitude: -78.5,

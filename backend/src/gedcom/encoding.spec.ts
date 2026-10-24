@@ -5,7 +5,7 @@ const latin1 = (text: string): Uint8Array => Uint8Array.from([...text].map((c) =
 const utf8 = (text: string): Uint8Array => new TextEncoder().encode(text);
 
 describe('decodeGedcom', () => {
-  it('décode l’UTF-8 avec BOM', () => {
+  it('decodes UTF-8 with a BOM', () => {
     const bytes = new Uint8Array([0xef, 0xbb, 0xbf, ...utf8(header('UTF-8') + 'Émile')]);
     const result = decodeGedcom(bytes);
     expect(result.encoding).toBe('UTF-8');
@@ -13,7 +13,7 @@ describe('decodeGedcom', () => {
     expect(result.text).toContain('Émile');
   });
 
-  it('décode l’UTF-16 LE avec et sans BOM', () => {
+  it('decodes UTF-16 LE with and without a BOM', () => {
     const text = header('UNICODE') + 'Zoé';
     const le = new Uint8Array(text.length * 2);
     [...text].forEach((char, i) => {
@@ -23,7 +23,7 @@ describe('decodeGedcom', () => {
     expect(decodeGedcom(le)).toMatchObject({ encoding: 'UTF-16LE' });
   });
 
-  it('décode l’UTF-16 BE sans BOM', () => {
+  it('decodes UTF-16 BE without a BOM', () => {
     const text = header('UNICODE') + 'Zoé';
     const be = new Uint8Array(text.length * 2);
     [...text].forEach((char, i) => {
@@ -33,21 +33,21 @@ describe('decodeGedcom', () => {
     expect(decodeGedcom(be).text).toContain('Zoé');
   });
 
-  it('décode l’ANSEL déclaré', () => {
+  it('decodes declared ANSEL', () => {
     const bytes = new Uint8Array([...latin1(header('ANSEL') + 'Ren'), 0xe2, ...latin1('e')]);
     const result = decodeGedcom(bytes);
     expect(result).toMatchObject({ encoding: 'ANSEL', declaredCharset: 'ANSEL', warnings: [] });
     expect(result.text).toContain('René');
   });
 
-  it('corrige un fichier déclaré ANSEL mais encodé en UTF-8', () => {
+  it('corrects a file declared as ANSEL but encoded in UTF-8', () => {
     const result = decodeGedcom(utf8(header('ANSEL') + 'René'));
     expect(result.encoding).toBe('UTF-8');
     expect(result.text).toContain('René');
     expect(result.warnings).toHaveLength(1);
   });
 
-  it('décode l’ANSI en Windows-1252 (œ, €)', () => {
+  it('decodes ANSI as Windows-1252 (œ, €)', () => {
     const bytes = new Uint8Array([...latin1(header('ANSI') + 'C'), 0x9c, ...latin1('ur '), 0x80]);
     const result = decodeGedcom(bytes);
     expect(result.encoding).toBe('WINDOWS-1252');
@@ -55,14 +55,14 @@ describe('decodeGedcom', () => {
     expect(result.warnings).toEqual([]);
   });
 
-  it('corrige un fichier déclaré ANSI mais encodé en UTF-8', () => {
+  it('corrects a file declared as ANSI but encoded in UTF-8', () => {
     const result = decodeGedcom(utf8(header('ANSI') + 'Hélène'));
     expect(result.encoding).toBe('UTF-8');
     expect(result.text).toContain('Hélène');
     expect(result.warnings).toHaveLength(1);
   });
 
-  it('se replie sur Windows-1252 pour un UTF-8 déclaré mais invalide', () => {
+  it('falls back to Windows-1252 for declared but invalid UTF-8', () => {
     const bytes = new Uint8Array([...latin1(header('UTF-8') + 'H'), 0xe9, ...latin1('l')]);
     const result = decodeGedcom(bytes);
     expect(result.encoding).toBe('WINDOWS-1252');
@@ -70,7 +70,7 @@ describe('decodeGedcom', () => {
     expect(result.warnings).toHaveLength(1);
   });
 
-  it('signale l’absence de déclaration d’encodage', () => {
+  it('reports a missing encoding declaration', () => {
     const result = decodeGedcom(latin1('0 HEAD\n0 TRLR'));
     expect(result.encoding).toBe('WINDOWS-1252');
     expect(result.declaredCharset).toBeUndefined();

@@ -51,7 +51,7 @@ describe('ImportsAdmin', () => {
     return fixture;
   }
 
-  it('affiche l’aperçu d’un fichier analysé', async () => {
+  it('shows the preview of an analyzed file', async () => {
     const element = (await uploadFile()).nativeElement as HTMLElement;
     expect(api.uploadGedcom).toHaveBeenCalled();
     const text = element.querySelector('.preview')!.textContent;
@@ -61,7 +61,7 @@ describe('ImportsAdmin', () => {
     expect(text).toContain('INDI.SOUR');
   });
 
-  it('applique l’import après confirmation', async () => {
+  it('applies the import after confirmation', async () => {
     const fixture = await uploadFile();
     (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.preview .btn-danger')!.click();
     await fixture.whenStable();
@@ -71,7 +71,7 @@ describe('ImportsAdmin', () => {
     expect((fixture.nativeElement as HTMLElement).querySelector('.preview')).toBeNull();
   });
 
-  it('n’applique rien si l’administrateur annule', async () => {
+  it('applies nothing when the administrator cancels', async () => {
     confirm.mockResolvedValue(false);
     const fixture = await uploadFile();
     (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.preview .btn-danger')!.click();

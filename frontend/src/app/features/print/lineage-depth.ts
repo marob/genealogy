@@ -1,8 +1,8 @@
 import type { PersonDto } from '@genealogie/shared';
 
 /**
- * Nombre de générations réellement présentes au-dessus et au-dessous d'une
- * personne, parmi les personnes chargées (parcours protégé contre les boucles).
+ * Number of generations actually present above and below a person, among
+ * the loaded people (traversal protected against loops).
  */
 export function lineageDepth(rootId: string, people: PersonDto[]): { ancestors: number; descendants: number } {
   const byId = new Map(people.map((person) => [person.id, person]));

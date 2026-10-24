@@ -30,9 +30,9 @@ td {
   background: var(--line);
 }
 
-// Traits de liaison dessinés avec des fonds plutôt que des bordures de
-// cellules : Firefox arrondit les bordures avant d'appliquer le zoom et les
-// fait disparaître quand on dézoome.
+// Connecting lines drawn with backgrounds rather than cell borders: Firefox
+// rounds borders before applying the zoom and makes them disappear when
+// zooming out.
 .line-left,
 .line-top,
 .line-bottom {
@@ -52,7 +52,7 @@ td {
   right: 0;
   bottom: 0;
   width: var(--line-width, 1px);
-  // Centré sur le bord de la cellule, comme les traits qui descendent des cartes.
+  // Centred on the cell edge, like the lines coming down from the cards.
   transform: translateX(50%);
 }
 
@@ -82,8 +82,8 @@ td {
   position: relative;
   padding: 1.4rem 0;
 
-  // Prolonge les traits de liaison jusqu'à la carte, à travers la marge
-  // réservée aux boutons de dépliage.
+  // Extends the connecting lines up to the card, across the margin reserved
+  // for the expand buttons.
   &.line-above::before,
   &.line-below::after {
     content: '';

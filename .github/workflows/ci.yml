@@ -10,19 +10,38 @@ permissions:
 
 jobs:
   check:
-    name: Lint, types et tests
+    name: Lint, types and tests
     runs-on: ubuntu-latest
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history for SonarCloud (blame, new code detection).
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm run check
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run knip
+      - run: npm run test:cov
+      # LCOV paths are relative to each workspace; SonarCloud expects them relative to the repository root.
+      - name: Rebase coverage paths
+        run: |
+          sed -i 's|^SF:|SF:shared/|' shared/coverage/lcov.info
+          sed -i 's|^SF:|SF:backend/|' backend/coverage/unit/lcov.info backend/coverage/integration/lcov.info
+          sed -i 's|^SF:|SF:frontend/|' frontend/coverage/genealogie/lcov.info
+      - name: SonarCloud analysis
+        # The token is not available to pull requests from forks.
+        if: env.SONAR_TOKEN != ''
+        uses: SonarSource/sonarqube-scan-action@v8
 
   e2e:
-    name: Tests de bout en bout
+    name: End-to-end tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,11 +59,11 @@ jobs:
           path: e2e/test-results
           retention-days: 7
 
-  # Image construite nativement sur chaque architecture (arm64 pour Oracle Cloud
-  # Ampere), puis réunie en un manifeste multi-architecture. Publiée sur GHCR
-  # uniquement depuis main, une fois les tests passés.
+  # Image built natively on each architecture (arm64 for Oracle Cloud Ampere),
+  # then merged into a multi-architecture manifest. Published to GHCR only
+  # from main, once the tests have passed.
   docker:
-    name: Image Docker (${{ matrix.platform }})
+    name: Docker image (${{ matrix.platform }})
     needs: [check, e2e]
     strategy:
       matrix:
@@ -80,7 +99,7 @@ jobs:
           outputs: ${{ env.PUBLISH == 'true' && format('type=image,name=ghcr.io/{0},push-by-digest=true,name-canonical=true,push=true', github.repository) || 'type=cacheonly' }}
           cache-from: type=gha,scope=${{ steps.arch.outputs.name }}
           cache-to: type=gha,mode=max,scope=${{ steps.arch.outputs.name }}
-      - name: Mémorise le digest
+      - name: Save the digest
         if: env.PUBLISH == 'true'
         run: mkdir -p /tmp/digests && touch "/tmp/digests/${DIGEST#sha256:}"
         env:
@@ -93,7 +112,7 @@ jobs:
           retention-days: 1
 
   publish:
-    name: Publication de l'image
+    name: Publish the image
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: docker
     runs-on: ubuntu-latest
@@ -112,7 +131,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Crée le manifeste multi-architecture
+      - name: Create the multi-architecture manifest
         working-directory: /tmp/digests
         run: |
           image="ghcr.io/${GITHUB_REPOSITORY,,}"

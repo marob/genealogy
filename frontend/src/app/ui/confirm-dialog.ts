@@ -4,7 +4,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
 
 export interface ConfirmOptions {
-  /** Clés de traduction. */
+  /** Translation keys. */
   title: string;
   message: string;
   params?: Record<string, unknown>;

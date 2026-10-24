@@ -1,7 +1,7 @@
 import { normalizeForSearch } from './normalize.js';
 
 describe('normalizeForSearch', () => {
-  it('supprime accents, casse et ponctuation', () => {
+  it('removes accents, case and punctuation', () => {
     expect(normalizeForSearch('  Hélène  DUPRÉ-Saint Œuvre ')).toBe('helene dupre saint oeuvre');
     expect(normalizeForSearch('François, Lætitia')).toBe('francois laetitia');
   });

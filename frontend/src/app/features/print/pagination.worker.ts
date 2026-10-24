@@ -2,7 +2,7 @@
 
 import { type LayoutInput, layoutPages } from './pagination';
 
-/** Découpage des pages d'impression hors du fil principal. */
+/** Print page splitting off the main thread. */
 addEventListener('message', ({ data }: MessageEvent<LayoutInput>) => {
   postMessage(layoutPages(data));
 });

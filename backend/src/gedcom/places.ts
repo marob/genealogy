@@ -1,6 +1,6 @@
 /**
- * Découpage des lieux GEDCOM (`PLAC`) en juridictions, guidé par le format
- * déclaré dans l'en-tête (`HEAD.PLAC.FORM`) quand il existe.
+ * Splits GEDCOM places (`PLAC`) into jurisdictions, guided by the format
+ * declared in the header (`HEAD.PLAC.FORM`) when present.
  */
 
 export interface ParsedPlace {
@@ -25,8 +25,8 @@ const FIELD_PATTERNS: [PlaceField, RegExp][] = [
 ];
 
 /**
- * Format par défaut quand le fichier n'en déclare pas : celui des logiciels
- * francophones courants (Heredis…) au-delà de 4 parties, sinon commune…pays.
+ * Default format when the file does not declare one: that of common
+ * French-language software (Heredis...) beyond 4 parts, otherwise town...country.
  */
 const DEFAULT_LONG_FORM: (PlaceField | undefined)[] = ['locality', 'postalCode', 'county', 'region', 'country'];
 

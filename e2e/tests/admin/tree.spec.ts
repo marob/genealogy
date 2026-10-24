@@ -1,6 +1,6 @@
 import { expect, type Page, test } from '@playwright/test';
 
-/** Distance entre le centre de la carte centrale et le centre de la zone d'affichage. */
+/** Distance between the center of the root card and the center of the viewport. */
 async function distanceToCenter(page: Page): Promise<number> {
   const [card, view] = await Promise.all([
     page.locator('app-person-card.part-root').boundingBox(),
@@ -12,15 +12,15 @@ async function distanceToCenter(page: Page): Promise<number> {
   );
 }
 
-test('affiche l’arbre depuis la racine et navigue entre les générations', async ({ page }) => {
+test('shows the tree from the root and navigates between generations', async ({ page }) => {
   await page.goto('/');
   await expect(page).toHaveURL(/\/tree\/I0$/);
   const root = page.locator('app-person-card.part-root');
   await expect(root).toContainText('MARTIN Pierre');
-  // Date du calendrier républicain.
+  // French Republican calendar date.
   await expect(root).toContainText('18 brumaire an VIII');
 
-  // Recentrer sur le fils.
+  // Recenter on the son.
   await page.locator('app-person-card', { hasText: 'Émile Joseph' }).getByRole('button', { name: 'Centrer' }).click();
   await expect(page).toHaveURL(/\/tree\/I1$/);
   await expect(page.locator('app-person-card.part-root')).toContainText('MARTIN Émile Joseph');
@@ -28,8 +28,8 @@ test('affiche l’arbre depuis la racine et navigue entre les générations', as
   await expect(page.locator('app-person-card', { hasText: 'MARTIN François' })).toBeVisible();
 });
 
-test('ouvre la fiche détaillée sans décalage de date dû au fuseau horaire', async ({ page }) => {
-  // Le navigateur de test est réglé sur UTC+14 (Pacific/Kiritimati).
+test('opens the details panel without a time-zone date shift', async ({ page }) => {
+  // The test browser is set to UTC+14 (Pacific/Kiritimati).
   await page.goto('/tree/I1');
   await page
     .locator('app-person-card.part-root')
@@ -41,7 +41,7 @@ test('ouvre la fiche détaillée sans décalage de date dû au fuseau horaire', 
   await expect(details).toContainText('Médaille du travail en 1910.');
 });
 
-test('recherche par nom sans accents et par lieu', async ({ page }) => {
+test('searches by name without accents and by place', async ({ page }) => {
   await page.goto('/search');
   await page.getByLabel('Nom et/ou prénom').fill('helene dupre');
   await page.getByRole('button', { name: 'Rechercher' }).click();
@@ -51,18 +51,18 @@ test('recherche par nom sans accents et par lieu', async ({ page }) => {
   await expect(page).toHaveURL(/\/tree\/I2$/);
 });
 
-test('change la langue de l’interface depuis la page compte et préférences', async ({ page }) => {
+test('changes the interface language from the account and preferences page', async ({ page }) => {
   await page.goto('/tree');
   await page.getByRole('link', { name: 'Compte et préférences' }).click();
   await page.getByRole('combobox', { name: 'Langue' }).selectOption('es');
   await expect(page.getByRole('heading', { name: 'Cuenta y preferencias' })).toBeVisible();
   await page.reload();
-  // Choix mémorisé.
+  // Choice is remembered.
   await expect(page.getByRole('heading', { name: 'Cuenta y preferencias' })).toBeVisible();
   await page.getByRole('combobox', { name: 'Idioma' }).selectOption('fr');
 });
 
-test('ouvre la fiche d’un proche depuis une fiche en recentrant l’arbre', async ({ page }) => {
+test('opens a relative’s details from a details panel and recenters the tree', async ({ page }) => {
   await page.goto('/tree/I1');
   await page
     .locator('app-person-card.part-root')
@@ -74,14 +74,14 @@ test('ouvre la fiche d’un proche depuis une fiche en recentrant l’arbre', as
   await expect(page.getByRole('complementary')).toContainText('DUPRÉ Hélène');
 });
 
-test('déplie tous les descendants depuis la racine', async ({ page }) => {
+test('expands all descendants from the root', async ({ page }) => {
   await page.goto('/tree/I0');
   await expect(page.locator('app-person-card', { hasText: 'MARTIN François' })).toHaveCount(0);
   await page.getByRole('button', { name: 'Déplier tous les descendants' }).click();
   await expect(page.locator('app-person-card', { hasText: 'MARTIN Jules' })).toBeVisible();
 });
 
-test('prépare une version imprimable de l’arbre', async ({ page }) => {
+test('prepares a printable version of the tree', async ({ page }) => {
   await page.goto('/print');
   await page.getByLabel('Personne centrale').fill('emile');
   await page
@@ -100,9 +100,9 @@ test('prépare une version imprimable de l’arbre', async ({ page }) => {
   await page.emulateMedia({ media: 'screen' });
 });
 
-test('imprime en PDF sur une page à la taille de l’arbre, ou sur papier découpé en pages', async ({ page }) => {
+test('prints to PDF on a single tree-sized page, or on paper split into pages', async ({ page }) => {
   await page.goto('/print?person=I1');
-  // Par défaut, toute la lignée réellement disponible : Pierre au-dessus, François puis Jules en dessous.
+  // By default, the whole lineage actually available: Pierre above, François then Jules below.
   await expect(page.getByLabel('Générations d’ascendants')).toHaveValue('1');
   await expect(page.getByLabel('Générations de descendants')).toHaveValue('2');
   const pageRule = () =>
@@ -118,18 +118,18 @@ test('imprime en PDF sur une page à la taille de l’arbre, ou sur papier déco
   await expect.poll(pageRule).toContain('size: A4 landscape');
   await page.getByLabel('Format du papier').selectOption('A3');
   await expect.poll(pageRule).toContain('size: A3 landscape');
-  // Chaque page reçoit ses cartes, et le repère reste en bas de la page.
+  // Each page gets its cards, and the page label stays at the bottom of the page.
   const sheet = page.locator('section.sheet').first();
   await expect(sheet.locator('app-person-card').first()).toBeVisible();
   const [sheetBox, labelBox] = await Promise.all([sheet.boundingBox(), sheet.locator('.sheet-label').boundingBox()]);
   expect(Math.abs(sheetBox!.y + sheetBox!.height - (labelBox!.y + labelBox!.height))).toBeLessThan(40);
 });
 
-test('garde la personne centrale immobile quand on déplie toute l’ascendance', async ({ page }) => {
+test('keeps the root person still when expanding all ancestors', async ({ page }) => {
   await page.goto('/tree/I6');
   const root = page.locator('app-person-card.part-root');
   await expect(root).toContainText('MARTIN Jules');
-  // La vue se centre d'abord sur la personne.
+  // The view first centers on the person.
   await expect.poll(() => distanceToCenter(page)).toBeLessThan(2);
   const before = await root.boundingBox();
   await page.getByRole('button', { name: 'Déplier tous les ascendants' }).click();
@@ -139,7 +139,7 @@ test('garde la personne centrale immobile quand on déplie toute l’ascendance'
   expect(Math.abs(after!.y - before!.y)).toBeLessThan(2);
 });
 
-test('centre la nouvelle personne quand on recentre depuis une ascendance dépliée', async ({ page }) => {
+test('centers the new person when recentering from expanded ancestors', async ({ page }) => {
   await page.goto('/tree/I6');
   await page.getByRole('button', { name: 'Déplier tous les ascendants' }).click();
   await expect(page.locator('app-person-card', { hasText: 'MARTIN Pierre' })).toHaveCount(1);
@@ -149,7 +149,7 @@ test('centre la nouvelle personne quand on recentre depuis une ascendance dépli
   await expect.poll(() => distanceToCenter(page)).toBeLessThan(2);
 });
 
-test('recherche rapide dans l’en-tête : suggestion puis recentrage', async ({ page }) => {
+test('quick search in the header: suggestion then recentering', async ({ page }) => {
   await page.goto('/tree/I0');
   const search = page.getByRole('combobox', { name: 'Recherche rapide d’une personne' });
   await search.fill('helene');
@@ -160,10 +160,10 @@ test('recherche rapide dans l’en-tête : suggestion puis recentrage', async ({
   await expect(search).toHaveValue('');
 });
 
-test.describe('sur mobile', () => {
+test.describe('on mobile', () => {
   test.use({ viewport: { width: 375, height: 740 } });
 
-  test('affiche un en-tête compact et une recherche réduite à une icône', async ({ page }) => {
+  test('shows a compact header and a search collapsed to an icon', async ({ page }) => {
     await page.goto('/tree/I0');
     await expect(page.locator('.brand')).toBeHidden();
     const header = await page.locator('.app-header').boundingBox();
@@ -179,7 +179,7 @@ test.describe('sur mobile', () => {
     await expect(search).toBeHidden();
   });
 
-  test('centre la carte centrale sous le trait qui descend des parents', async ({ page }) => {
+  test('centers the root card under the line coming down from the parents', async ({ page }) => {
     await page.goto('/tree/I3');
     const card = page.locator('app-person-card.part-root');
     await expect(card).toContainText('MARTIN François');
@@ -192,10 +192,10 @@ test.describe('sur mobile', () => {
   });
 });
 
-test.describe('sur petit écran à la souris', () => {
+test.describe('on a small screen with a mouse', () => {
   test.use({ viewport: { width: 600, height: 800 } });
 
-  test('ouvre la recherche au clic et la referme en cliquant sur l’arbre', async ({ page }) => {
+  test('opens the search on click and closes it when clicking on the tree', async ({ page }) => {
     await page.goto('/tree/I0');
     const search = page.getByRole('combobox', { name: 'Recherche rapide d’une personne' });
     const toggle = page.getByRole('button', { name: 'Ouvrir la recherche rapide' });

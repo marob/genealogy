@@ -6,7 +6,7 @@ import { createTestApp, loginAs, seedGedcom, type TestContext } from './utils/te
 
 const fixture = readFileSync(join(import.meta.dirname, 'fixtures/famille-martin.ged'), 'utf8');
 
-describe('Consultation des personnes', () => {
+describe('Browsing persons', () => {
   let ctx: TestContext;
   let trusted: string;
   let member: string;
@@ -27,12 +27,12 @@ describe('Consultation des personnes', () => {
     return cookie ? req.set('Cookie', cookie) : req;
   };
 
-  it('donne la racine de l’arbre', async () => {
+  it('returns the tree root', async () => {
     const info = (await get('/api/tree').expect(200)).body as TreeInfoDto;
     expect(info).toEqual({ rootPersonId: 'I0', globalRootPersonId: 'I0', personalRoot: false, persons: 7 });
   });
 
-  it('renvoie une personne avec ses proches', async () => {
+  it('returns a person with their relatives', async () => {
     const people = (await get('/api/persons/I1?include=parents,children,unions').expect(200)).body as PersonDto[];
     expect(people.map((p) => p.id)).toEqual(['I1', 'I0', 'I2', 'I3', 'I4']);
     const emile = people[0]!;
@@ -73,7 +73,7 @@ describe('Consultation des personnes', () => {
     });
   });
 
-  it('renvoie les dates républicaines dans leur calendrier d’origine', async () => {
+  it('returns republican dates in their original calendar', async () => {
     const [pierre] = (await get('/api/persons/I0').expect(200)).body as PersonDto[];
     expect(pierre!.events[0]!.date).toEqual({
       original: '@#DFRENCH R@ 18 BRUM 8',
@@ -83,8 +83,8 @@ describe('Consultation des personnes', () => {
     });
   });
 
-  describe('règle des 100 ans', () => {
-    it('ne montre que le nom des contemporains aux anonymes', async () => {
+  describe('100-year rule', () => {
+    it('only shows the name of contemporaries to anonymous visitors', async () => {
       const [zoe] = (await get('/api/persons/I4').expect(200)).body as PersonDto[];
       expect(zoe).toEqual({
         id: 'I4',
@@ -99,65 +99,65 @@ describe('Consultation des personnes', () => {
       });
     });
 
-    it('applique la même règle aux connectés sans droit', async () => {
+    it('applies the same rule to logged-in users without permission', async () => {
       const [zoe] = (await get('/api/persons/I4', member).expect(200)).body as PersonDto[];
       expect(zoe).toMatchObject({ restricted: true, events: [] });
     });
 
-    it('montre tout aux utilisateurs autorisés', async () => {
+    it('shows everything to authorized users', async () => {
       const [zoe] = (await get('/api/persons/I4', trusted).expect(200)).body as PersonDto[];
       expect(zoe).toMatchObject({ restricted: false, events: [{ type: 'BIRT' }] });
     });
 
-    it('montre les personnes estimées nées il y a plus de 100 ans', async () => {
+    it('shows persons estimated to be born more than 100 years ago', async () => {
       const [jules] = (await get('/api/persons/I6').expect(200)).body as PersonDto[];
       expect(jules!.restricted).toBe(false);
     });
   });
 
-  describe('lignée', () => {
+  describe('lineage', () => {
     const lineage = async (url: string) => ((await get(url).expect(200)).body as PersonDto[]).map((p) => p.id);
 
-    it('renvoie tous les ascendants et descendants, puis les conjoints', async () => {
+    it('returns all ancestors and descendants, then partners', async () => {
       expect(await lineage('/api/persons/I1/lineage')).toEqual(['I1', 'I0', 'I3', 'I4', 'I6', 'I2']);
     });
 
-    it('limite le nombre de générations', async () => {
+    it('limits the number of generations', async () => {
       expect(await lineage('/api/persons/I1/lineage?ancestors=0&descendants=1')).toEqual(['I1', 'I3', 'I4', 'I2']);
       expect(await lineage('/api/persons/I6/lineage?descendants=0&ancestors=1')).toEqual(['I6', 'I3', 'I5']);
     });
 
-    it('applique la règle des 100 ans', async () => {
+    it('applies the 100-year rule', async () => {
       const people = (await get('/api/persons/I0/lineage').expect(200)).body as PersonDto[];
       expect(people.find((p) => p.id === 'I4')).toMatchObject({ restricted: true, events: [] });
     });
 
-    it('valide les paramètres', async () => {
+    it('validates parameters', async () => {
       await get('/api/persons/I1/lineage?ancestors=500').expect(400);
       await get('/api/persons/I999/lineage').expect(404);
     });
   });
 
-  it('charge plusieurs personnes par identifiants', async () => {
-    const people = (await get('/api/persons?ids=I3,I2,inconnu').expect(200)).body as PersonDto[];
+  it('loads several persons by identifiers', async () => {
+    const people = (await get('/api/persons?ids=I3,I2,unknown').expect(200)).body as PersonDto[];
     expect(people.map((p) => p.id)).toEqual(['I3', 'I2']);
   });
 
-  it('répond 404 pour une personne inconnue', async () => {
+  it('responds 404 for an unknown person', async () => {
     await get('/api/persons/I999').expect(404);
   });
 
-  describe('recherche', () => {
+  describe('search', () => {
     const search = async (query: string, cookie?: string) =>
       (await get(`/api/persons/search?${query}`, cookie).expect(200)).body as SearchResultDto;
 
-    it('cherche sans tenir compte des accents ni de la casse', async () => {
+    it('searches ignoring accents and case', async () => {
       const result = await search('q=helene dupre');
       expect(result).toMatchObject({ total: 1, page: 1, items: [{ id: 'I2', restricted: false }] });
       expect(result.items[0]!.birth?.date?.qualifier).toBe('between');
     });
 
-    it('trie par nom puis prénom', async () => {
+    it('sorts by surname then given names', async () => {
       const result = await search('surname=MARTIN');
       expect(result.items.map((p) => p.givenNames)).toEqual(['Émile Joseph', 'François', 'Jules', 'Pierre', 'Zoé']);
       expect(result.items.find((p) => p.id === 'I4')).toEqual({
@@ -169,30 +169,30 @@ describe('Consultation des personnes', () => {
       });
     });
 
-    it('filtre par lieu et période de naissance', async () => {
+    it('filters by place and birth period', async () => {
       expect((await search('place=lyon')).items.map((p) => p.id).sort()).toEqual(['I0', 'I1']);
-      // Hélène (BET 1854 AND 1856) est incluse.
+      // Hélène (BET 1854 AND 1856) is included.
       expect((await search('bornFrom=1850&bornTo=1880')).items.map((p) => p.id).sort()).toEqual(['I1', 'I2', 'I3']);
     });
 
-    it('n’expose pas les contemporains dans une recherche par date', async () => {
+    it('does not expose contemporaries in a date search', async () => {
       expect((await search('bornFrom=1980')).total).toBe(0);
       expect((await search('bornFrom=1980', trusted)).items.map((p) => p.id)).toEqual(['I4']);
     });
 
-    it('pagine les résultats', async () => {
+    it('paginates results', async () => {
       const result = await search('surname=MARTIN&pageSize=2&page=2');
       expect(result).toMatchObject({ total: 5, page: 2, pageSize: 2 });
       expect(result.items.map((p) => p.givenNames)).toEqual(['Jules', 'Pierre']);
     });
 
-    it('valide les paramètres', async () => {
+    it('validates parameters', async () => {
       await get('/api/persons/search?bornFrom=abc').expect(400);
       await get('/api/persons/search?pageSize=1000').expect(400);
     });
   });
 
-  it('liste les patronymes', async () => {
+  it('lists surnames', async () => {
     const surnames = (await get('/api/surnames').expect(200)).body as SurnameDto[];
     expect(surnames).toEqual([
       { surname: 'BERNARD', count: 1 },
@@ -201,7 +201,7 @@ describe('Consultation des personnes', () => {
     ]);
   });
 
-  it('permet à un admin de changer la racine de l’arbre', async () => {
+  it('lets an admin change the tree root', async () => {
     const admin = await loginAs(ctx, { email: 'root-admin@example.com', role: 'ADMIN' });
     await request(ctx.app.getHttpServer())
       .put('/api/admin/tree/root')
@@ -223,20 +223,20 @@ describe('Consultation des personnes', () => {
     expect(info.rootPersonId).toBe('I3');
   });
 
-  describe('racine personnelle', () => {
+  describe('personal root', () => {
     const putRoot = (personId: string | null, cookie?: string) => {
       const req = request(ctx.app.getHttpServer()).put('/api/me/root').send({ personId });
       return cookie ? req.set('Cookie', cookie) : req;
     };
     const treeInfo = async (cookie?: string) => (await get('/api/tree', cookie).expect(200)).body as TreeInfoDto;
 
-    it('est réservée aux utilisateurs connectés', async () => {
+    it('is restricted to logged-in users', async () => {
       await putRoot('I1').expect(401);
       await putRoot('nope', member).expect(404);
       await putRoot('', member).expect(400);
     });
 
-    it('remplace la racine commune pour l’utilisateur seulement', async () => {
+    it('replaces the shared root for that user only', async () => {
       const info = (await putRoot('I1', member).expect(200)).body as TreeInfoDto;
       expect(info).toMatchObject({ rootPersonId: 'I1', globalRootPersonId: 'I3', personalRoot: true });
       expect(await treeInfo(member)).toMatchObject({ rootPersonId: 'I1', personalRoot: true });
@@ -246,12 +246,12 @@ describe('Consultation des personnes', () => {
       expect(me.user.rootPersonId).toBe('I1');
     });
 
-    it('revient à la racine commune', async () => {
+    it('reverts to the shared root', async () => {
       const info = (await putRoot(null, member).expect(200)).body as TreeInfoDto;
       expect(info).toMatchObject({ rootPersonId: 'I3', personalRoot: false });
     });
 
-    it('ignore une racine personnelle qui n’existe plus après un import', async () => {
+    it('ignores a personal root that no longer exists after an import', async () => {
       await putRoot('I6', member).expect(200);
       await ctx.prisma.person.delete({ where: { id: 'I6' } });
       expect(await treeInfo(member)).toMatchObject({ rootPersonId: 'I3', personalRoot: false });

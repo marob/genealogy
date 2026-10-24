@@ -2,7 +2,7 @@
   "name": "genealogie",
   "version": "0.1.0",
   "private": true,
-  "description": "Visualisation et partage d'un arbre g\u00e9n\u00e9alogique, avec import GEDCOM.",
+  "description": "Family tree visualization and sharing, with GEDCOM import.",
   "license": "MIT",
   "type": "module",
   "engines": {
@@ -19,6 +19,7 @@
     "dev:frontend": "npm start -w frontend",
     "build": "npm run build -w backend && npm run build -w frontend",
     "test": "npm test -w shared -w backend -w frontend",
+    "test:cov": "npm run test:cov -w shared -w backend -w frontend",
     "test:e2e": "npm run build && npm test -w e2e",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

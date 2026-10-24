@@ -1,10 +1,10 @@
-# Déploiement de production derrière un reverse proxy (nginx).
-# Sur le serveur, à côté d'un fichier .env construit à partir de .env.example :
+# Production deployment behind a reverse proxy (nginx).
+# On the server, next to a .env file created from .env.example:
 #   docker compose pull && docker compose up -d
 services:
   app:
     image: ghcr.io/marob/genealogy:latest
-    # Écoute locale uniquement : nginx assure le HTTPS.
+    # Listens locally only: nginx handles HTTPS.
     ports:
       - '127.0.0.1:3100:3000'
     env_file: .env

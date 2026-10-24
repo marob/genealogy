@@ -1,49 +1,49 @@
-# Généalogie
+# Genealogy
 
-Application web de consultation d'un arbre généalogique, alimentée par un fichier **GEDCOM** exporté depuis un logiciel de généalogie (Heredis, Gramps, Geneatique…).
+Web application for browsing a family tree, fed by a **GEDCOM** file exported from genealogy software (Heredis, Gramps, Geneatique…).
 
-- Arbre interactif (zoom, déplacement, dépliage des ascendants et descendants), fiche détaillée par personne.
-- Recherche par nom, lieu, période de naissance et sexe ; index des patronymes.
-- Import GEDCOM avec aperçu avant application et historique (retour possible à un import précédent).
-- Interface en français, anglais et espagnol.
-- Authentification OpenID Connect (Google, Facebook, ou tout fournisseur OIDC) et gestion des droits.
+- Interactive tree (zoom, pan, expanding ancestors and descendants), detailed profile for each person.
+- Search by name, place, birth period and sex; surname index.
+- GEDCOM import with a preview before applying and a history (you can go back to a previous import).
+- User interface in French, English and Spanish.
+- OpenID Connect authentication (Google, Facebook, or any OIDC provider) and permission management.
 
-## Confidentialité : la règle des 100 ans
+## Privacy: the 100-year rule
 
-| Profil                                   | Personnes nées il y a plus de 100 ans | Personnes nées il y a moins de 100 ans |
-| ---------------------------------------- | ------------------------------------- | -------------------------------------- |
-| Visiteur anonyme ou connecté sans droit  | Tout                                  | Nom et liens familiaux uniquement      |
-| Connecté avec le droit « contemporains » | Tout                                  | Tout                                   |
-| Administrateur                           | Tout                                  | Tout + import et gestion des comptes   |
+| Profile                                        | People born more than 100 years ago | People born less than 100 years ago |
+| ---------------------------------------------- | ----------------------------------- | ----------------------------------- |
+| Anonymous visitor, or signed in without rights | Everything                          | Name and family links only          |
+| Signed in with the "contemporaries" permission | Everything                          | Everything                          |
+| Administrator                                  | Everything                          | Everything + import and accounts    |
 
-La règle est appliquée **côté serveur** : les informations masquées ne quittent jamais l'API.
+The rule is enforced **on the server**: hidden information never leaves the API.
 
-- Une date de naissance inconnue est estimée à partir des événements de la personne (on naît avant de se marier ou de mourir), de ses parents, conjoints et enfants. Sans estimation possible, la personne est traitée comme contemporaine.
-- Les recherches par lieu ou par date excluent les contemporains pour les utilisateurs non autorisés, afin de ne rien révéler indirectement.
-- « Aujourd'hui » est calculé dans le fuseau `APP_TIMEZONE` (Europe/Paris par défaut).
+- An unknown birth date is estimated from the person's events (one is born before marrying or dying), and from their parents, spouses and children. When no estimate is possible, the person is treated as a contemporary.
+- Searches by place or date exclude contemporaries for unauthorized users, so that nothing is revealed indirectly.
+- "Today" is computed in the `APP_TIMEZONE` time zone (Europe/Paris by default).
 
-## Import GEDCOM
+## GEDCOM import
 
-- **Encodages** : UTF-8 (avec ou sans BOM), UTF-16 LE/BE, ANSEL (diacritiques recomposés en Unicode), ANSI/Windows-1252, Macintosh. L'encodage déclaré (`1 CHAR`) est vérifié et les incohérences courantes sont corrigées et signalées.
-- **Dates** : dates partielles (`MAR 1850`, `1850`), approximatives (`ABT`, `EST`, `CAL`), bornées (`BEF`, `AFT`, `BET … AND …`, `FROM … TO …`), textes libres, années doubles (`1720/21`), calendriers **grégorien, julien, républicain français** et hébreu. Elles ne sont jamais converties en objet `Date` : aucun décalage de fuseau horaire, ni à l'import ni à l'affichage.
-- **Lieux** : découpage selon le format déclaré (`HEAD.PLAC.FORM`) ou le format courant « Ville, Code, Département, Région, Pays », coordonnées GPS.
-- Le fichier d'origine est conservé avec chaque import ; les avertissements (références cassées, dates non reconnues, informations non importées) sont affichés avant validation.
+- **Encodings**: UTF-8 (with or without BOM), UTF-16 LE/BE, ANSEL (diacritics recomposed into Unicode), ANSI/Windows-1252, Macintosh. The declared encoding (`1 CHAR`) is checked, and common inconsistencies are fixed and reported.
+- **Dates**: partial dates (`MAR 1850`, `1850`), approximate (`ABT`, `EST`, `CAL`), bounded (`BEF`, `AFT`, `BET … AND …`, `FROM … TO …`), free text, dual years (`1720/21`), **Gregorian, Julian, French Republican** and Hebrew calendars. They are never converted to a `Date` object: no time-zone shift, neither on import nor on display.
+- **Places**: split according to the declared format (`HEAD.PLAC.FORM`) or the common "City, Code, County, Region, Country" format, GPS coordinates.
+- The original file is kept with each import; warnings (broken references, unrecognized dates, information not imported) are shown before committing.
 
 ## Architecture
 
 ```
-shared/     Contrat d'API (types TypeScript partagés)
-backend/    API NestJS + Prisma + SQLite
-frontend/   Application Angular (CDK, Transloco, Font Awesome)
-e2e/        Tests de bout en bout Playwright
-docker/     Script de démarrage de l'image
+shared/     API contract (shared TypeScript types)
+backend/    NestJS API + Prisma + SQLite
+frontend/   Angular application (CDK, Transloco, Font Awesome)
+e2e/        Playwright end-to-end tests
+docker/     Image startup script
 ```
 
-Une seule image Docker contient l'API et le frontend compilé. La base SQLite est stockée dans le volume `/data`.
+A single Docker image contains the API and the built frontend. The SQLite database is stored in the `/data` volume.
 
-## Développement
+## Development
 
-Prérequis : Node.js (version dans [`.nvmrc`](.nvmrc), via `nvm use`) et npm.
+Prerequisites: Node.js (version in [`.nvmrc`](.nvmrc), via `nvm use`) and npm.
 
 ```bash
 nvm use
@@ -52,7 +52,7 @@ cp backend/.env.example backend/.env
 npm run prisma:migrate -w @genealogie/backend
 ```
 
-Puis, dans deux terminaux :
+Then, in two terminals:
 
 ```bash
 npm run dev:backend
@@ -62,45 +62,45 @@ npm run dev:backend
 npm run dev:frontend
 ```
 
-L'application est servie sur http://localhost:4200 (les appels `/api` sont relayés vers le backend sur le port 3000).
-Avec `AUTH_DEV_BYPASS=true` dans `backend/.env`, tout visiteur est administrateur : pratique pour importer un fichier sans configurer de fournisseur OIDC. Ce mode est refusé au démarrage si `PUBLIC_URL` ne pointe pas vers `localhost`.
+The application is served at http://localhost:4200 (`/api` calls are proxied to the backend on port 3000).
+With `AUTH_DEV_BYPASS=true` in `backend/.env`, every visitor is an administrator: handy for importing a file without configuring an OIDC provider. This mode is rejected at startup if `PUBLIC_URL` does not point to `localhost`.
 
-Les fichiers `.ged` et les bases de données sont exclus de Git. Le dossier `private/` (ignoré) peut accueillir vos fichiers de test réels.
+`.ged` files and databases are excluded from Git. The `private/` folder (ignored) can hold your real test files.
 
-### Qualité
+### Quality
 
 ```bash
 npm run check
 ```
 
-Cette commande enchaîne Prettier, ESLint (TypeScript strict, Angular, accessibilité des templates), la vérification des types, [knip](https://knip.dev) (code mort, exports et dépendances inutilisés) et les tests unitaires et d'intégration (Vitest).
-Les tests de bout en bout compilent l'application puis la pilotent avec Playwright :
+This command runs Prettier, ESLint (strict TypeScript, Angular, template accessibility), type checking, [knip](https://knip.dev) (dead code, unused exports and dependencies) and the unit and integration tests (Vitest).
+The end-to-end tests build the application and then drive it with Playwright:
 
 ```bash
 npx -w @genealogie/e2e playwright install chromium
 npm run test:e2e
 ```
 
-Un hook Git (husky + lint-staged) formate et corrige les fichiers modifiés à chaque commit.
+A Git hook (husky + lint-staged) formats and fixes the changed files on each commit.
 
-## Exécution avec Docker
+## Running with Docker
 
 ```bash
 cp .env.example .env
 docker compose up --build
 ```
 
-L'application est disponible sur http://localhost:8080. Renseignez au minimum `SESSION_SECRET` (32 caractères ou plus) dans `.env`.
+The application is available at http://localhost:8080. At a minimum, set `SESSION_SECRET` (32 characters or more) in `.env`.
 
-Image multi-architecture (par exemple pour un serveur ARM Oracle Cloud) :
+Multi-architecture image (for example for an Oracle Cloud ARM server):
 
 ```bash
 docker buildx build --platform linux/amd64,linux/arm64 -t genealogie .
 ```
 
-### Déploiement
+### Deployment
 
-La CI publie l'image multi-architecture `ghcr.io/marob/genealogy` à chaque commit sur `main` dont les tests passent. Le dossier [`deploy/`](deploy) contient le `docker-compose.yml` de production (écoute sur `127.0.0.1:3100`), un `.env.example` et le site nginx (HTTPS via certbot) :
+CI publishes the multi-architecture image `ghcr.io/marob/genealogy` on every commit to `main` whose tests pass. The [`deploy/`](deploy) folder contains the production `docker-compose.yml` (listening on `127.0.0.1:3100`), a `.env.example` and the nginx site (HTTPS via certbot):
 
 ```bash
 docker compose pull && docker compose up -d
@@ -108,19 +108,31 @@ docker compose pull && docker compose up -d
 
 ### Configuration
 
-| Variable                                                                         | Rôle                                                                              |
-| -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| `PUBLIC_URL`                                                                     | URL publique de l'application (callbacks OIDC, cookies sécurisés en HTTPS)        |
-| `SESSION_SECRET`                                                                 | Secret de signature des sessions (32 caractères minimum)                          |
-| `ADMIN_EMAILS`                                                                   | E-mails promus administrateurs à leur connexion (séparés par des virgules)        |
-| `AUTH_DEV_BYPASS`                                                                | Désactive l'authentification (tout le monde est admin) ; uniquement sur localhost |
-| `APP_TIMEZONE`                                                                   | Fuseau de référence pour la règle des 100 ans                                     |
-| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`                                      | Connexion Google                                                                  |
-| `FACEBOOK_CLIENT_ID` / `FACEBOOK_CLIENT_SECRET`                                  | Connexion Facebook                                                                |
-| `OIDC_NAME`, `OIDC_LABEL`, `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET` | Fournisseur OpenID Connect générique (Keycloak, Microsoft…)                       |
+| Variable                                                                         | Purpose                                                                             |
+| -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `PUBLIC_URL`                                                                     | Public URL of the application (OIDC callbacks, secure cookies over HTTPS)           |
+| `SESSION_SECRET`                                                                 | Session signing secret (at least 32 characters)                                     |
+| `ADMIN_EMAILS`                                                                   | E-mails promoted to administrator when they sign in (comma-separated)               |
+| `AUTH_DEV_BYPASS`                                                                | Disables authentication (everyone is an admin); localhost only                      |
+| `APP_TIMEZONE`                                                                   | Reference time zone for the 100-year rule                                           |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`                                      | Google sign-in                                                                      |
+| `FACEBOOK_CLIENT_ID` / `FACEBOOK_CLIENT_SECRET`                                  | Facebook sign-in                                                                    |
+| `OIDC_NAME`, `OIDC_LABEL`, `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET` | Generic OpenID Connect provider (Keycloak, Microsoft…)                              |
+| `OIDC_TRUST_EMAIL`                                                               | Accepts the generic provider's e-mail without an `email_verified` claim (Microsoft) |
 
-L'URI de redirection à déclarer chez chaque fournisseur est `${PUBLIC_URL}/api/auth/<fournisseur>/callback`.
+The redirect URI to register with each provider is `${PUBLIC_URL}/api/auth/<provider>/callback`.
 
-## Licence
+Personal Microsoft accounts (Outlook, Hotmail, Live) through the generic provider: register the application on portal.azure.com ("Personal Microsoft accounts only", Web platform), then:
+
+```bash
+OIDC_NAME=microsoft
+OIDC_LABEL=Microsoft
+OIDC_ISSUER=https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0
+OIDC_TRUST_EMAIL=true
+```
+
+The `…/consumers/v2.0` URL does not work: the issuer declared in its metadata does not match. Since Microsoft does not send `email_verified`, `OIDC_TRUST_EMAIL` is required; do not enable it for a provider where users can declare an arbitrary address.
+
+## License
 
 [MIT](LICENSE).

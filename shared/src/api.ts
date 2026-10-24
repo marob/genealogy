@@ -1,6 +1,6 @@
 import type { GenealogyDate } from './dates.ts';
 
-/** Contrat de l'API REST exposée par le backend sous `/api`. */
+/** REST API contract exposed by the backend under `/api`. */
 
 export type Sex = 'M' | 'F' | 'U';
 
@@ -27,9 +27,9 @@ export interface UnionDto {
   familyId: string;
   partnerId?: string;
   childIds: string[];
-  /** Mariage, divorce… (vide si l'union est masquée). */
+  /** Marriage, divorce… (empty if the union is hidden). */
   events: EventDto[];
-  /** true si le détail de l'union est masqué (moins de 100 ans). */
+  /** true if the union details are hidden (less than 100 years old). */
   restricted: boolean;
 }
 
@@ -40,12 +40,12 @@ export interface PersonDto {
   sex: Sex;
   fatherId?: string;
   motherId?: string;
-  /** Familles dont la personne est l'un des partenaires, triées par date. */
+  /** Families in which the person is one of the partners, sorted by date. */
   unions: UnionDto[];
   /**
-   * true si la personne est née il y a moins de 100 ans et que l'utilisateur
-   * n'a pas le droit de voir les contemporains : seuls le nom et les liens
-   * familiaux sont alors fournis.
+   * true if the person was born less than 100 years ago and the user is not
+   * allowed to see contemporaries: only the name and family links are then
+   * provided.
    */
   restricted: boolean;
   events: EventDto[];
@@ -64,7 +64,7 @@ export interface UserDto {
   canSeeContemporary: boolean;
   createdAt: string;
   lastLoginAt?: string;
-  /** Racine personnelle de l'arbre (sinon la racine commune). */
+  /** Personal root of the tree (otherwise the shared root). */
   rootPersonId?: string;
 }
 
@@ -75,9 +75,9 @@ export interface AuthProviderDto {
 
 export interface MeDto {
   user?: UserDto;
-  /** Fournisseurs d'identité configurés côté serveur. */
+  /** Identity providers configured on the server. */
   providers: AuthProviderDto[];
-  /** Mode développement : tout le monde est admin. */
+  /** Development mode: everyone is an admin. */
   devBypass: boolean;
 }
 
@@ -96,7 +96,7 @@ export interface ImportDto {
   id: number;
   status: ImportStatus;
   fileName: string;
-  /** Encodage réellement utilisé pour décoder le fichier. */
+  /** Encoding actually used to decode the file. */
   encoding: string;
   declaredCharset?: string;
   gedcomVersion?: string;
@@ -105,11 +105,11 @@ export interface ImportDto {
   committedAt?: string;
   stats: ImportStatsDto;
   warnings: string[];
-  /** Import actuellement appliqué (le dernier validé). */
+  /** Currently applied import (the latest committed one). */
   current: boolean;
 }
 
-/** Résultat de recherche : informations minimales pour la liste. */
+/** Search result: minimal information for the list. */
 export interface PersonSummaryDto {
   id: string;
   givenNames: string;
@@ -133,11 +133,11 @@ export interface SurnameDto {
 }
 
 export interface TreeInfoDto {
-  /** Personne affichée par défaut : racine personnelle si elle existe, sinon racine commune. */
+  /** Person shown by default: the personal root if any, otherwise the shared root. */
   rootPersonId?: string;
-  /** Racine commune, définie par un administrateur. */
+  /** Shared root, set by an administrator. */
   globalRootPersonId?: string;
-  /** true si `rootPersonId` est la racine personnelle de l'utilisateur connecté. */
+  /** true if `rootPersonId` is the signed-in user's personal root. */
   personalRoot: boolean;
   persons: number;
 }

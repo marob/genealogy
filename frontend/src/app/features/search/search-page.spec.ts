@@ -37,15 +37,15 @@ describe('SearchPage', () => {
     return fixture;
   }
 
-  it('affiche l’index des patronymes sans critère', async () => {
+  it('shows the surname index without criteria', async () => {
     const element = (await render()).nativeElement as HTMLElement;
     expect(search).not.toHaveBeenCalled();
     expect(element.textContent).toContain('Index des patronymes');
-    // « ÉTIENNE » est rangé sous E.
+    // "ÉTIENNE" is listed under E.
     expect([...element.querySelectorAll('.initial')].map((h) => h.textContent)).toEqual(['B', 'E']);
   });
 
-  it('recherche selon les critères de l’URL', async () => {
+  it('searches using the URL criteria', async () => {
     const fixture = await render({ q: 'martin', bornFrom: '1850', page: '1' });
     expect(search).toHaveBeenCalledWith({ q: 'martin', bornFrom: 1850, page: 1, pageSize: 50 });
     const element = fixture.nativeElement as HTMLElement;
@@ -55,7 +55,7 @@ describe('SearchPage', () => {
     expect(element.querySelector<HTMLInputElement>('input[formcontrolname="q"]')!.value).toBe('martin');
   });
 
-  it('porte les critères saisis dans l’URL', async () => {
+  it('puts the entered criteria in the URL', async () => {
     const fixture = await render();
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     const element = fixture.nativeElement as HTMLElement;

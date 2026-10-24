@@ -28,17 +28,17 @@ describe('Import GEDCOM (/api/admin/imports)', () => {
       .set('Cookie', cookie)
       .attach('file', Buffer.from(content), name);
 
-  it('est réservé aux administrateurs', async () => {
+  it('is restricted to administrators', async () => {
     await request(ctx.app.getHttpServer()).get('/api/admin/imports').expect(401);
     await request(ctx.app.getHttpServer()).get('/api/admin/imports').set('Cookie', member).expect(403);
     await upload(member, fixture).expect(403);
   });
 
-  it('refuse un fichier qui n’est pas un GEDCOM', async () => {
-    await upload(admin, 'bonjour').expect(400);
+  it('rejects a file that is not a GEDCOM', async () => {
+    await upload(admin, 'hello').expect(400);
   });
 
-  it('analyse puis applique un fichier ANSEL', async () => {
+  it('parses then applies an ANSEL file', async () => {
     const ansel = encodeAnsel(fixture.replace('1 CHAR UTF-8', '1 CHAR ANSEL'));
     const preview = (await upload(admin, ansel, 'Famille Martin é.ged').expect(201)).body as ImportDto;
     expect(preview).toMatchObject({
@@ -51,7 +51,7 @@ describe('Import GEDCOM (/api/admin/imports)', () => {
       current: false,
       stats: { persons: 7, families: 3, places: 3 },
     });
-    // Rien n'est encore écrit.
+    // Nothing is written yet.
     expect(await ctx.prisma.person.count()).toBe(0);
 
     const committed = (
@@ -76,7 +76,7 @@ describe('Import GEDCOM (/api/admin/imports)', () => {
     expect(await ctx.prisma.setting.findUnique({ where: { key: 'rootPersonId' } })).toMatchObject({ value: 'I0' });
   });
 
-  it('remplace les données lors d’un nouvel import et conserve l’historique', async () => {
+  it('replaces the data on a new import and keeps the history', async () => {
     const smaller = fixture.replace(/0 @I6@ INDI\n1 NAME Jules \/MARTIN\/\n1 SEX M\n1 FAMC @F2@\n/, '');
     const preview = (await upload(admin, smaller).expect(201)).body as ImportDto;
     await request(ctx.app.getHttpServer())
@@ -92,7 +92,7 @@ describe('Import GEDCOM (/api/admin/imports)', () => {
       [preview.id - 1, false],
     ]);
 
-    // L'import courant ne peut pas être supprimé, l'ancien si.
+    // The current import cannot be deleted, the old one can.
     await request(ctx.app.getHttpServer()).delete(`/api/admin/imports/${preview.id}`).set('Cookie', admin).expect(409);
     await request(ctx.app.getHttpServer())
       .delete(`/api/admin/imports/${preview.id - 1}`)

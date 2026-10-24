@@ -1,5 +1,5 @@
-// La page occupe la hauteur disponible : formulaire en haut, aperçu
-// défilant en dessous (défilement interne, dans les deux sens).
+// The page fills the available height: form at the top, scrolling preview
+// below (internal scrolling, in both directions).
 :host {
   display: flex;
   flex-direction: column;
@@ -139,8 +139,8 @@
   }
 }
 
-// L'aperçu est une image de ce qui sera imprimé : pas de survol ni de clic
-// sur les cartes (noms, boutons).
+// The preview is a picture of what will be printed: no hover or click on
+// the cards (names, buttons).
 .print-area,
 .tile-content {
   pointer-events: none;
@@ -151,14 +151,14 @@
   min-width: 100%;
   padding: 1.5rem;
 
-  // Mode papier : l'arbre source reste mesurable mais hors de l'écran ;
-  // seules les pages découpées sont affichées.
+  // Paper mode: the source tree stays measurable but off screen; only the
+  // split pages are shown.
   &.offscreen {
     position: fixed;
     top: 0;
     left: -100000px;
-    // Largeur naturelle de l'arbre, indépendante de la fenêtre : même
-    // découpage quel que soit l'écran.
+    // Natural tree width, independent of the window: same splitting
+    // whatever the screen.
     width: max-content;
     min-width: 0;
   }
@@ -188,7 +188,7 @@
   padding: 1.5rem;
 }
 
-// Aperçu à l'écran : une feuille blanche par page, aux couleurs de l'impression.
+// On-screen preview: one white sheet per page, in print colours.
 .sheet {
   --surface: #ffffff;
   --highlight: #f3f3f3;
@@ -210,7 +210,7 @@
 .tile-area {
   position: relative;
   overflow: hidden;
-  // Repère de découpe : en coupant le long de ce cadre, les pages se juxtaposent sans écart.
+  // Cut mark: cutting along this frame lets pages sit side by side with no gap.
   outline: 0.2mm dashed #bbb;
 }
 
@@ -221,8 +221,8 @@
 .tile {
   position: relative;
   overflow: hidden;
-  // Sans confinement, Chromium tient compte du contenu débordant (masqué) et
-  // réduit toute la page à l'impression.
+  // Without containment, Chromium takes the (hidden) overflowing content into
+  // account and shrinks the whole page when printing.
   contain: strict;
 }
 
@@ -231,10 +231,10 @@
   inset: 0;
   overflow: hidden;
   stroke: var(--line);
-  // À l'écran, la page est réduite (échelle d'impression) : sans compensation,
-  // les traits feraient moins d'un pixel et s'estomperaient dans l'aperçu.
+  // On screen, the page is scaled down (print scale): without compensation,
+  // lines would be thinner than a pixel and fade out in the preview.
   stroke-width: calc(var(--screen-stroke, 1) * 1px);
-  // Traits alignés sur les pixels : nets plutôt que gris et flous.
+  // Pixel-aligned lines: crisp rather than grey and blurry.
   shape-rendering: crispEdges;
 }
 
@@ -280,12 +280,12 @@
     padding: 0;
   }
 
-  // Épaisseur réelle à l'impression (l'imprimante rend les traits fins).
+  // Actual thickness when printing (the printer renders thin lines).
   .lines {
     stroke-width: 1;
   }
 
-  // Les marges sont celles de @page.
+  // Margins come from @page.
   .sheet {
     padding: 0 !important;
     box-shadow: none;

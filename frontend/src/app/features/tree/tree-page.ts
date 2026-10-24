@@ -27,7 +27,7 @@ import { ChartNode } from './chart-node';
 import { PersonDetails } from './person-details';
 import { TreeController } from './tree-controller';
 
-/** Page de l'arbre : `/tree` (racine par défaut) ou `/tree/:id`. */
+/** Tree page: `/tree` (default root) or `/tree/:id`. */
 @Component({
   selector: 'app-tree-page',
   imports: [ChartNode, PersonDetails, FaIconComponent, TranslocoPipe, RouterLink],
@@ -36,7 +36,7 @@ import { TreeController } from './tree-controller';
   styleUrl: './tree-page.scss',
 })
 export class TreePage implements OnDestroy {
-  /** Paramètre de route (liaison des entrées du routeur). */
+  /** Route parameter (router input binding). */
   readonly id = input<string>();
 
   protected readonly tree = inject(TreeController);
@@ -46,10 +46,10 @@ export class TreePage implements OnDestroy {
   private readonly viewport = viewChild<ElementRef<HTMLElement>>('viewport');
   private readonly canvas = viewChild<ElementRef<HTMLElement>>('canvas');
   private panzoom?: PanzoomObject;
-  /** Fiche à ouvrir une fois l'arbre recentré (navigation depuis une fiche). */
+  /** Record to open once the tree is recentred (navigation from a record). */
   private pendingSelection?: PersonDto;
   private readonly onWheel = (event: WheelEvent) => this.panzoom?.zoomWithWheel(event);
-  /** Carte gardée immobile à l'écran quand l'arbre change de taille, et sa position. */
+  /** Card kept still on screen when the tree resizes, and its position. */
   private anchor?: { uid: number; left: number; top: number };
   private resizeObserver?: ResizeObserver;
 
@@ -78,25 +78,25 @@ export class TreePage implements OnDestroy {
           excludeClass: 'no-pan',
         });
         canvas.parentElement?.addEventListener('wheel', this.onWheel, { passive: false });
-        // Les traits gardent au moins un pixel à l'écran quand on dézoome.
+        // Lines stay at least one pixel wide on screen when zooming out.
         canvas.addEventListener('panzoomchange', () => {
           const scale = this.panzoom?.getScale() ?? 1;
           canvas.style.setProperty('--line-width', `${Math.max(1, 1 / scale)}px`);
-          // La vue a bougé (déplacement, zoom) : la carte d'ancrage suit.
+          // The view moved (pan, zoom): the anchor card follows.
           const card = this.anchor && this.cardOf(this.anchor.uid);
           if (this.anchor && card) {
             const rect = card.getBoundingClientRect();
             this.anchor = { ...this.anchor, left: rect.left, top: rect.top };
           }
         });
-        // Quand l'arbre s'agrandit ou rétrécit (dépliage), la carte d'ancrage
-        // est remise à sa place avant l'affichage : la vue ne « saute » pas.
+        // When the tree grows or shrinks (expansion), the anchor card is put
+        // back in place before rendering: the view does not "jump".
         this.resizeObserver = new ResizeObserver(() => this.keepAnchor());
         this.resizeObserver.observe(canvas);
       }
     });
 
-    // Recentre la vue sur la racine à chaque changement de personne centrale.
+    // Recentres the view on the root whenever the central person changes.
     afterRenderEffect(() => {
       if (this.tree.focusVersion() > 0) {
         untracked(() => this.center());
@@ -159,9 +159,9 @@ export class TreePage implements OnDestroy {
   }
 
   /**
-   * Panzoom n'applique la transformation qu'à l'image suivante : on l'applique
-   * tout de suite, pour pouvoir mesurer la nouvelle vue et éviter qu'elle
-   * s'affiche une image au mauvais endroit.
+   * Panzoom only applies the transform on the next frame: apply it right
+   * away, so the new view can be measured and is not shown in the wrong
+   * place for one frame.
    */
   private applyNow(): void {
     const canvas = this.canvas()?.nativeElement;
@@ -179,7 +179,7 @@ export class TreePage implements OnDestroy {
     this.panzoom?.zoomOut();
   }
 
-  /** Depuis une fiche : recentre l'arbre et ouvre la fiche de la personne. */
+  /** From a record: recentres the tree and opens the person's record. */
   protected focus(person: PersonDto): void {
     if (person.id === this.id()) {
       this.tree.select(person);

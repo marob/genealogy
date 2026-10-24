@@ -1,4 +1,4 @@
-/** Normalisation pour la recherche : minuscules, sans accents ni espaces superflus. */
+/** Normalization for search: lowercase, without accents or extra whitespace. */
 export function normalizeForSearch(text: string): string {
   return text
     .normalize('NFD')

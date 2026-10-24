@@ -1,15 +1,15 @@
 import { alignVerticalChains, moveCutCards } from './card-nudging';
 
 /**
- * Découpage d'un arbre en pages pour l'impression papier.
+ * Splitting a tree into pages for paper printing.
  *
- * Les pages forment une grille régulière pour pouvoir être assemblées bord à
- * bord : toutes les pages intérieures sont pleines, seules les pages du bord
- * de l'arbre sont partielles (calées contre leur voisine : la première rangée
- * en bas, la première colonne à droite). La grille est la même pour toute
- * l'arbre (mêmes colonnes à chaque rangée), si bien qu'un trait qui traverse
- * un bord de page se prolonge exactement sur la page voisine. Son décalage est
- * choisi pour que les coupes passent au mieux entre les cartes.
+ * Pages form a regular grid so they can be assembled edge to edge: all inner
+ * pages are full, only the pages on the tree's border are partial (aligned
+ * against their neighbour: the first row to the bottom, the first column to
+ * the right). The grid is the same for the whole tree (same columns in every
+ * row), so a line crossing a page edge continues exactly on the neighbouring
+ * page. Its offset is chosen so that cuts fall between cards as much as
+ * possible.
  */
 
 export interface Box {
@@ -20,25 +20,25 @@ export interface Box {
 }
 
 export interface Tile {
-  /** Portion de l'arbre affichée. */
+  /** Displayed portion of the tree. */
   x: number;
   y: number;
   width: number;
   height: number;
-  /** Position de cette portion dans la page (calage contre les pages voisines). */
+  /** Position of this portion within the page (aligned against neighbouring pages). */
   offsetX: number;
   offsetY: number;
   row: number;
   col: number;
 }
 
-/** Espace souhaité entre une coupe et le bord d'une carte (absorbe les arrondis du zoom). */
+/** Desired gap between a cut and a card edge (absorbs zoom rounding). */
 const GAP = 6;
 
 interface Grid {
-  /** Positions de coupe `[0, c1, …, total]`. */
+  /** Cut positions `[0, c1, …, total]`. */
   cuts: number[];
-  /** Espace laissé avant le contenu sur la première page. */
+  /** Space left before the content on the first page. */
   offset: number;
 }
 
@@ -52,7 +52,7 @@ function crossings(spans: [number, number][], cuts: number[], gap: number): numb
   return count;
 }
 
-/** Comparaison lexicographique de deux scores (le plus petit gagne). */
+/** Lexicographic comparison of two scores (lowest wins). */
 function better(score: number[], than: number[]): boolean {
   const index = score.findIndex((value, i) => value !== than[i]);
   return index >= 0 && score[index]! < than[index]!;
@@ -68,11 +68,10 @@ function gridFor(offset: number, total: number, max: number): number[] {
 }
 
 /**
- * Grille de coupes le long d'un axe pour des pages de longueur `max` :
- * les coupes sont espacées exactement de `max`, la première page étant
- * partielle. Le décalage retenu produit le moins de pages, puis coupe le
- * moins de cartes possible (`spans` sont leurs intervalles [début, fin]),
- * puis laisse le plus de marge autour des coupes.
+ * Grid of cuts along one axis for pages of length `max`: cuts are exactly
+ * `max` apart, the first page being partial. The chosen offset produces the
+ * fewest pages, then cuts as few cards as possible (`spans` are their
+ * [start, end] intervals), then leaves the most margin around the cuts.
  */
 export function gridCuts(spans: [number, number][], total: number, max: number): Grid {
   if (total <= max) {
@@ -89,7 +88,7 @@ export function gridCuts(spans: [number, number][], total: number, max: number):
   for (const offset of offsets) {
     const cuts = gridFor(offset, total, max);
     const inner = cuts.slice(1, -1);
-    // Le moins de pages d'abord (les cartes coupées peuvent ensuite être déplacées).
+    // Fewest pages first (cut cards can be moved afterwards).
     const score = [cuts.length, crossings(spans, inner, 0), crossings(spans, inner, GAP), offset];
     if (!best || better(score, best.score)) {
       best = { grid: { cuts, offset }, score };
@@ -98,7 +97,7 @@ export function gridCuts(spans: [number, number][], total: number, max: number):
   return best!.grid;
 }
 
-/** Nombre de cartes traversées par les coupes des pages. */
+/** Number of cards crossed by page cuts. */
 export function countCutCards(cards: Box[], tiles: Tile[]): number {
   return cards.filter((card) =>
     tiles.some(
@@ -115,7 +114,7 @@ export function countCutCards(cards: Box[], tiles: Tile[]): number {
   ).length;
 }
 
-/** Pages (ligne par ligne) couvrant un arbre de taille `size` avec des pages de taille `page`. */
+/** Pages (row by row) covering a tree of size `size` with pages of size `page`. */
 export function paginate(
   cards: Box[],
   size: { width: number; height: number },
@@ -143,7 +142,7 @@ export function paginate(
         y: top,
         width,
         height: bottom - top,
-        // La première rangée / colonne est calée contre la suivante.
+        // The first row / column is aligned against the next one.
         offsetX: col === 0 && columns.cuts.length > 2 ? page.width - width : 0,
         offsetY: row === 0 && rows.cuts.length > 2 ? page.height - (bottom - top) : 0,
         row,
@@ -154,7 +153,7 @@ export function paginate(
   return tiles;
 }
 
-/** Trait de liaison entre deux cartes, en coordonnées de l'arbre. */
+/** Connecting line between two cards, in tree coordinates. */
 export interface Segment {
   x1: number;
   y1: number;
@@ -163,19 +162,19 @@ export interface Segment {
 }
 
 export interface LayoutInput {
-  /** Cartes des personnes. */
+  /** Person cards. */
   cards: Box[];
-  /** Petits éléments à reporter tels quels (anneaux d'union…). */
+  /** Small elements copied as is (union rings…). */
   marks: Box[];
   segments: Segment[];
   size: { width: number; height: number };
   page: { width: number; height: number };
-  /** Ne pas produire les pages sans aucune carte. */
+  /** Do not produce pages without any card. */
   skipEmpty: boolean;
 }
 
 interface PageLayout extends Tile {
-  /** Indices (dans `LayoutInput`) des éléments visibles sur la page. */
+  /** Indices (in `LayoutInput`) of the elements visible on the page. */
   cards: number[];
   marks: number[];
   segments: number[];
@@ -183,12 +182,12 @@ interface PageLayout extends Tile {
 
 export interface Layout {
   pages: PageLayout[];
-  /** Cartes et traits après déplacement des cartes qui chevauchaient une coupe. */
+  /** Cards and lines after moving the cards that overlapped a cut. */
   cardBoxes: Box[];
   segments: Segment[];
-  /** Cartes qu'aucune coupe n'a pu éviter. */
+  /** Cards that no cut could avoid. */
   cutCards: number;
-  /** Pages vides écartées. */
+  /** Dropped empty pages. */
   skipped: number;
 }
 
@@ -205,7 +204,7 @@ function segmentBox(segment: Segment): Box {
   };
 }
 
-/** Découpage en pages et répartition des éléments à dessiner sur chacune. */
+/** Splits into pages and distributes the elements to draw on each one. */
 export function layoutPages(input: LayoutInput): Layout {
   const grid = paginate(input.cards, input.size, input.page);
   const moved = moveCutCards(

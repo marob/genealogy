@@ -4,6 +4,11 @@ export default defineConfig({
   test: {
     globals: true,
     include: ['src/**/*.spec.ts'],
-    coverage: { include: ['src/**/*.ts'], exclude: ['src/generated/**', 'src/main.ts'] },
+    coverage: {
+      include: ['src/**/*.ts'],
+      exclude: ['src/generated/**', 'src/main.ts', 'src/**/*.spec.ts'],
+      reporter: ['text-summary', 'lcov'],
+      reportsDirectory: 'coverage/unit',
+    },
   },
 });

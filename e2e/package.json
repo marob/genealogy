@@ -2,7 +2,7 @@
   "name": "@genealogie/e2e",
   "version": "0.1.0",
   "private": true,
-  "description": "Tests de bout en bout (Playwright) sur l'application compilée.",
+  "description": "End-to-end tests (Playwright) against the built application.",
   "license": "MIT",
   "type": "module",
   "scripts": {

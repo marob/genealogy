@@ -7,7 +7,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { ROOT_PERSON_KEY, SettingsService } from '../settings/settings.service.js';
 import { replaceGenealogy } from './genealogy-writer.js';
 
-/** Nombre maximal d'avertissements conservés pour un import. */
+/** Maximum number of warnings kept for an import. */
 const MAX_WARNINGS = 500;
 
 type ImportSummary = Omit<ImportRun, 'content'>;
@@ -68,21 +68,18 @@ export class ImportsService {
     return runs.map((run) => this.toDto(run, currentId));
   }
 
-  /** Analyse un fichier et l'enregistre en attente de validation. */
+  /** Parses a file and stores it pending confirmation. */
   async preview(user: AuthUser, fileName: string, content: Uint8Array): Promise<ImportDto> {
     if (content.length === 0) {
-      throw new BadRequestException('Le fichier est vide.');
+      throw new BadRequestException('The file is empty.');
     }
     const result = parseGedcom(content);
     if (result.persons.length === 0) {
-      throw new BadRequestException('Aucune personne trouvée : ce fichier n’est pas un GEDCOM valide.');
+      throw new BadRequestException('No person found: this file is not a valid GEDCOM.');
     }
     const warnings =
       result.warnings.length > MAX_WARNINGS
-        ? [
-            ...result.warnings.slice(0, MAX_WARNINGS),
-            `… et ${result.warnings.length - MAX_WARNINGS} autres avertissements.`,
-          ]
+        ? [...result.warnings.slice(0, MAX_WARNINGS), `… and ${result.warnings.length - MAX_WARNINGS} more warnings.`]
         : result.warnings;
     const run = await this.prisma.importRun.create({
       data: {
@@ -102,13 +99,13 @@ export class ImportsService {
   }
 
   /**
-   * Applique un import : remplace toutes les données généalogiques. Un import
-   * déjà validé peut être réappliqué (retour à une version précédente).
+   * Applies an import: replaces all genealogy data. An already committed
+   * import can be re-applied (rollback to a previous version).
    */
   async commit(id: number): Promise<ImportDto> {
     const run = await this.prisma.importRun.findUnique({ where: { id } });
     if (!run) {
-      throw new NotFoundException('Import introuvable.');
+      throw new NotFoundException('Import not found.');
     }
     const data = parseGedcom(run.content);
     const committedAt = new Date();
@@ -130,11 +127,11 @@ export class ImportsService {
 
   async delete(id: number): Promise<void> {
     if (id === (await this.currentImportId())) {
-      throw new ConflictException('L’import actuellement appliqué ne peut pas être supprimé.');
+      throw new ConflictException('The currently applied import cannot be deleted.');
     }
     const { count } = await this.prisma.importRun.deleteMany({ where: { id } });
     if (count === 0) {
-      throw new NotFoundException('Import introuvable.');
+      throw new NotFoundException('Import not found.');
     }
   }
 }

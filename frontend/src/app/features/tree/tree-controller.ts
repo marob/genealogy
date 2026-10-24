@@ -5,10 +5,10 @@ import { ApiService } from '../../core/api.service';
 import { TreeNode } from './tree-node';
 
 /**
- * État et actions de l'arbre, partagés par les nœuds affichés récursivement.
- * Fourni au niveau de la page de l'arbre.
+ * Tree state and actions, shared by the recursively rendered nodes.
+ * Provided at the tree page level.
  */
-/** Profondeur maximale acceptée par l'API. */
+/** Maximum depth accepted by the API. */
 export const MAX_GENERATIONS = 50;
 
 @Injectable()
@@ -20,24 +20,24 @@ export class TreeController {
   readonly selected = signal<PersonDto | undefined>(undefined);
   readonly loading = signal(false);
   readonly notFound = signal(false);
-  /** Incrémenté à chaque nouvelle racine, pour recentrer la vue. */
+  /** Incremented on each new root, to recentre the view. */
   readonly focusVersion = signal(0);
   /**
-   * Appelé juste avant de déplier ou replier un nœud, avec ce nœud : la page
-   * mémorise sa position à l'écran pour le garder immobile.
+   * Called just before expanding or collapsing a node, with that node: the
+   * page records its on-screen position to keep it still.
    */
   beforeChange?: (node: TreeNode) => void;
 
   /**
-   * Charge la personne centrale. Sans `generations`, seuls ses parents,
-   * enfants et conjoints sont affichés ; sinon toute la lignée demandée.
+   * Loads the central person. Without `generations`, only their parents,
+   * children and spouses are displayed; otherwise the whole requested lineage.
    */
   async load(id: string, generations?: { ancestors: number; descendants: number }): Promise<void> {
     this.loading.set(true);
     this.notFound.set(false);
     try {
       if (generations) {
-        // Lignée complète (mémorisée par l'API) ; le dépliage applique ensuite la profondeur voulue.
+        // Full lineage (cached by the API); expansion then applies the desired depth.
         await this.api.lineage(id, { ancestors: MAX_GENERATIONS, descendants: MAX_GENERATIONS });
       }
       const person = await this.api.person(id, ['parents', 'children', 'unions']);
@@ -88,7 +88,7 @@ export class TreeController {
     }
   }
 
-  /** Déplie récursivement tous les ascendants ou descendants de la racine. */
+  /** Recursively expands all ancestors or descendants of the root. */
   async expandAll(direction: 'ancestors' | 'descendants', generations = MAX_GENERATIONS): Promise<void> {
     const root = this.root();
     if (!root) {
@@ -110,7 +110,7 @@ export class TreeController {
     }
   }
 
-  // Le chemin depuis la racine évite de boucler sur un fichier incohérent.
+  // The path from the root prevents looping on an inconsistent file.
   private async expandParents(node: TreeNode, depth: number, path: Set<string>): Promise<void> {
     if (depth <= 0 || !node.hasParents) {
       node.parents.set(undefined);

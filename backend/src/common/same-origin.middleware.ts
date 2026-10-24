@@ -6,10 +6,10 @@ import type { Env } from '../config/env.js';
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 
 /**
- * Protection CSRF en complément des cookies SameSite=Lax : toute requête
- * modifiante portant un en-tête Origin doit provenir de l'application : soit
- * l'URL publique configurée, soit l'hôte auquel la requête est adressée (cas
- * d'un serveur de développement ou d'un proxy sur un autre port).
+ * CSRF protection on top of SameSite=Lax cookies: any state-changing request
+ * carrying an Origin header must come from the application: either the
+ * configured public URL, or the host the request is addressed to (case of a
+ * development server or a proxy on another port).
  */
 @Injectable()
 export class SameOriginMiddleware implements NestMiddleware {
@@ -22,7 +22,7 @@ export class SameOriginMiddleware implements NestMiddleware {
   use(req: Request, _res: Response, next: NextFunction): void {
     const origin = req.headers.origin;
     if (!SAFE_METHODS.has(req.method) && origin && !this.isAllowed(origin, req.headers.host)) {
-      throw new ForbiddenException('Origine de la requête non autorisée.');
+      throw new ForbiddenException('Request origin not allowed.');
     }
     next();
   }

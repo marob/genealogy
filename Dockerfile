@@ -1,12 +1,12 @@
 # syntax=docker/dockerfile:1
 
-# Image unique : l'API NestJS sert aussi le frontend Angular compilé.
-# Construction multi-architecture (amd64, arm64 pour Oracle Cloud Ampere) :
+# Single image: the NestJS API also serves the built Angular frontend.
+# Multi-architecture build (amd64, arm64 for Oracle Cloud Ampere):
 #   docker buildx build --platform linux/amd64,linux/arm64 -t genealogie .
 
 ARG NODE_VERSION=24.22.1
 
-# Outils de compilation des modules natifs (better-sqlite3).
+# Build tools for native modules (better-sqlite3).
 FROM node:${NODE_VERSION}-bookworm-slim AS toolchain
 RUN apt-get update \
   && apt-get install -y --no-install-recommends python3 make g++ openssl ca-certificates \
@@ -20,7 +20,7 @@ COPY e2e/package.json e2e/
 COPY backend/prisma backend/prisma
 COPY backend/prisma.config.ts backend/
 
-# Compilation du backend et du frontend.
+# Build the backend and the frontend.
 FROM toolchain AS build
 RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --no-fund
 COPY . .
@@ -28,7 +28,7 @@ RUN npm run prisma:generate -w @genealogie/backend \
   && npm run build -w @genealogie/backend \
   && npm run build -w @genealogie/frontend
 
-# Dépendances de production du backend uniquement.
+# Backend production dependencies only.
 FROM toolchain AS prod-deps
 RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev --no-audit --no-fund -w @genealogie/backend
 

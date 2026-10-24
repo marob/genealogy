@@ -1,14 +1,14 @@
 import { signal } from '@angular/core';
 import type { PersonDto } from '@genealogie/shared';
 
-/** Partie de l'arbre dans laquelle un nœud est affiché. */
+/** Part of the tree a node is displayed in. */
 export type TreePart = 'root' | 'parents' | 'children';
 
 let nextUid = 1;
 
-/** Nœud de l'arbre affiché ; parents et enfants sont dépliés à la demande. */
+/** Displayed tree node; parents and children are expanded on demand. */
 export class TreeNode {
-  /** Identifiant d'affichage (une même personne peut apparaître plusieurs fois). */
+  /** Display identifier (the same person may appear several times). */
   readonly uid = nextUid++;
 
   readonly parents = signal<TreeNode[] | undefined>(undefined);
@@ -21,7 +21,7 @@ export class TreeNode {
     return !!this.person.fatherId || !!this.person.motherId;
   }
 
-  /** Enfants de toutes les unions, sans doublon, dans l'ordre des unions. */
+  /** Children of all unions, without duplicates, in union order. */
   get childIds(): string[] {
     return [...new Set(this.person.unions.flatMap((union) => union.childIds))];
   }

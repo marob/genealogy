@@ -21,7 +21,7 @@ import {
   iconUnknownSex,
 } from '../../ui/icons';
 
-/** Panneau latéral avec la fiche complète d'une personne. */
+/** Side panel with a person's full record. */
 @Component({
   selector: 'app-person-details',
   imports: [FaIconComponent, TranslocoPipe, GenealogyDatePipe],
@@ -39,7 +39,7 @@ export class PersonDetails {
   protected readonly session = inject(SessionStore);
   protected readonly lang = inject(LanguageService).current;
 
-  /** Proches (parents, conjoints, enfants) pour afficher leurs noms. */
+  /** Relatives (parents, spouses, children) to display their names. */
   protected readonly relatives = resource({
     params: () => this.person(),
     loader: async ({ params: person }) => {

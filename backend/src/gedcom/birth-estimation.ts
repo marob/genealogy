@@ -2,21 +2,21 @@ import type { ParsedDate } from './dates.js';
 import type { FamilyRecord, PersonRecord } from './model.js';
 
 /**
- * Estimation de la date de naissance de chaque personne, utilisée par la
- * règle de confidentialité « né il y a moins de 100 ans ».
+ * Estimates the birth date of each person, used by the "born less than
+ * 100 years ago" privacy rule.
  *
- * Les clés sont au format AAAAMMJJ ; les parties inconnues sont complétées
- * au plus tard (31 décembre), ce qui ne peut que rendre la règle plus stricte.
+ * Keys use the YYYYMMDD format; unknown parts are filled with the latest
+ * value (December 31st), which can only make the rule stricter.
  *
- * 1. Naissance ou baptême datés : clé exacte.
- * 2. Sinon, minimum entre :
- *    - les autres événements datés de la personne et de ses unions (on naît
- *      forcément avant de se marier, mourir…) ;
- *    - la naissance des parents + 30 ans ;
- *    - la naissance des conjoints ;
- *    - la naissance des enfants − 30 ans.
- *    Le calcul est itéré pour propager les estimations dans l'arbre.
- * 3. Sinon : inconnue (la personne est alors traitée comme contemporaine).
+ * 1. Dated birth or baptism: exact key.
+ * 2. Otherwise, the minimum of:
+ *    - the other dated events of the person and of their unions (one is
+ *      necessarily born before marrying, dying...);
+ *    - the parents' birth + 30 years;
+ *    - the partners' birth;
+ *    - the children's birth − 30 years.
+ *    The computation is iterated to propagate estimates through the tree.
+ * 3. Otherwise: unknown (the person is then treated as contemporary).
  */
 
 const BIRTH_TYPES = ['BIRT', 'CHR', 'BAPM'];

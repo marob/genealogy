@@ -37,7 +37,7 @@ describe('TreeController', () => {
     tree = TestBed.inject(TreeController);
   });
 
-  it('charge la racine avec parents, enfants et conjoints', async () => {
+  it('loads the root with parents, children and spouses', async () => {
     await tree.load('I1');
     const root = tree.root()!;
     expect(root.person.id).toBe('I1');
@@ -47,7 +47,7 @@ describe('TreeController', () => {
     expect(tree.focusVersion()).toBe(1);
   });
 
-  it('déplie et replie les ascendants et descendants', async () => {
+  it('expands and collapses ancestors and descendants', async () => {
     await tree.load('I1');
     const root = tree.root()!;
     await tree.toggleParents(root);
@@ -58,11 +58,11 @@ describe('TreeController', () => {
     const child = root.children()![0]!;
     expect(child.children()).toBeUndefined();
     await tree.toggleChildren(child);
-    // François n'a pas d'enfant : rien à déplier.
+    // François has no children: nothing to expand.
     expect(child.children()).toBeUndefined();
   });
 
-  it('déplie récursivement tous les ascendants et descendants', async () => {
+  it('recursively expands all ancestors and descendants', async () => {
     await tree.load('I3', { ancestors: 5, descendants: 5 });
     const root = tree.root()!;
     const father = root.parents()!.find((n) => n.person.id === 'I1')!;
@@ -70,7 +70,7 @@ describe('TreeController', () => {
     expect(father.parents()![0]!.parents()).toBeUndefined();
   });
 
-  it('limite le dépliage au nombre de générations demandé', async () => {
+  it('limits expansion to the requested number of generations', async () => {
     await tree.load('I3', { ancestors: 1, descendants: 0 });
     expect(
       tree
@@ -81,18 +81,18 @@ describe('TreeController', () => {
     ).toBeUndefined();
   });
 
-  it('ne boucle pas sur une personne qui serait son propre ascendant', async () => {
+  it('does not loop on a person who would be their own ancestor', async () => {
     family['I0'] = { ...family['I0']!, fatherId: 'I1' };
     await tree.load('I1');
     await tree.expandAll('ancestors');
     const grandfather = tree.root()!.parents()![0]!;
     expect(grandfather.person.id).toBe('I0');
-    // I1 est déjà sur le chemin : il n'est pas réaffiché comme parent de I0.
+    // I1 is already on the path: it is not displayed again as a parent of I0.
     expect(grandfather.parents()).toBeUndefined();
     family['I0'] = { ...family['I0'], fatherId: undefined };
   });
 
-  it('signale une personne introuvable', async () => {
+  it('reports a person that cannot be found', async () => {
     await tree.load('inconnu');
     expect(tree.notFound()).toBe(true);
     expect(tree.root()).toBeUndefined();

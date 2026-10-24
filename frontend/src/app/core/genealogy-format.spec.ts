@@ -9,25 +9,25 @@ const date = (value: Partial<GenealogyDate>): GenealogyDate => ({
 });
 
 describe('formatGenealogyDate', () => {
-  it('formate une date complète dans chaque langue', () => {
+  it('formats a full date in each language', () => {
     const d = date({ start: { year: 1850, month: 3, day: 12 } });
     expect(formatGenealogyDate(d, 'fr')).toBe('12 mars 1850');
     expect(formatGenealogyDate(d, 'en')).toBe('March 12, 1850');
     expect(formatGenealogyDate(d, 'es')).toBe('12 de marzo de 1850');
   });
 
-  it('ne décale jamais le jour (1er janvier, 31 décembre)', () => {
+  it('never shifts the day (January 1st, December 31st)', () => {
     expect(formatGenealogyDate(date({ start: { year: 1900, month: 1, day: 1 } }), 'fr')).toBe('1 janvier 1900');
     expect(formatGenealogyDate(date({ start: { year: 1899, month: 12, day: 31 } }), 'fr')).toBe('31 décembre 1899');
   });
 
-  it('respecte la précision des dates partielles', () => {
+  it('respects the precision of partial dates', () => {
     expect(formatGenealogyDate(date({ start: { year: 1850 } }), 'fr')).toBe('1850');
     expect(formatGenealogyDate(date({ start: { year: 1850, month: 3 } }), 'fr')).toBe('mars 1850');
     expect(formatGenealogyDate(date({ start: { year: 45, month: 3 } }), 'en')).toBe('March 45');
   });
 
-  it('traduit les qualificatifs', () => {
+  it('translates qualifiers', () => {
     expect(formatGenealogyDate(date({ qualifier: 'about', start: { year: 1850 } }), 'fr')).toBe('vers 1850');
     expect(formatGenealogyDate(date({ qualifier: 'before', start: { year: 1850 } }), 'en')).toBe('before 1850');
     expect(formatGenealogyDate(date({ qualifier: 'between', start: { year: 1700 }, end: { year: 1710 } }), 'es')).toBe(
@@ -38,28 +38,28 @@ describe('formatGenealogyDate', () => {
     );
   });
 
-  it('formate le calendrier républicain', () => {
+  it('formats the French republican calendar', () => {
     expect(
       formatGenealogyDate(date({ calendar: 'french-republican', start: { year: 8, month: 2, day: 18 } }), 'fr'),
     ).toBe('18 brumaire an VIII');
     expect(formatGenealogyDate(date({ calendar: 'french-republican', start: { year: 3 } }), 'en')).toBe('year III');
   });
 
-  it('signale le calendrier julien et les dates avant J.-C.', () => {
+  it('flags the Julian calendar and BC dates', () => {
     expect(formatGenealogyDate(date({ calendar: 'julian', start: { year: 1582, month: 10, day: 4 } }), 'fr')).toBe(
       '4 octobre 1582 (julien)',
     );
     expect(formatGenealogyDate(date({ start: { year: -44 } }), 'fr')).toBe('44 av. J.-C.');
   });
 
-  it('restitue le texte libre', () => {
+  it('renders free text as is', () => {
     expect(formatGenealogyDate(date({ qualifier: 'phrase', original: '(pendant la guerre)' }), 'fr')).toBe(
       'pendant la guerre',
     );
     expect(formatGenealogyDate(undefined, 'fr')).toBe('');
   });
 
-  it('se replie sur l’anglais pour une langue inconnue', () => {
+  it('falls back to English for an unknown language', () => {
     expect(formatGenealogyDate(date({ qualifier: 'about', start: { year: 1850 } }), 'de')).toBe('about 1850');
   });
 });
@@ -77,7 +77,7 @@ describe('toRoman', () => {
 });
 
 describe('formatPlace', () => {
-  it('affiche commune, code et pays', () => {
+  it('shows town, code and country', () => {
     expect(
       formatPlace({
         id: 1,

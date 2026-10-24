@@ -1,8 +1,8 @@
-// Schéma de la base de données de l'application de généalogie.
-// Les données généalogiques (Person, Family, Event, Place) sont entièrement
-// remplacées à chaque import GEDCOM ; les identifiants publics des personnes
-// et familles sont les références GEDCOM (ex. "I123", "F45") afin que les
-// URL restent stables d'un import à l'autre.
+// Database schema of the genealogy application.
+// Genealogy data (Person, Family, Event, Place) is entirely replaced on each
+// GEDCOM import; the public identifiers of persons and families are the GEDCOM
+// references (e.g. "I123", "F45") so that URLs remain stable from one import
+// to the next.
 
 generator client {
   provider = "prisma-client"
@@ -14,27 +14,27 @@ datasource db {
 }
 
 // ---------------------------------------------------------------------------
-// Généalogie
+// Genealogy
 // ---------------------------------------------------------------------------
 
 model Person {
-  /// Référence GEDCOM sans les @ (ex. "I123").
+  /// GEDCOM reference without the @ (e.g. "I123").
   id                 String  @id
   givenNames         String  @default("")
   surname            String  @default("")
-  /// "M", "F" ou "U" (inconnu).
+  /// "M", "F" or "U" (unknown).
   sex                String  @default("U")
   occupation         String?
   note               String?
-  /// Nom complet normalisé (minuscules, sans accents) pour la recherche.
+  /// Normalized full name (lowercase, no accents) for search.
   searchName         String  @default("")
-  /// « nom prénoms » normalisé, pour un tri alphabétique insensible aux accents.
+  /// Normalized "surname given-names", for accent-insensitive alphabetical sorting.
   sortName           String  @default("")
-  /// Date de naissance AAAAMMJJ connue ou estimée (via les parents, enfants,
-  /// unions…), parties inconnues complétées au plus tard. Sert à la règle de
-  /// confidentialité des moins de 100 ans ; null = inconnue (contemporain).
+  /// Known or estimated YYYYMMDD birth date (from parents, children,
+  /// unions...), unknown parts filled with the latest value. Used by the
+  /// under-100-years privacy rule; null = unknown (contemporary).
   birthKey           Int?
-  /// true si birthKey est estimée et non issue d'une naissance datée.
+  /// true if birthKey is estimated rather than taken from a dated birth.
   birthKeyEstimated  Boolean @default(false)
 
   events        Event[]
@@ -49,7 +49,7 @@ model Person {
 }
 
 model Family {
-  /// Référence GEDCOM sans les @ (ex. "F45").
+  /// GEDCOM reference without the @ (e.g. "F45").
   id         String  @id
   partner1Id String?
   partner2Id String?
@@ -66,9 +66,9 @@ model Family {
 model FamilyChild {
   familyId String
   childId  String
-  /// Ordre de l'enfant dans la famille (ordre du fichier GEDCOM).
+  /// Order of the child in the family (GEDCOM file order).
   position Int    @default(0)
-  /// Lien de filiation GEDCOM (PEDI) : birth, adopted, foster…
+  /// GEDCOM pedigree link (PEDI): birth, adopted, foster...
   pedigree String?
 
   family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
@@ -80,15 +80,15 @@ model FamilyChild {
 
 model Event {
   id          Int     @id @default(autoincrement())
-  /// Tag GEDCOM : BIRT, CHR, BAPM, DEAT, BURI, MARR, DIV, OCCU…
+  /// GEDCOM tag: BIRT, CHR, BAPM, DEAT, BURI, MARR, DIV, OCCU...
   type        String
   personId    String?
   familyId    String?
-  /// Valeur ou description libre (ex. intitulé de la profession).
+  /// Value or free-text description (e.g. occupation title).
   value       String?
 
-  // Date structurée : jamais convertie en Date JS pour éviter tout
-  // décalage de fuseau horaire.
+  // Structured date: never converted to a JS Date to avoid any
+  // time zone shift.
   dateOriginal  String?
   /// exact, about, calculated, estimated, before, after, between, from, to, from-to, phrase
   dateQualifier String?
@@ -99,7 +99,7 @@ model Event {
   dateEndYear   Int?
   dateEndMonth  Int?
   dateEndDay    Int?
-  /// Clé de tri grégorienne AAAAMMJJ (00 pour les parties inconnues).
+  /// Gregorian YYYYMMDD sort key (00 for unknown parts).
   dateSortKey   Int?
 
   placeId Int?
@@ -116,7 +116,7 @@ model Event {
 
 model Place {
   id          Int     @id @default(autoincrement())
-  /// Libellé complet tel qu'il apparaît dans le GEDCOM.
+  /// Full label as it appears in the GEDCOM.
   fullName    String  @unique
   locality    String?
   postalCode  String?
@@ -125,7 +125,7 @@ model Place {
   country     String?
   latitude    Float?
   longitude   Float?
-  /// Libellé normalisé pour la recherche.
+  /// Normalized label for search.
   searchName  String  @default("")
 
   events Event[]
@@ -143,10 +143,10 @@ model ImportRun {
   encoding       String
   gedcomVersion  String?
   sourceSoftware String?
-  /// Statistiques et avertissements sérialisés en JSON.
+  /// Statistics and warnings serialized as JSON.
   stats          String    @default("{}")
   warnings       String    @default("[]")
-  /// Fichier GEDCOM d'origine, conservé pour pouvoir le réappliquer.
+  /// Original GEDCOM file, kept so it can be re-applied.
   content        Bytes
   userId         Int?
 
@@ -154,7 +154,7 @@ model ImportRun {
 }
 
 // ---------------------------------------------------------------------------
-// Utilisateurs et paramètres
+// Users and settings
 // ---------------------------------------------------------------------------
 
 model User {
@@ -162,12 +162,12 @@ model User {
   email              String    @unique
   displayName        String?
   avatarUrl          String?
-  /// ADMIN ou MEMBER.
+  /// ADMIN or MEMBER.
   role               String    @default("MEMBER")
-  /// Droit de consulter le détail des personnes nées il y a moins de 100 ans.
+  /// Permission to view the details of persons born less than 100 years ago.
   canSeeContemporary Boolean   @default(false)
-  /// Racine personnelle de l'arbre (référence GEDCOM, sans clé étrangère car
-  /// les personnes sont recréées à chaque import ; ignorée si elle n'existe plus).
+  /// Personal root of the tree (GEDCOM reference, no foreign key because
+  /// persons are recreated on each import; ignored if it no longer exists).
   rootPersonId       String?
   createdAt          DateTime  @default(now())
   lastLoginAt        DateTime?
@@ -178,9 +178,9 @@ model User {
 
 model Identity {
   id       Int    @id @default(autoincrement())
-  /// Fournisseur OIDC / OAuth2 : google, facebook…
+  /// OIDC / OAuth2 provider: google, facebook...
   provider String
-  /// Identifiant de l'utilisateur chez le fournisseur ("sub").
+  /// User identifier at the provider ("sub").
   subject  String
   userId   Int
 

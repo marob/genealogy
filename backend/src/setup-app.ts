@@ -1,7 +1,7 @@
 import type { INestApplication } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 
-/** Configuration commune à l'application réelle et aux tests d'intégration. */
+/** Configuration shared by the real application and the integration tests. */
 export function setupApp(app: INestApplication): void {
   app.setGlobalPrefix('api');
   app.use(cookieParser());

@@ -52,7 +52,7 @@ nav {
   margin-left: auto;
 }
 
-// Mobile : une seule ligne compacte (navigation défilante, recherche en icône).
+// Mobile: a single compact row (scrolling navigation, search as an icon).
 @media (max-width: 640px) {
   .app-header {
     flex-wrap: nowrap;

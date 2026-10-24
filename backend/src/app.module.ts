@@ -10,7 +10,7 @@ import { ImportsModule } from './imports/imports.module.js';
 import { PersonsModule } from './persons/persons.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 
-/** En production (image Docker), le backend sert aussi le build du frontend. */
+/** In production (Docker image), the backend also serves the frontend build. */
 function staticModules(): DynamicModule[] {
   const staticDir = process.env.STATIC_DIR;
   if (!staticDir) {

@@ -11,13 +11,13 @@ export function isLanguage(value: unknown): value is Language {
   return LANGUAGES.includes(value as Language);
 }
 
-/** Langue de l'interface : choix mémorisé, sinon langue du navigateur. */
+/** Interface language: stored choice, otherwise the browser language. */
 @Injectable({ providedIn: 'root' })
 export class LanguageService {
   private readonly transloco = inject(TranslocoService);
   private readonly document = inject(DOCUMENT);
 
-  /** Langue active, sous forme de signal. */
+  /** Active language, as a signal. */
   readonly current = toSignal(this.transloco.langChanges$, { initialValue: this.transloco.getActiveLang() });
 
   initialLanguage(): Language {
@@ -27,7 +27,7 @@ export class LanguageService {
         return stored;
       }
     } catch {
-      // Stockage indisponible (navigation privée…).
+      // Storage unavailable (private browsing…).
     }
     const browser = this.document.defaultView?.navigator.languages.map((lang) => lang.slice(0, 2)) ?? [];
     return browser.find(isLanguage) ?? 'fr';
@@ -39,7 +39,7 @@ export class LanguageService {
     try {
       localStorage.setItem(STORAGE_KEY, language);
     } catch {
-      // Stockage indisponible : le choix vaut pour la session.
+      // Storage unavailable: the choice applies to this session only.
     }
   }
 }

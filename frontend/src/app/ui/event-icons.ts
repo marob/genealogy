@@ -34,7 +34,7 @@ const EVENT_ICONS: Partial<Record<string, IconDefinition>> = {
   ANUL: iconDivorce,
 };
 
-/** Icône associée à un type d'événement GEDCOM. */
+/** Icon associated with a GEDCOM event type. */
 export function eventIcon(type: string): IconDefinition {
   return EVENT_ICONS[type] ?? iconEvent;
 }

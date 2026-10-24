@@ -11,17 +11,17 @@ describe('parseGedcom', () => {
   const person = (id: string) => result.persons.find((p) => p.id === id)!;
   const family = (id: string) => result.families.find((f) => f.id === id)!;
 
-  it('lit l’en-tête', () => {
+  it('reads the header', () => {
     expect(result.header).toEqual({ sourceSoftware: 'Heredis 2024', gedcomVersion: '5.5.1' });
     expect(result.decoded).toMatchObject({ encoding: 'UTF-8', declaredCharset: 'UTF-8' });
   });
 
-  it('produit des statistiques', () => {
+  it('produces statistics', () => {
     expect(result.stats).toMatchObject({ persons: 7, families: 3, places: 3 });
     expect(result.stats.ignoredTags).toEqual({ 'INDI.SOUR': 1 });
   });
 
-  it('lit les noms, sexes, professions et notes', () => {
+  it('reads names, sexes, occupations and notes', () => {
     expect(person('I1')).toMatchObject({
       givenNames: 'Émile Joseph',
       surname: 'MARTIN',
@@ -32,7 +32,7 @@ describe('parseGedcom', () => {
     expect(person('I2')).toMatchObject({ givenNames: 'Hélène', surname: 'DUPRÉ', sex: 'F' });
   });
 
-  it('lit les événements avec dates structurées et lieux', () => {
+  it('reads events with structured dates and places', () => {
     const birth = person('I1').events.find((e) => e.type === 'BIRT')!;
     expect(birth.date?.date).toEqual({
       original: '12 MAR 1850',
@@ -51,22 +51,22 @@ describe('parseGedcom', () => {
     expect(person('I1').events.map((e) => e.type)).toEqual(['BIRT', 'CHR', 'OCCU', 'DEAT']);
   });
 
-  it('lit les familles, enfants et filiations', () => {
+  it('reads families, children and parent-child links', () => {
     expect(family('F1')).toMatchObject({ partner1Id: 'I1', partner2Id: 'I2', childIds: ['I3', 'I4'] });
     expect(family('F1').events[0]?.date?.sortKey).toBe(18_780_601);
     expect(person('I4').parentFamilies).toEqual([{ familyId: 'F1', pedigree: 'adopted' }]);
     expect(person('I6').parentFamilies).toEqual([{ familyId: 'F2' }]);
   });
 
-  it('estime les naissances pour la règle de confidentialité', () => {
+  it('estimates births for the privacy rule', () => {
     expect(result.birthKeys.get('I1')).toEqual({ key: 18_500_312, estimated: false });
-    // 18 brumaire an VIII = 9 novembre 1799
+    // 18 Brumaire year VIII = November 9, 1799
     expect(result.birthKeys.get('I0')).toEqual({ key: 17_991_109, estimated: false });
-    // BET 1854 AND 1856 : on retient la borne la plus tardive.
+    // BET 1854 AND 1856: the latest bound is used.
     expect(result.birthKeys.get('I2')).toEqual({ key: 18_561_231, estimated: false });
-    // Louise : mariée en 1905, conjoint né en 1880 → estimation 1880.
+    // Louise: married in 1905, partner born in 1880 → estimate 1880.
     expect(result.birthKeys.get('I5')).toEqual({ key: 18_800_202, estimated: true });
-    // Jules : parents nés vers 1880 → 1880 + 30 ans.
+    // Jules: parents born around 1880 → 1880 + 30 years.
     expect(result.birthKeys.get('I6')).toEqual({ key: 19_100_202, estimated: true });
   });
 
@@ -74,7 +74,7 @@ describe('parseGedcom', () => {
     ['ANSEL', () => encodeAnsel(withCharset('ANSEL'))],
     ['ANSI', () => encodeWindows1252(withCharset('ANSI'))],
     ['UNICODE', () => encodeUtf16le(withCharset('UNICODE'))],
-  ])('donne le même résultat pour un fichier encodé en %s', (charset, encode) => {
+  ])('gives the same result for a file encoded in %s', (charset, encode) => {
     const other = parseGedcom(encode());
     expect(other.decoded.declaredCharset).toBe(charset);
     expect(other.warnings).toEqual(result.warnings);
@@ -83,7 +83,7 @@ describe('parseGedcom', () => {
     expect(other.places).toEqual(result.places);
   });
 
-  it('ignore une personne déclarée parent et enfant de la même famille', () => {
+  it('ignores a person declared as both parent and child of the same family', () => {
     const looped = parseGedcom(
       new TextEncoder().encode(
         [
@@ -108,13 +108,13 @@ describe('parseGedcom', () => {
       ),
     );
     expect(looped.warnings).toEqual([
-      'La personne I1 est à la fois parent et enfant dans la famille F1 : lien de filiation ignoré.',
+      'Person I1 is both a parent and a child in family F1: parent-child link ignored.',
     ]);
     expect(looped.families.find((f) => f.id === 'F1')?.childIds).toEqual([]);
     expect(looped.persons.find((p) => p.id === 'I1')?.parentFamilies).toEqual([{ familyId: 'F2' }]);
   });
 
-  it('signale les références cassées et complète les liens à sens unique', () => {
+  it('reports broken references and completes one-way links', () => {
     const broken = parseGedcom(
       new TextEncoder().encode(
         [
@@ -136,10 +136,10 @@ describe('parseGedcom', () => {
       ),
     );
     expect(broken.warnings).toEqual([
-      'Personne I1 définie plusieurs fois : seule la première occurrence est importée.',
-      'La famille F1 référence une personne inexistante (I9).',
-      'La famille F1 référence un enfant inexistant (I8).',
-      'La personne I1 référence une famille inexistante (F9).',
+      'Person I1 defined more than once: only the first occurrence is imported.',
+      'Family F1 references a nonexistent person (I9).',
+      'Family F1 references a nonexistent child (I8).',
+      'Person I1 references a nonexistent family (F9).',
     ]);
     expect(broken.families[0]).toMatchObject({ partner1Id: 'I1', childIds: ['I2'] });
     expect(broken.families[0]?.partner2Id).toBeUndefined();

@@ -8,7 +8,7 @@ import { formatGenealogyDate } from '../core/genealogy-format';
 import { LanguageService } from '../core/language.service';
 import { iconClose, iconSearch } from './icons';
 
-/** Délai avant de lancer la recherche pendant la frappe. */
+/** Delay before searching while typing. */
 const DEBOUNCE_MS = 200;
 const MIN_LENGTH = 2;
 const MAX_RESULTS = 8;
@@ -16,10 +16,10 @@ const MAX_RESULTS = 8;
 let nextId = 1;
 
 /**
- * Recherche rapide de l'en-tête : suggestions au fil de la frappe (nom et
- * prénom, sans tenir compte des accents) ; choisir une personne recentre
- * l'arbre sur elle. Combobox accessible au clavier (flèches, Entrée, Échap).
- * Sur mobile, le champ est réduit à une icône et s'ouvre par-dessus l'en-tête.
+ * Header quick search: suggestions while typing (surname and given names,
+ * accent-insensitive); choosing a person recentres the tree on them.
+ * Keyboard-accessible combobox (arrows, Enter, Escape).
+ * On mobile, the field collapses to an icon and opens over the header.
  */
 @Component({
   selector: 'app-quick-search',
@@ -61,7 +61,7 @@ let nextId = 1;
       @if (open()) {
         <ul class="suggestions" role="listbox" [id]="listId" [attr.aria-label]="'search.quickLabel' | transloco">
           @for (person of results(); track person.id; let index = $index) {
-            <!-- Modèle combobox : le focus reste sur le champ, qui gère le clavier (aria-activedescendant). -->
+            <!-- Combobox pattern: focus stays on the field, which handles the keyboard (aria-activedescendant). -->
             <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
             <li
               role="option"
@@ -188,13 +188,13 @@ export class QuickSearch {
   protected readonly inputId = `quick-search-${nextId}`;
   protected readonly listId = `quick-search-list-${nextId++}`;
   protected readonly query = signal('');
-  /** Champ ouvert (mobile, où il est sinon réduit à une icône). */
+  /** Field open (mobile, where it is otherwise collapsed to an icon). */
   protected readonly expanded = signal(false);
   private readonly input = viewChild.required<ElementRef<HTMLInputElement>>('input');
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   constructor() {
-    // Phase de capture : l'arbre zoomable arrête la propagation des clics.
+    // Capture phase: the zoomable tree stops click propagation.
     const document = this.host.nativeElement.ownerDocument;
     const listener = (event: PointerEvent) => this.onDocumentPointerDown(event);
     document.addEventListener('pointerdown', listener, true);
@@ -255,7 +255,7 @@ export class QuickSearch {
 
   protected expand(): void {
     this.expanded.set(true);
-    // Le champ devient visible au rendu suivant.
+    // The field becomes visible on the next render.
     setTimeout(() => this.input().nativeElement.focus());
   }
 
@@ -265,10 +265,9 @@ export class QuickSearch {
   }
 
   /**
-   * Le champ se referme quand le focus quitte la recherche. La vérification
-   * est différée : à l'ouverture, la loupe (qui a le focus après un clic) est
-   * masquée et Firefox signale une perte de focus avant que le champ ne le
-   * reçoive.
+   * The field closes when focus leaves the search. The check is deferred:
+   * on opening, the magnifier button (focused after a click) is hidden and
+   * Firefox reports a focus loss before the field receives it.
    */
   protected onFocusOut(event: FocusEvent): void {
     const host = event.currentTarget as HTMLElement;
@@ -280,8 +279,8 @@ export class QuickSearch {
   }
 
   /**
-   * Un clic à l'extérieur referme le champ : certaines zones (l'arbre zoomable)
-   * interceptent le clic sans retirer le focus du champ.
+   * A click outside closes the field: some areas (the zoomable tree)
+   * intercept the click without removing focus from the field.
    */
   private onDocumentPointerDown(event: PointerEvent): void {
     if (this.expanded() && !this.host.nativeElement.contains(event.target as Node)) {
@@ -300,7 +299,7 @@ export class QuickSearch {
     void this.router.navigate(['/tree', person.id]);
   }
 
-  /** Années de naissance et de décès (« 1850 – vers 1920 »), si elles sont visibles. */
+  /** Birth and death years ("1850 – about 1920"), when visible. */
   protected lifespan(person: PersonSummaryDto): string {
     const year = (event: EventDto | undefined) => {
       const date = event?.date;

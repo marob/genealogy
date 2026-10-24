@@ -39,19 +39,19 @@ export default tseslint.config(
       '@typescript-eslint/restrict-template-expressions': ['error', { allowNumber: true }],
       '@typescript-eslint/no-extraneous-class': ['error', { allowWithDecorator: true }],
       '@typescript-eslint/consistent-type-imports': ['error', { fixStyle: 'inline-type-imports' }],
-      // Les assertions non nulles sont utilisées après vérification explicite.
+      // Non-null assertions are used after an explicit check.
       '@typescript-eslint/no-non-null-assertion': 'off',
       '@typescript-eslint/no-confusing-void-expression': ['error', { ignoreArrowShorthand: true }],
       '@typescript-eslint/no-invalid-void-type': 'off',
-      // Parcours volontaire des caractères (points de code) d'une chaîne.
+      // Intentional iteration over the characters (code points) of a string.
       '@typescript-eslint/no-misused-spread': ['error', { allow: [{ from: 'lib', name: 'string' }] }],
       eqeqeq: ['error', 'always'],
       'no-console': ['error', { allow: ['warn', 'error'] }],
     },
   },
   {
-    // Nest : l'injection de dépendances repose sur les métadonnées de type,
-    // les imports de classes injectées ne doivent pas devenir des « import type ».
+    // Nest: dependency injection relies on type metadata, so imports of
+    // injected classes must not become "import type".
     files: ['backend/**/*.ts'],
     languageOptions: { globals: globals.node },
     rules: { '@typescript-eslint/consistent-type-imports': 'off' },

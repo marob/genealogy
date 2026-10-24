@@ -9,7 +9,7 @@ export const OAUTH_COOKIE = 'genealogie_oauth';
 const SESSION_DURATION_SECONDS = 30 * 24 * 3600;
 const OAUTH_DURATION_SECONDS = 10 * 60;
 
-/** Transaction OAuth en cours (entre la redirection et le callback). */
+/** Pending OAuth transaction (between the redirect and the callback). */
 export interface OAuthTransaction {
   provider: string;
   state: string;
@@ -19,9 +19,9 @@ export interface OAuthTransaction {
 }
 
 /**
- * Sessions sans état : un JWT signé (HS256) stocké dans un cookie httpOnly.
- * L'utilisateur est relu en base à chaque requête, donc un changement de
- * droits ou une suppression de compte s'applique immédiatement.
+ * Stateless sessions: a signed JWT (HS256) stored in an httpOnly cookie.
+ * The user is reloaded from the database on every request, so a permission
+ * change or an account deletion takes effect immediately.
  */
 @Injectable()
 export class SessionService {

@@ -12,7 +12,7 @@ import { setupApp } from '../../src/setup-app.js';
 
 const migrationsDir = join(import.meta.dirname, '../../prisma/migrations');
 
-/** Crée une base SQLite temporaire avec toutes les migrations appliquées. */
+/** Creates a temporary SQLite database with all migrations applied. */
 function createTestDatabase(): { url: string; dir: string } {
   const dir = mkdtempSync(join(tmpdir(), 'genealogie-test-'));
   const file = join(dir, 'test.db');
@@ -44,8 +44,8 @@ export async function createTestApp(env: Record<string, string> = {}): Promise<T
     ADMIN_EMAILS: '',
     ...env,
   });
-  // Import dynamique : la configuration est lue au chargement du module, donc
-  // après avoir positionné les variables d'environnement de test.
+  // Dynamic import: the configuration is read when the module loads, so
+  // after the test environment variables have been set.
   const { AppModule } = await import('../../src/app.module.js');
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
   const app = moduleRef.createNestApplication({ logger: false });
@@ -61,7 +61,7 @@ export async function createTestApp(env: Record<string, string> = {}): Promise<T
   };
 }
 
-/** Crée un utilisateur et renvoie le cookie de session correspondant. */
+/** Creates a user and returns the matching session cookie. */
 export async function loginAs(
   ctx: TestContext,
   user: { email: string; role?: 'ADMIN' | 'MEMBER'; canSeeContemporary?: boolean },
@@ -77,7 +77,7 @@ export async function loginAs(
   return cookie;
 }
 
-/** Importe et applique un fichier GEDCOM de test. */
+/** Imports and applies a test GEDCOM file. */
 export async function seedGedcom(ctx: TestContext, content: Uint8Array | string): Promise<void> {
   const imports = ctx.app.get(ImportsService);
   const admin = await ctx.prisma.user.upsert({

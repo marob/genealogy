@@ -10,7 +10,7 @@ import { SessionStore } from '../../core/session.store';
 import { ConfirmService } from '../../ui/confirm-dialog';
 import { iconDelete } from '../../ui/icons';
 
-/** Gestion des comptes : rôle et droit de voir les contemporains. */
+/** Account management: role and permission to see living people. */
 @Component({
   selector: 'app-users-admin',
   imports: [FaIconComponent, TranslocoPipe, DatePipe],

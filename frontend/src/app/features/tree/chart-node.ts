@@ -10,11 +10,11 @@ import { TreeController } from './tree-controller';
 import type { TreeNode, TreePart } from './tree-node';
 
 /**
- * Nœud de l'arbre, affiché récursivement sous forme de table : ancêtres
- * au-dessus, descendants en dessous, conjoints à droite de la racine.
+ * Tree node, rendered recursively as a table: ancestors above, descendants
+ * below, spouses to the right of the root.
  */
 @Component({
-  // Sélecteur d'attribut : le composant doit être une <table> pour la mise en page.
+  // Attribute selector: the component must be a <table> for the layout.
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'table[appChartNode]',
   imports: [PersonCard, FaIconComponent, TranslocoPipe, Tooltip, GenealogyDatePipe],
@@ -34,7 +34,7 @@ export class ChartNode {
   protected readonly canToggleParents = computed(() => this.part() !== 'children' && this.node().hasParents);
   protected readonly canToggleChildren = computed(() => this.part() !== 'parents' && this.node().childIds.length > 0);
 
-  /** Trait vers les parents affichés, ou vers l'enfant dont on est l'ascendant. */
+  /** Line to the displayed parents, or to the child this node is an ancestor of. */
   protected readonly lineAbove = computed(() => this.showParents() || this.part() === 'children');
   protected readonly lineBelow = computed(() => this.showChildren() || this.part() === 'parents');
 
@@ -47,7 +47,7 @@ export class ChartNode {
     ),
   );
 
-  /** Union correspondant à un conjoint affiché à droite de la racine. */
+  /** Union matching a spouse displayed to the right of the root. */
   protected unionWith(partnerId: string) {
     return this.node().person.unions.find((union) => union.partnerId === partnerId);
   }

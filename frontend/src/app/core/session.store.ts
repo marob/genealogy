@@ -2,7 +2,7 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import type { MeDto } from '@genealogie/shared';
 import { ApiService } from './api.service';
 
-/** État de la session (utilisateur connecté, fournisseurs d'identité). */
+/** Session state (signed-in user, identity providers). */
 @Injectable({ providedIn: 'root' })
 export class SessionStore {
   private readonly api = inject(ApiService);
@@ -19,11 +19,11 @@ export class SessionStore {
     try {
       this.state.set(await this.api.me());
     } catch {
-      // API indisponible : l'application reste utilisable en anonyme.
+      // API unavailable: the application remains usable anonymously.
     }
   }
 
-  /** Redirige vers le fournisseur d'identité (flux géré par le backend). */
+  /** Redirects to the identity provider (flow handled by the backend). */
   login(provider: string, returnTo = '/'): void {
     window.location.assign(`/api/auth/${encodeURIComponent(provider)}/login?returnTo=${encodeURIComponent(returnTo)}`);
   }

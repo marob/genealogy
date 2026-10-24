@@ -1,10 +1,10 @@
 /**
- * Modèle de date généalogique.
+ * Genealogical date model.
  *
- * Une date GEDCOM est une date calendaire, souvent partielle ou approximative
- * (« ABT 1850 », « BET 1700 AND 1710 », « 12 VEND 3 » en calendrier
- * républicain…). Elle n'est jamais convertie en objet `Date` JavaScript, ce
- * qui éviterait tout décalage lié au fuseau horaire.
+ * A GEDCOM date is a calendar date, often partial or approximate
+ * ("ABT 1850", "BET 1700 AND 1710", "12 VEND 3" in the French Republican
+ * calendar…). It is never converted to a JavaScript `Date` object, which
+ * avoids any time-zone shift.
  */
 
 export type DateQualifier =
@@ -24,22 +24,22 @@ export type Calendar = 'gregorian' | 'julian' | 'french-republican' | 'hebrew';
 
 export interface PartialDate {
   year: number;
-  /** 1 à 12 (ou 13 pour le calendrier républicain). */
+  /** 1 to 12 (or 13 for the French Republican calendar). */
   month?: number;
   day?: number;
 }
 
 export interface GenealogyDate {
-  /** Valeur GEDCOM d'origine. */
+  /** Original GEDCOM value. */
   original: string;
   qualifier: DateQualifier;
   calendar: Calendar;
   start?: PartialDate;
-  /** Seconde borne pour `between` et `from-to`. */
+  /** Second bound for `between` and `from-to`. */
   end?: PartialDate;
 }
 
-/** Clé de tri AAAAMMJJ (00 pour les parties inconnues). */
+/** YYYYMMDD sort key (00 for unknown parts). */
 export function sortKey(date: PartialDate): number {
   return date.year * 10_000 + (date.month ?? 0) * 100 + (date.day ?? 0);
 }

@@ -7,7 +7,7 @@ import type { EventRecord, FamilyRecord, GenealogyData, PersonRecord } from './m
 import { type ParsedPlace, parsePlace, parsePlaceForm } from './places.js';
 
 /**
- * Point d'entrée du parsing GEDCOM : octets bruts → modèle généalogique.
+ * GEDCOM parsing entry point: raw bytes → genealogy model.
  */
 
 const PERSON_EVENT_TAGS = new Set([
@@ -57,7 +57,7 @@ const FAMILY_EVENT_TAGS = new Set([
   'EVEN',
   'RESI',
 ]);
-/** Tags volontairement non importés pour l'instant (pas d'avertissement individuel). */
+/** Tags deliberately not imported for now (no individual warning). */
 const PERSON_HANDLED_TAGS = new Set(['NAME', 'SEX', 'FAMC', 'FAMS', 'NOTE', 'CHAN', 'RIN', 'UID', '_UID', 'REFN']);
 const FAMILY_HANDLED_TAGS = new Set(['HUSB', 'WIFE', 'CHIL', 'NOTE', 'CHAN', 'RIN', 'UID', '_UID', 'REFN', 'NCHI']);
 
@@ -94,9 +94,7 @@ function readEvent(node: GedcomNode, ctx: Context): EventRecord {
   if (date) {
     event.date = date;
     if (date.date.qualifier === 'phrase' && date.date.original && !/^\(.*\)$/.test(date.date.original)) {
-      ctx.warnings.push(
-        `Date non reconnue conservée telle quelle (ligne ${child(node, 'DATE')!.line}) : « ${date.date.original} »`,
-      );
+      ctx.warnings.push(`Unrecognized date kept as is (line ${child(node, 'DATE')!.line}): "${date.date.original}"`);
     }
   }
   const placeNode = child(node, 'PLAC');
@@ -190,7 +188,7 @@ function readFamily(node: GedcomNode, ctx: Context): FamilyRecord {
   return family;
 }
 
-/** Vérifie les références croisées et complète les liens manquants. */
+/** Checks cross-references and fills in missing links. */
 function linkRecords(persons: PersonRecord[], families: FamilyRecord[], warnings: string[]): void {
   const personById = new Map(persons.map((p) => [p.id, p]));
   const familyIds = new Set(families.map((f) => f.id));
@@ -198,7 +196,7 @@ function linkRecords(persons: PersonRecord[], families: FamilyRecord[], warnings
   for (const family of families) {
     const missingPartner = (id: string | undefined): boolean => {
       if (id && !personById.has(id)) {
-        warnings.push(`La famille ${family.id} référence une personne inexistante (${id}).`);
+        warnings.push(`Family ${family.id} references a nonexistent person (${id}).`);
         return true;
       }
       return false;
@@ -212,17 +210,17 @@ function linkRecords(persons: PersonRecord[], families: FamilyRecord[], warnings
     family.childIds = family.childIds.filter((childId) => {
       const person = personById.get(childId);
       if (!person) {
-        warnings.push(`La famille ${family.id} référence un enfant inexistant (${childId}).`);
+        warnings.push(`Family ${family.id} references a nonexistent child (${childId}).`);
         return false;
       }
       if (childId === family.partner1Id || childId === family.partner2Id) {
         warnings.push(
-          `La personne ${childId} est à la fois parent et enfant dans la famille ${family.id} : lien de filiation ignoré.`,
+          `Person ${childId} is both a parent and a child in family ${family.id}: parent-child link ignored.`,
         );
         person.parentFamilies = person.parentFamilies.filter((famc) => famc.familyId !== family.id);
         return false;
       }
-      // Lien déclaré seulement côté famille : on le complète côté personne.
+      // Link declared only on the family side: add it on the person side.
       if (!person.parentFamilies.some((famc) => famc.familyId === family.id)) {
         person.parentFamilies.push({ familyId: family.id });
       }
@@ -233,13 +231,13 @@ function linkRecords(persons: PersonRecord[], families: FamilyRecord[], warnings
   for (const person of persons) {
     person.parentFamilies = person.parentFamilies.filter(({ familyId }) => {
       if (!familyIds.has(familyId)) {
-        warnings.push(`La personne ${person.id} référence une famille inexistante (${familyId}).`);
+        warnings.push(`Person ${person.id} references a nonexistent family (${familyId}).`);
         return false;
       }
       return true;
     });
   }
-  // Lien déclaré seulement côté personne : on l'ajoute aux enfants de la famille.
+  // Link declared only on the person side: add it to the family's children.
   const familyById = new Map(families.map((f) => [f.id, f]));
   for (const person of persons) {
     for (const { familyId } of person.parentFamilies) {
@@ -255,7 +253,7 @@ function dedupe<T extends { id: string }>(records: T[], kind: string, warnings: 
   const seen = new Set<string>();
   return records.filter((record) => {
     if (seen.has(record.id)) {
-      warnings.push(`${kind} ${record.id} définie plusieurs fois : seule la première occurrence est importée.`);
+      warnings.push(`${kind} ${record.id} defined more than once: only the first occurrence is imported.`);
       return false;
     }
     seen.add(record.id);
@@ -274,7 +272,7 @@ export function parseGedcom(bytes: Uint8Array): ParseResult {
 
   const head = records.find((r) => r.tag === 'HEAD');
   if (!head) {
-    warnings.push('En-tête HEAD absent : le fichier n’est peut-être pas un GEDCOM.');
+    warnings.push('Missing HEAD header: the file may not be a GEDCOM.');
   }
   const ctx: Context = {
     notes: new Map(records.filter((r) => r.tag === 'NOTE' && r.xref).map((r) => [r.xref!, r.value])),
@@ -290,7 +288,7 @@ export function parseGedcom(bytes: Uint8Array): ParseResult {
         return false;
       }
       if (!r.xref) {
-        warnings.push(`Enregistrement ${tag} sans identifiant ignoré (ligne ${r.line}).`);
+        warnings.push(`${tag} record without an identifier ignored (line ${r.line}).`);
         return false;
       }
       return true;
@@ -298,12 +296,12 @@ export function parseGedcom(bytes: Uint8Array): ParseResult {
 
   const persons = dedupe(
     withXref('INDI').map((r) => readPerson(r, ctx)),
-    'Personne',
+    'Person',
     warnings,
   );
   const families = dedupe(
     withXref('FAM').map((r) => readFamily(r, ctx)),
-    'Famille',
+    'Family',
     warnings,
   );
   linkRecords(persons, families, warnings);

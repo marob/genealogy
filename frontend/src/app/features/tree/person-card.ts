@@ -10,7 +10,7 @@ import { Tooltip } from '../../ui/tooltip';
 import { TreeController } from './tree-controller';
 import type { TreePart } from './tree-node';
 
-/** Carte d'une personne dans l'arbre. */
+/** Card of a person in the tree. */
 @Component({
   selector: 'app-person-card',
   imports: [FaIconComponent, TranslocoPipe, GenealogyDatePipe, PlacePipe, Tooltip],

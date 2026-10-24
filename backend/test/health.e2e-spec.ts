@@ -12,7 +12,7 @@ describe('GET /api/health', () => {
     await ctx.close();
   });
 
-  it('répond ok quand la base est accessible', async () => {
+  it('responds ok when the database is reachable', async () => {
     await request(ctx.app.getHttpServer()).get('/api/health').expect(200, { status: 'ok' });
   });
 });

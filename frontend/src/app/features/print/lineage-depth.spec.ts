@@ -4,7 +4,7 @@ import { lineageDepth } from './lineage-depth';
 describe('lineageDepth', () => {
   const union = (childIds: string[]) => ({ familyId: 'F', childIds, events: [], restricted: false });
 
-  it('compte les générations d’ascendants et de descendants', () => {
+  it('counts the generations of ancestors and descendants', () => {
     const people = [
       person({ id: 'grand-pere' }),
       person({ id: 'pere', fatherId: 'grand-pere', unions: [union(['moi'])] }),
@@ -15,7 +15,7 @@ describe('lineageDepth', () => {
     expect(lineageDepth('grand-pere', people)).toEqual({ ancestors: 0, descendants: 0 });
   });
 
-  it('ignore les personnes non chargées et les boucles', () => {
+  it('ignores people not loaded and loops', () => {
     const people = [
       person({ id: 'a', fatherId: 'b' }),
       person({ id: 'b', fatherId: 'a' }),

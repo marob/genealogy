@@ -42,19 +42,19 @@ export class UsersService {
     return this.prisma.user.findUnique({ where: { id } });
   }
 
-  /** Utilisateur fictif du mode développement (AUTH_DEV_BYPASS). */
+  /** Fake user for development mode (AUTH_DEV_BYPASS). */
   devUser(): Promise<User> {
     return this.prisma.user.upsert({
       where: { email: DEV_USER_EMAIL },
-      create: { email: DEV_USER_EMAIL, displayName: 'Développeur', role: 'ADMIN', canSeeContemporary: true },
+      create: { email: DEV_USER_EMAIL, displayName: 'Developer', role: 'ADMIN', canSeeContemporary: true },
       update: {},
     });
   }
 
   /**
-   * Retrouve ou crée l'utilisateur correspondant à une identité externe.
-   * Une identité inconnue est rattachée au compte existant de même e-mail
-   * (si l'e-mail est vérifié par le fournisseur), sinon un compte est créé.
+   * Finds or creates the user matching an external identity.
+   * An unknown identity is linked to the existing account with the same email
+   * (if the email is verified by the provider), otherwise an account is created.
    */
   async loginWithIdentity(identity: ExternalIdentity): Promise<User> {
     const now = new Date();
@@ -73,7 +73,7 @@ export class UsersService {
     }
 
     if (!identity.email || !identity.emailVerified) {
-      throw new BadRequestException('Le fournisseur d’identité n’a pas transmis d’adresse e-mail vérifiée.');
+      throw new BadRequestException('The identity provider did not provide a verified email address.');
     }
     const email = identity.email.toLowerCase();
     const isAdmin = this.adminEmails.includes(email);
@@ -104,7 +104,7 @@ export class UsersService {
     changes: { role?: Role | undefined; canSeeContemporary?: boolean | undefined },
   ): Promise<UserDto> {
     if (id === currentUser.id && changes.role && changes.role !== currentUser.role) {
-      throw new ForbiddenException('Vous ne pouvez pas modifier votre propre rôle.');
+      throw new ForbiddenException('You cannot change your own role.');
     }
     await this.getOrThrow(id);
     const user = await this.prisma.user.update({
@@ -119,7 +119,7 @@ export class UsersService {
 
   async delete(currentUser: AuthUser, id: number): Promise<void> {
     if (id === currentUser.id) {
-      throw new ForbiddenException('Vous ne pouvez pas supprimer votre propre compte.');
+      throw new ForbiddenException('You cannot delete your own account.');
     }
     await this.getOrThrow(id);
     await this.prisma.user.delete({ where: { id } });
@@ -128,7 +128,7 @@ export class UsersService {
   private async getOrThrow(id: number): Promise<User> {
     const user = await this.findById(id);
     if (!user) {
-      throw new NotFoundException('Utilisateur introuvable.');
+      throw new NotFoundException('User not found.');
     }
     return user;
   }

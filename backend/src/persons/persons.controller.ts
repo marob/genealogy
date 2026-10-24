@@ -15,7 +15,7 @@ const listSchema = z.object({
     .pipe(z.array(idSchema).max(200)),
 });
 
-// eslint-disable-next-line no-useless-assignment -- faux positif : utilisé dans un décorateur de paramètre
+// eslint-disable-next-line no-useless-assignment -- false positive: used in a parameter decorator
 const includeSchema = z.object({
   include: z
     .string()

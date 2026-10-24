@@ -2,7 +2,7 @@
   "name": "@genealogie/shared",
   "version": "0.1.0",
   "private": true,
-  "description": "Types et utilitaires partagés entre le backend et le frontend (contrat d'API).",
+  "description": "Types and utilities shared between the backend and the frontend (API contract).",
   "license": "MIT",
   "type": "module",
   "exports": {
@@ -13,6 +13,7 @@
   },
   "scripts": {
     "test": "vitest run",
+    "test:cov": "vitest run --coverage",
     "typecheck": "tsc --noEmit"
   }
 }

@@ -49,8 +49,8 @@ class TooltipText {
 }
 
 /**
- * Infobulle légère (texte ou template) basée sur l'overlay de la CDK.
- * S'affiche au survol et au focus clavier.
+ * Lightweight tooltip (text or template) based on the CDK overlay.
+ * Shown on hover and on keyboard focus.
  */
 @Directive({
   selector: '[appTooltip]',
@@ -90,7 +90,7 @@ export class Tooltip implements OnDestroy {
     } else {
       this.overlayRef.attach(new ComponentPortal(TooltipText)).instance.text = content;
     }
-    // Garder l'infobulle ouverte quand on la survole (contenu riche).
+    // Keep the tooltip open while hovering it (rich content).
     const pane = this.overlayRef.overlayElement;
     pane.onmouseenter = () => clearTimeout(this.hideTimer);
     pane.onmouseleave = () => this.scheduleHide();

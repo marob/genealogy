@@ -1,8 +1,8 @@
 /**
- * Analyse syntaxique des lignes GEDCOM en arbre de nœuds.
+ * Parses GEDCOM lines into a tree of nodes.
  *
- * Chaque ligne a la forme `niveau [@xref@] TAG [valeur]`. Les lignes de
- * continuation CONC/CONT sont fusionnées dans la valeur de leur parent.
+ * Each line has the form `level [@xref@] TAG [value]`. CONC/CONT continuation
+ * lines are merged into the value of their parent.
  */
 
 export interface GedcomNode {
@@ -10,7 +10,7 @@ export interface GedcomNode {
   tag: string;
   xref?: string;
   value: string;
-  /** Numéro de ligne (1-indexé) dans le fichier, pour les messages d'erreur. */
+  /** Line number (1-based) in the file, for error messages. */
   line: number;
   children: GedcomNode[];
 }
@@ -34,7 +34,7 @@ export function parseLines(text: string): ParsedLines {
     }
     const match = LINE.exec(raw);
     if (!match) {
-      warnings.push(`Ligne ${lineNumber} ignorée (format invalide) : « ${raw.slice(0, 80)} »`);
+      warnings.push(`Line ${lineNumber} ignored (invalid format): "${raw.slice(0, 80)}"`);
       return;
     }
     const level = Number(match[1]);
@@ -45,7 +45,7 @@ export function parseLines(text: string): ParsedLines {
     if (level === 0) {
       stack.length = 0;
     } else if (level > stack.length) {
-      warnings.push(`Ligne ${lineNumber} ignorée (niveau ${level} sans parent).`);
+      warnings.push(`Line ${lineNumber} ignored (level ${level} without a parent).`);
       return;
     } else {
       stack.length = level;
@@ -72,23 +72,23 @@ export function parseLines(text: string): ParsedLines {
   return { records, warnings };
 }
 
-/** Premier enfant portant le tag donné. */
+/** First child with the given tag. */
 export function child(node: GedcomNode | undefined, tag: string): GedcomNode | undefined {
   return node?.children.find((c) => c.tag === tag);
 }
 
-/** Tous les enfants portant le tag donné. */
+/** All children with the given tag. */
 export function children(node: GedcomNode | undefined, tag: string): GedcomNode[] {
   return node?.children.filter((c) => c.tag === tag) ?? [];
 }
 
-/** Valeur nettoyée du premier enfant portant le tag donné. */
+/** Trimmed value of the first child with the given tag. */
 export function childValue(node: GedcomNode | undefined, tag: string): string | undefined {
   const value = child(node, tag)?.value.trim();
   return value === '' ? undefined : value;
 }
 
-/** Extrait l'identifiant d'un pointeur `@I12@` → `I12`. */
+/** Extracts the identifier from a pointer `@I12@` → `I12`. */
 export function pointer(value: string | undefined): string | undefined {
   const match = /^\s*@([^@]+)@\s*$/.exec(value ?? '');
   return match?.[1];

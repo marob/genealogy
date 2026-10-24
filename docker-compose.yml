@@ -1,6 +1,6 @@
-# Exécution locale de l'image : http://localhost:8080
+# Run the image locally: http://localhost:8080
 #   docker compose up --build
-# Les données (base SQLite) sont conservées dans le volume « genealogie-data ».
+# Data (SQLite database) is kept in the "genealogie-data" volume.
 services:
   app:
     build: .
@@ -9,9 +9,9 @@ services:
       - '8080:3000'
     environment:
       PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8080}
-      SESSION_SECRET: ${SESSION_SECRET:?Définir SESSION_SECRET (32 caractères minimum) dans .env}
+      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET (at least 32 characters) in .env}
       ADMIN_EMAILS: ${ADMIN_EMAILS:-}
-      # Pratique pour un essai local sans fournisseur OIDC ; refusé si PUBLIC_URL n'est pas localhost.
+      # Handy for a local trial without an OIDC provider; rejected if PUBLIC_URL is not localhost.
       AUTH_DEV_BYPASS: ${AUTH_DEV_BYPASS:-false}
       APP_TIMEZONE: ${APP_TIMEZONE:-Europe/Paris}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
@@ -23,6 +23,7 @@ services:
       OIDC_ISSUER: ${OIDC_ISSUER:-}
       OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-}
       OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-}
+      OIDC_TRUST_EMAIL: ${OIDC_TRUST_EMAIL:-false}
     volumes:
       - genealogie-data:/data
     restart: unless-stopped

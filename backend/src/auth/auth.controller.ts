@@ -9,7 +9,7 @@ import type { AuthUser } from './auth-user.js';
 import { CurrentUser } from './auth.decorators.js';
 import { OAUTH_COOKIE, SessionService } from './session.service.js';
 
-/** N'accepte que des chemins internes à l'application (pas de redirection ouverte). */
+/** Only accepts paths internal to the application (no open redirect). */
 function safeReturnPath(value: unknown): string {
   return typeof value === 'string' && /^\/(?![/\\])/.test(value) ? value : '/';
 }
@@ -65,7 +65,7 @@ export class AuthController {
       return;
     }
     try {
-      // L'URL publique fait foi (le backend peut être derrière un proxy).
+      // The public URL is authoritative (the backend may be behind a proxy).
       const currentUrl = new URL(
         `${this.providers.callbackUrl(provider)}?${new URL(req.url, 'http://x').searchParams}`,
       );
@@ -74,7 +74,7 @@ export class AuthController {
       await this.sessions.openSession(res, user.id);
       res.redirect(`${this.publicUrl}${transaction.returnTo}`);
     } catch (error) {
-      this.logger.warn(`Échec de l'authentification ${provider} : ${(error as Error).message}`);
+      this.logger.warn(`${provider} authentication failed: ${(error as Error).message}`);
       res.redirect(`${this.publicUrl}/login?error=failed`);
     }
   }

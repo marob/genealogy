@@ -4,12 +4,12 @@ import { Injectable, signal } from '@angular/core';
 export interface Notification {
   id: number;
   kind: 'success' | 'error' | 'info';
-  /** Clé de traduction. */
+  /** Translation key. */
   message: string;
   params?: Record<string, unknown>;
 }
 
-/** Messages éphémères affichés en bas de l'écran. */
+/** Transient messages shown at the bottom of the screen. */
 @Injectable({ providedIn: 'root' })
 export class NotificationsService {
   private nextId = 1;
@@ -21,7 +21,7 @@ export class NotificationsService {
     setTimeout(() => this.dismiss(notification.id), kind === 'error' ? 8000 : 4000);
   }
 
-  /** Erreur d'API : affiche le message renvoyé par le serveur s'il existe. */
+  /** API error: shows the message returned by the server, if any. */
   error(error: unknown): void {
     const body: unknown = error instanceof HttpErrorResponse ? error.error : undefined;
     const message = body && typeof body === 'object' && 'message' in body ? body.message : undefined;

@@ -1,7 +1,7 @@
 {
   "name": "@genealogie/backend",
   "version": "0.0.1",
-  "description": "API NestJS de l\u2019application de g\u00e9n\u00e9alogie",
+  "description": "NestJS API of the genealogy application",
   "author": "",
   "private": true,
   "license": "MIT",
@@ -14,7 +14,7 @@
     "start:prod": "node dist/main.js",
     "test": "vitest run && vitest run --config ./vitest.config.e2e.ts",
     "test:watch": "vitest",
-    "test:cov": "vitest run --coverage",
+    "test:cov": "vitest run --coverage && vitest run --config ./vitest.config.e2e.ts --coverage",
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "prisma:generate": "prisma generate",

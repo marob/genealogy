@@ -1,4 +1,4 @@
-/* Configuration TypeScript des Web Workers. */
+/* TypeScript configuration for Web Workers. */
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {

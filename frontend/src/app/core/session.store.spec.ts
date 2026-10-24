@@ -25,7 +25,7 @@ describe('SessionStore', () => {
     createdAt: '2026-01-01T00:00:00Z',
   });
 
-  it('expose un visiteur anonyme', async () => {
+  it('exposes an anonymous visitor', async () => {
     me.mockResolvedValue({ providers: [{ name: 'google', label: 'Google' }], devBypass: false });
     await store.load();
     expect(store.isAuthenticated()).toBe(false);
@@ -33,34 +33,34 @@ describe('SessionStore', () => {
     expect(store.providers()).toEqual([{ name: 'google', label: 'Google' }]);
   });
 
-  it('calcule les droits d’un membre autorisé', async () => {
+  it('computes the permissions of an authorized member', async () => {
     me.mockResolvedValue({ user: user('MEMBER', true), providers: [], devBypass: false });
     await store.load();
     expect(store.isAdmin()).toBe(false);
     expect(store.canSeeContemporary()).toBe(true);
   });
 
-  it('donne tous les droits à un administrateur', async () => {
+  it('grants all permissions to an administrator', async () => {
     me.mockResolvedValue({ user: user('ADMIN', false), providers: [], devBypass: false });
     await store.load();
     expect(store.isAdmin()).toBe(true);
     expect(store.canSeeContemporary()).toBe(true);
   });
 
-  it('reste anonyme si l’API est indisponible', async () => {
+  it('stays anonymous when the API is unavailable', async () => {
     me.mockRejectedValue(new Error('down'));
     await store.load();
     expect(store.user()).toBeUndefined();
   });
 
-  it('enregistre la racine personnelle puis recharge la session', async () => {
+  it('saves the personal root then reloads the session', async () => {
     me.mockResolvedValue({ user: { ...user('MEMBER', false), rootPersonId: 'I23' }, providers: [], devBypass: false });
     await store.setPersonalRoot('I23');
     expect(setMyRoot).toHaveBeenCalledWith('I23');
     expect(store.user()?.rootPersonId).toBe('I23');
   });
 
-  it('recharge la session après déconnexion', async () => {
+  it('reloads the session after logout', async () => {
     me.mockResolvedValueOnce({ user: user('MEMBER', false), providers: [], devBypass: false });
     await store.load();
     me.mockResolvedValueOnce({ providers: [], devBypass: false });

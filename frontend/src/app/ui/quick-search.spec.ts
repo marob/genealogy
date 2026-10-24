@@ -56,13 +56,13 @@ describe('QuickSearch', () => {
     return { fixture, input, element: fixture.nativeElement as HTMLElement };
   }
 
-  it('ne cherche qu’à partir de deux caractères', async () => {
+  it('only searches from two characters', async () => {
     const { element } = await typeInto('m');
     expect(search).not.toHaveBeenCalled();
     expect(element.querySelector('[role="listbox"]')).toBeNull();
   });
 
-  it('propose les personnes avec leurs années', async () => {
+  it('suggests people with their years', async () => {
     const { element, input } = await typeInto('mar');
     expect(search).toHaveBeenCalledWith({ q: 'mar', pageSize: 8 });
     const options = [...element.querySelectorAll('[role="option"]')];
@@ -75,7 +75,7 @@ describe('QuickSearch', () => {
     expect(input.getAttribute('aria-expanded')).toBe('true');
   });
 
-  it('navigue au clavier et recentre l’arbre sur la personne choisie', async () => {
+  it('navigates with the keyboard and recentres the tree on the chosen person', async () => {
     const { fixture, input } = await typeInto('mar');
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
@@ -87,7 +87,7 @@ describe('QuickSearch', () => {
     expect(input.value).toBe('');
   });
 
-  it('ferme les suggestions avec Échap', async () => {
+  it('closes the suggestions with Escape', async () => {
     const { fixture, input, element } = await typeInto('mar');
     input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     fixture.detectChanges();

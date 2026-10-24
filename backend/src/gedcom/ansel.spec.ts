@@ -6,36 +6,36 @@ const bytes = (...values: (number | string)[]): Uint8Array =>
   );
 
 describe('decodeAnsel', () => {
-  it('laisse l’ASCII intact', () => {
+  it('leaves ASCII untouched', () => {
     expect(decodeAnsel(bytes('0 HEAD\r\n1 CHAR ANSEL')).text).toBe('0 HEAD\r\n1 CHAR ANSEL');
   });
 
-  it('place les diacritiques après la lettre et recompose en NFC', () => {
+  it('moves diacritics after the letter and recomposes to NFC', () => {
     // é, è, ê, ç, ë
     const { text } = decodeAnsel(bytes('Ren', 0xe2, 'e ', 0xe1, 'e ', 0xe3, 'e Fran', 0xf0, 'cois No', 0xe8, 'el'));
     expect(text).toBe('René è ê François Noël');
     expect(text).toBe(text.normalize('NFC'));
   });
 
-  it('gère les majuscules accentuées utilisées dans les fichiers legacy', () => {
+  it('handles accented capitals used in legacy files', () => {
     expect(decodeAnsel(bytes(0xe2, 'E', 'MILE ', 0xe1, 'A')).text).toBe('ÉMILE À');
   });
 
-  it('décode les caractères spéciaux de la plage haute', () => {
+  it('decodes the special characters of the high range', () => {
     expect(decodeAnsel(bytes(0xb6, 'uvre ', 0xa5, ' ', 0xc7)).text).toBe('œuvre Æ ß');
   });
 
-  it('cumule plusieurs diacritiques sur une même lettre', () => {
-    // a + point souscrit + circonflexe → ậ
+  it('stacks several diacritics on the same letter', () => {
+    // a + dot below + circumflex → ậ
     expect(decodeAnsel(bytes(0xf2, 0xe3, 'a')).text).toBe('\u1ead');
   });
 
-  it('ne rattache pas un diacritique orphelin au saut de ligne', () => {
+  it('does not attach an orphan diacritic to a line break', () => {
     const { text } = decodeAnsel(bytes('a', 0xe2, '\n', 'b'));
     expect(text).toBe('a\u0301\nb'.normalize('NFC'));
   });
 
-  it('remplace et compte les octets non définis', () => {
+  it('replaces and counts undefined bytes', () => {
     const result = decodeAnsel(bytes('a', 0x80, 'b'));
     expect(result.text).toBe('a\ufffdb');
     expect(result.invalidBytes).toBe(1);

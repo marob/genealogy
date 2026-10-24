@@ -1,4 +1,4 @@
-/** Icônes Font Awesome utilisées dans l'application (import explicite pour le tree-shaking). */
+/** Font Awesome icons used in the application (explicit imports for tree-shaking). */
 export {
   faAnglesDown as iconExpandDescendants,
   faAnglesUp as iconExpandAncestors,

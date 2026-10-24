@@ -1,29 +1,29 @@
 import type { Box, Segment } from './pagination';
 
 /**
- * Déplacement des cartes qui chevauchent une coupe de page, pour qu'elles
- * tiennent entièrement sur une page, en gardant les traits droits et connectés.
+ * Moves the cards that overlap a page cut so that they fit entirely on one
+ * page, while keeping lines straight and connected.
  *
- * - Décalage horizontal : toute la descente verticale de la carte (jusqu'au
- *   trait horizontal qui la relie à sa famille) se déplace avec elle et le
- *   trait horizontal est allongé ou raccourci. Un crochet n'est dessiné que si
- *   la descente relie directement deux cartes.
- * - Le côté retenu est d'abord celui où se trouve la famille de la carte
- *   (le trait auquel elle se raccroche), puis le déplacement le plus court.
- * - Une carte bloquée par sa voisine peut la pousser (déplacement en bloc).
- * - Décalage vertical : la descente est allongée ou raccourcie, tant qu'il
- *   reste un trait visible.
- * Un déplacement qui ferait chevaucher une autre carte ou une autre coupe est
- * refusé : la carte reste alors coupée.
+ * - Horizontal shift: the card's whole vertical drop (down to the horizontal
+ *   line joining it to its family) moves with it, and the horizontal line is
+ *   stretched or shortened. A jog is only drawn when the drop directly joins
+ *   two cards.
+ * - The side chosen is first the one where the card's family is (the line
+ *   it hangs from), then the shortest move.
+ * - A card blocked by its neighbour may push it (block move).
+ * - Vertical shift: the drop is stretched or shortened, as long as a visible
+ *   line remains.
+ * A move that would overlap another card or another cut is rejected: the
+ * card then stays cut.
  */
 
-/** Espace laissé entre une carte déplacée et la coupe ou la carte voisine. */
+/** Gap left between a moved card and the cut or the neighbouring card. */
 const MARGIN = 4;
-/** Tolérance pour reconnaître des traits ou bords qui se touchent. */
+/** Tolerance for detecting lines or edges that touch. */
 const TOUCH = 2;
-/** Longueur minimale d'un trait vertical raccourci. */
+/** Minimum length of a shortened vertical line. */
 const MIN_LINE = 6;
-/** Nombre maximal de cartes déplacées ensemble. */
+/** Maximum number of cards moved together. */
 const MAX_BLOCK = 4;
 
 type Lines = (Segment | null)[];
@@ -38,12 +38,12 @@ interface Size {
   height: number;
 }
 
-/** Descente verticale depuis le bord d'une carte jusqu'à sa jonction. */
+/** Vertical drop from the edge of a card down to its junction. */
 interface Chain {
   x: number;
-  /** Ordonnée au bord de la carte. */
+  /** Y coordinate at the card edge. */
   edge: number;
-  /** Ordonnée de la jonction (trait horizontal ou autre carte). */
+  /** Y coordinate of the junction (horizontal line or another card). */
   end: number;
   segments: number[];
 }
@@ -72,7 +72,7 @@ function followChain(lines: Lines, x: number, edge: number, direction: -1 | 1): 
   }
 }
 
-/** Descentes partant du haut et du bas d'une carte. */
+/** Drops starting from the top and bottom of a card. */
 function chainsOf(lines: Lines, box: Box): { above: Chain[]; below: Chain[] } {
   const starts = (edge: 'top' | 'bottom') => {
     const xs: number[] = [];
@@ -94,8 +94,8 @@ function chainsOf(lines: Lines, box: Box): { above: Chain[]; below: Chain[] } {
 }
 
 /**
- * Position de la famille d'une carte : centre du trait horizontal auquel
- * aboutit sa descente (milieu de la fratrie, là où descend le trait des parents).
+ * Position of a card's family: centre of the horizontal line its drop ends on
+ * (middle of the siblings, where the parents' line comes down).
  */
 function familyAnchor(lines: Lines, chain: Chain): number | undefined {
   const xs = lines.flatMap((line) => {
@@ -108,7 +108,7 @@ function familyAnchor(lines: Lines, chain: Chain): number | undefined {
   return xs.length ? (Math.min(...xs) + Math.max(...xs)) / 2 : undefined;
 }
 
-/** Carte (autre que `except`) à laquelle aboutit une descente, s'il y en a une. */
+/** Card (other than `except`) a drop ends on, if any. */
 function cardAt(boxes: Box[], chain: Chain, except: Set<number>): number | undefined {
   const index = boxes.findIndex(
     (box, i) =>
@@ -143,7 +143,7 @@ function better(score: number[], than: number[]): boolean {
   return index >= 0 && score[index]! < than[index]!;
 }
 
-/** Décalage horizontal d'un bloc de cartes, ou `undefined` s'il est impossible. */
+/** Horizontal shift of a block of cards, or `undefined` if impossible. */
 function moveX(
   boxes: Box[],
   lines: Lines,
@@ -178,7 +178,7 @@ function moveX(
       chain.segments.forEach((segment) => moved.add(segment));
       const other = cardAt(boxes, chain, block);
       if (other !== undefined && chain.segments.length > 0) {
-        // Trait direct entre deux cartes : crochet à mi-hauteur.
+        // Direct line between two cards: jog halfway.
         jogs++;
         const middle = (chain.edge + chain.end) / 2;
         chain.segments.forEach((segment) => (nextLines[segment] = null));
@@ -197,7 +197,7 @@ function moveX(
         const line = nextLines[segment]!;
         nextLines[segment] = { ...line, x1: line.x1 + dx, x2: line.x2 + dx };
       }
-      // Le trait horizontal de jonction suit la descente.
+      // The horizontal junction line follows the drop.
       lines.forEach((line, index) => {
         if (!line || !isHorizontal(line) || !near(line.y1, chain.end)) {
           return;
@@ -225,7 +225,7 @@ function moveX(
   return { boxes: nextBoxes, lines: nextLines, score: [jogs, away, block.size, Math.abs(dx)] };
 }
 
-/** Bloc de cartes poussées par `index` lors d'un décalage de `dx`. */
+/** Block of cards pushed by `index` during a shift of `dx`. */
 function pushedBlock(boxes: Box[], index: number, dx: number): Set<number> | undefined {
   const block = new Set([index]);
   for (let grown = true; grown;) {
@@ -251,7 +251,7 @@ function pushedBlock(boxes: Box[], index: number, dx: number): Set<number> | und
   return block;
 }
 
-/** Décalage vertical d'une carte, ou `undefined` s'il est impossible. */
+/** Vertical shift of a card, or `undefined` if impossible. */
 function moveY(boxes: Box[], lines: Lines, index: number, dy: number, cuts: Cuts, size: Size): Candidate | undefined {
   const box = shifted(boxes[index]!, 0, dy);
   if (box.top < 0 || box.bottom > size.height || cuts.y.some((cut) => box.top < cut && cut < box.bottom)) {
@@ -282,7 +282,7 @@ function moveY(boxes: Box[], lines: Lines, index: number, dy: number, cuts: Cuts
   return { boxes: nextBoxes, lines: nextLines, score: [Math.abs(dy)] };
 }
 
-/** Cartes reliées directement à celles du bloc par un trait vertical (sans trait horizontal). */
+/** Cards directly joined to those of the block by a vertical line (no horizontal line). */
 function linkedBlock(boxes: Box[], lines: Lines, block: Set<number>): Set<number> | undefined {
   const linked = new Set(block);
   for (let grown = true; grown;) {
@@ -305,9 +305,8 @@ function linkedBlock(boxes: Box[], lines: Lines, block: Set<number>): Set<number
 }
 
 /**
- * Aligne les tronçons d'un même trait vertical : ils proviennent d'éléments
- * différents de l'arbre et peuvent différer d'un pixel, ce qui se voit à
- * l'impression.
+ * Aligns the segments of a single vertical line: they come from different
+ * tree elements and may differ by one pixel, which shows when printed.
  */
 export function alignVerticalChains(segments: Segment[]): Segment[] {
   const lines = segments.map((segment) => ({ ...segment }));
@@ -319,7 +318,7 @@ export function alignVerticalChains(segments: Segment[]): Segment[] {
     }
     const group = [start];
     seen.add(start);
-    // Le parcours visite aussi les tronçons ajoutés en cours de route.
+    // The traversal also visits segments added along the way.
     for (const line of group) {
       for (const other of vertical) {
         if (seen.has(other) || !near(other.x1, line.x1)) {
@@ -356,8 +355,8 @@ export function moveCutCards(
     if (cutX !== undefined) {
       let best: Candidate | undefined;
       for (const dx of [cutX - box.right - MARGIN, cutX - box.left + MARGIN]) {
-        // Seule (ou en poussant ses voisines), puis avec les cartes qui lui sont
-        // reliées par un trait direct, pour éviter un crochet.
+        // Alone (or pushing its neighbours), then with the cards joined to it by a
+        // direct line, to avoid a jog.
         const pushed = pushedBlock(boxes, index, dx);
         const linked = pushed && linkedBlock(boxes, lines, pushed);
         for (const block of [pushed, linked]) {

@@ -13,9 +13,9 @@ import { type Access, ACCESS_KEY, type AuthenticatedRequest } from './auth.decor
 import { SESSION_COOKIE, SessionService } from './session.service.js';
 
 /**
- * Guard global : identifie l'utilisateur (cookie de session ou mode dev) puis
- * applique les restrictions déclarées par `@Authenticated()` / `@AdminOnly()`.
- * Les routes sans décorateur restent publiques.
+ * Global guard: identifies the user (session cookie or dev mode) then applies
+ * the restrictions declared by `@Authenticated()` / `@AdminOnly()`.
+ * Routes without a decorator remain public.
  */
 @Injectable()
 export class AuthGuard implements CanActivate {

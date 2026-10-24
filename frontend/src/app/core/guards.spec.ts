@@ -12,11 +12,11 @@ describe('guards', () => {
     return result instanceof UrlTree ? TestBed.inject(Router).serializeUrl(result) : result;
   };
 
-  it('laisse passer un administrateur', () => {
+  it('lets an administrator through', () => {
     expect(run(adminGuard, { isAdmin: () => true })).toBe(true);
   });
 
-  it('renvoie les non-administrateurs vers l’accueil', () => {
+  it('redirects non-administrators to the home page', () => {
     expect(run(adminGuard, { isAdmin: () => false })).toBe('/');
   });
 });

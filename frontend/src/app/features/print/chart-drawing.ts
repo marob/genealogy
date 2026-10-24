@@ -1,9 +1,9 @@
 import type { Box, Segment } from './pagination';
 
 /**
- * Relevé de ce qu'il faut dessiner pour reproduire l'arbre affiché : les
- * cartes et anneaux d'union (éléments recopiés tels quels) et les traits de
- * liaison (redessinés en SVG). Coordonnées relatives au coin de l'arbre.
+ * Survey of what must be drawn to reproduce the displayed tree: cards and
+ * union rings (elements copied as is) and connecting lines (redrawn as SVG).
+ * Coordinates are relative to the tree corner.
  */
 export interface ChartDrawing {
   size: { width: number; height: number };
@@ -46,7 +46,7 @@ export function measureChart(chart: HTMLElement): ChartDrawing {
     const box = rect(cell);
     horizontal(box.bottom - 0.5, box.left, box.right);
   }
-  // Traits prolongés jusqu'aux cartes (pseudo-éléments ::before / ::after).
+  // Lines extended up to the cards (::before / ::after pseudo-elements).
   for (const node of all('.node-center.line-above')) {
     const box = rect(node);
     const height = parseFloat(getComputedStyle(node, '::before').height) || 0;
@@ -70,15 +70,15 @@ export function measureChart(chart: HTMLElement): ChartDrawing {
   };
 }
 
-/** Copie d'un élément de l'arbre, positionnée dans une page. */
+/** Copy of a tree element, positioned within a page. */
 export function placedCopy(element: HTMLElement, box: Box, offset: { x: number; y: number }): HTMLElement {
   const copy = element.cloneNode(true) as HTMLElement;
   Object.assign(copy.style, {
     position: 'absolute',
     left: `${box.left - offset.x}px`,
     top: `${box.top - offset.y}px`,
-    // Un pixel de marge en largeur et une hauteur libre : le zoom de la page
-    // peut arrondir le texte différemment et le faire passer à la ligne.
+    // One pixel of extra width and a free height: the page zoom may round
+    // text differently and make it wrap.
     width: `${box.right - box.left + 1}px`,
     minHeight: `${box.bottom - box.top}px`,
     margin: '0',

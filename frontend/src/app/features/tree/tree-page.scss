@@ -18,8 +18,8 @@
 
 .canvas {
   display: inline-block;
-  // Largeur naturelle de l'arbre : sur un écran étroit, il n'est pas comprimé
-  // (noms coupés, conjoint qui décale la carte centrale par rapport aux traits).
+  // Natural tree width: on a narrow screen it is not squeezed (truncated
+  // names, spouse shifting the central card away from the lines).
   width: max-content;
   min-width: 100%;
   padding: 3rem;

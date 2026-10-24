@@ -30,13 +30,13 @@ import { type Layout, type LayoutInput, layoutPages } from './pagination';
 const SCALES = [100, 85, 70, 60, 50, 40, 30];
 type Mode = 'pdf' | 'paper';
 type Orientation = 'landscape' | 'portrait';
-/** Formats de papier (portrait), en millimètres. */
+/** Paper sizes (portrait), in millimetres. */
 const PAPERS = { A4: [210, 297], A3: [297, 420], Letter: [215.9, 279.4] } as const;
 type Paper = keyof typeof PAPERS;
 const MARGIN_MM = 5;
-/** Hauteur réservée au repère de page (numéro, ligne, colonne). */
+/** Height reserved for the page marker (number, row, column). */
 const LABEL_MM = 4;
-/** Marge de sécurité pour qu'une feuille ne déborde jamais sur la page suivante (arrondis). */
+/** Safety margin so that a sheet never spills onto the next page (rounding). */
 const SAFETY_MM = 1;
 const PX_PER_MM = 96 / 25.4;
 
@@ -46,14 +46,14 @@ function generations(value: string | undefined, available: number): number {
 }
 
 /**
- * Version imprimable de l'arbre : personne centrale au choix, ascendants et
- * descendants dépliés récursivement (par défaut, toute la lignée). Deux modes :
- *  - « PDF » : une seule page aux dimensions exactes de l'arbre ;
- *  - « papier » : l'arbre est découpé en pages (format, orientation et
- *    échelle au choix) en plaçant les coupes entre les cartes. Le découpage
- *    est calculé dans un Web Worker ; chaque page ne recopie que ses cartes
- *    et redessine ses traits en SVG.
- * Les réglages sont portés par l'URL (`/print?person=I1&up=5&down=3&mode=paper`).
+ * Printable version of the tree: chosen central person, ancestors and
+ * descendants expanded recursively (by default, the whole lineage). Two modes:
+ *  - "PDF": a single page with the exact dimensions of the tree;
+ *  - "paper": the tree is split into pages (size, orientation and scale of
+ *    your choice) with cuts placed between cards. The splitting is computed
+ *    in a Web Worker; each page only copies its own cards and redraws its
+ *    lines as SVG.
+ * Settings are carried by the URL (`/print?person=I1&up=5&down=3&mode=paper`).
  */
 @Component({
   selector: 'app-print-page',
@@ -63,7 +63,7 @@ function generations(value: string | undefined, available: number): number {
   styleUrl: './print-page.scss',
 })
 export class PrintPage implements OnDestroy {
-  // Paramètres de requête liés par le routeur.
+  // Query parameters bound by the router.
   readonly person = input<string>();
   readonly up = input<string>();
   readonly down = input<string>();
@@ -71,7 +71,7 @@ export class PrintPage implements OnDestroy {
   readonly paper = input<string>();
   readonly orientation = input<string>();
   readonly scale = input<string>();
-  /** `keep` pour imprimer aussi les pages sans carte. */
+  /** `keep` to also print pages without cards. */
   readonly empty = input<string>();
 
   protected readonly tree = inject(TreeController);
@@ -83,7 +83,7 @@ export class PrintPage implements OnDestroy {
   protected readonly scales = SCALES;
   protected readonly papers = Object.keys(PAPERS) as Paper[];
 
-  /** Nombre de générations réellement disponibles autour de la personne. */
+  /** Number of generations actually available around the person. */
   protected readonly depth = resource({
     params: () => this.person(),
     loader: async ({ params: id }) =>
@@ -106,7 +106,7 @@ export class PrintPage implements OnDestroy {
   });
   protected readonly skipEmpty = computed(() => this.empty() !== 'keep');
 
-  /** Zone utile d'une page papier, en millimètres. */
+  /** Printable area of a paper page, in millimetres. */
   protected readonly sheet = computed(() => {
     const [short, long] = PAPERS[this.paperFormat()];
     const [width, height] = this.pageOrientation() === 'landscape' ? [long, short] : [short, long];
@@ -114,16 +114,16 @@ export class PrintPage implements OnDestroy {
   });
   protected readonly labelHeight = LABEL_MM;
   protected readonly margin = MARGIN_MM;
-  /** Épaisseur des traits dans l'aperçu à l'écran : au moins un pixel malgré la réduction. */
+  /** Line thickness in the on-screen preview: at least one pixel despite scaling down. */
   protected readonly screenStroke = computed(() => Math.max(1, 100 / this.zoom()));
 
   private readonly preview = viewChild<ElementRef<HTMLElement>>('preview');
   private readonly chart = viewChild<unknown, ElementRef<HTMLElement>>('chart', { read: ElementRef });
   private readonly tileContents = viewChildren<ElementRef<HTMLElement>>('tileContent');
-  /** Taille de l'arbre à l'échelle 100 %. */
+  /** Tree size at 100% scale. */
   private readonly chartSize = signal({ width: 0, height: 0 });
 
-  /** Pages de l'impression papier et éléments relevés dans l'arbre. */
+  /** Paper print pages and elements surveyed in the tree. */
   protected readonly layout = signal<Layout | undefined>(undefined);
   protected readonly drawing = signal<ChartDrawing | undefined>(undefined);
   protected readonly computing = signal(false);
@@ -131,7 +131,7 @@ export class PrintPage implements OnDestroy {
   private worker?: Worker;
   private request = 0;
 
-  /** Recherche de la personne centrale. */
+  /** Search for the central person. */
   protected readonly query = signal('');
   protected readonly candidates = resource({
     params: () => (this.query().trim().length >= 2 ? this.query().trim() : undefined),
@@ -158,7 +158,7 @@ export class PrintPage implements OnDestroy {
       untracked(() => void this.tree.load(id, wanted));
     });
 
-    // Suit la taille de l'arbre affiché.
+    // Tracks the size of the displayed tree.
     afterRenderEffect((onCleanup) => {
       const chart = this.chart()?.nativeElement;
       if (!chart) {
@@ -171,7 +171,7 @@ export class PrintPage implements OnDestroy {
       onCleanup(() => observer.disconnect());
     });
 
-    // Centre l'aperçu sur la personne choisie.
+    // Centres the preview on the chosen person.
     afterRenderEffect(() => {
       this.tree.focusVersion();
       const preview = this.preview()?.nativeElement;
@@ -184,7 +184,7 @@ export class PrintPage implements OnDestroy {
       }
     });
 
-    // Format de page : taille exacte de l'arbre en PDF, papier choisi sinon.
+    // Page size: exact tree size for PDF, chosen paper otherwise.
     effect(() => {
       const margin = `${MARGIN_MM}mm`;
       if (this.printMode() === 'pdf') {
@@ -196,7 +196,7 @@ export class PrintPage implements OnDestroy {
       }
     });
 
-    // Relevé de l'arbre puis découpage en pages dans le worker.
+    // Surveys the tree, then splits it into pages in the worker.
     afterRenderEffect(() => {
       const size = this.chartSize();
       const chart = this.chart()?.nativeElement;
@@ -219,7 +219,7 @@ export class PrintPage implements OnDestroy {
       );
     });
 
-    // Chaque page reçoit une copie de ses cartes et anneaux d'union.
+    // Each page gets a copy of its cards and union rings.
     afterRenderEffect(() => {
       const drawing = this.drawing();
       const layout = this.layout();

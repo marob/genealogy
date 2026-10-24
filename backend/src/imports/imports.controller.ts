@@ -32,9 +32,9 @@ export class ImportsController {
   @UseInterceptors(FileInterceptor('file', { limits: { fileSize: MAX_FILE_SIZE } }))
   upload(@CurrentUser() user: AuthUser, @UploadedFile() file: Express.Multer.File | undefined): Promise<ImportDto> {
     if (!file) {
-      throw new BadRequestException('Aucun fichier reçu (champ « file »).');
+      throw new BadRequestException('No file received ("file" field).');
     }
-    // multer décode le nom de fichier en latin1.
+    // multer decodes the file name as latin1.
     const fileName = Buffer.from(file.originalname, 'latin1').toString('utf8');
     return this.imports.preview(user, fileName, file.buffer);
   }

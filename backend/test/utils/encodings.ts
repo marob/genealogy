@@ -1,4 +1,4 @@
-/** Ré-encodage de textes de test dans les encodages historiques GEDCOM. */
+/** Re-encodes test texts into the historical GEDCOM encodings. */
 
 const ANSEL_COMBINING: Record<string, number> = {
   '\u0300': 0xe1,
@@ -17,12 +17,12 @@ export function encodeAnsel(text: string): Uint8Array {
     for (const mark of marks) {
       const byte = ANSEL_COMBINING[mark];
       if (byte === undefined) {
-        throw new Error(`Diacritique non géré dans le test : U+${mark.codePointAt(0)!.toString(16)}`);
+        throw new Error(`Diacritic not supported in the test: U+${mark.codePointAt(0)!.toString(16)}`);
       }
       bytes.push(byte);
     }
     if (base!.charCodeAt(0) > 0x7f) {
-      throw new Error(`Caractère non ASCII non géré dans le test : ${base}`);
+      throw new Error(`Non-ASCII character not supported in the test: ${base}`);
     }
     bytes.push(base!.charCodeAt(0));
   }
@@ -40,7 +40,7 @@ export function encodeWindows1252(text: string): Uint8Array {
       }
       const byte = WINDOWS_1252_EXTRA[char];
       if (byte === undefined) {
-        throw new Error(`Caractère non représentable en Windows-1252 : ${char}`);
+        throw new Error(`Character not representable in Windows-1252: ${char}`);
       }
       return byte;
     }),

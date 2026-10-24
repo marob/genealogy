@@ -3,7 +3,7 @@ import { expect, test as setup } from '@playwright/test';
 
 const fixture = join(import.meta.dirname, '../../backend/test/fixtures/famille-martin.ged');
 
-setup('importe un fichier GEDCOM depuis l’administration', async ({ page }) => {
+setup('imports a GEDCOM file from the admin page', async ({ page }) => {
   await page.goto('/admin');
   await expect(page.getByRole('heading', { name: 'Import GEDCOM' })).toBeVisible();
 

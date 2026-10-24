@@ -1,6 +1,6 @@
 import type { Role } from '@genealogie/shared';
 
-/** Utilisateur authentifié attaché à la requête. */
+/** Authenticated user attached to the request. */
 export interface AuthUser {
   id: number;
   email: string;
@@ -12,7 +12,7 @@ function isAdmin(user: AuthUser | undefined): boolean {
   return user?.role === 'ADMIN';
 }
 
-/** Droit de voir le détail des personnes nées il y a moins de 100 ans. */
+/** Permission to view the details of persons born less than 100 years ago. */
 export function canSeeContemporary(user: AuthUser | undefined): boolean {
   return isAdmin(user) || !!user?.canSeeContemporary;
 }

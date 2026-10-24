@@ -1,10 +1,9 @@
 import type { Calendar, PartialDate } from '@genealogie/shared';
 
 /**
- * Conversion des dates des différents calendriers GEDCOM vers le calendrier
- * grégorien, via le jour julien (JDN). Les parties inconnues (jour, mois) sont
- * conservées inconnues : seule l'année (et le mois quand c'est possible) est
- * convertie.
+ * Converts dates from the various GEDCOM calendars to the Gregorian calendar,
+ * via the Julian day number (JDN). Unknown parts (day, month) stay unknown:
+ * only the year (and the month when possible) is converted.
  */
 
 function gregorianToJdn(year: number, month: number, day: number): number {
@@ -44,8 +43,8 @@ function jdnToGregorian(jdn: number): Required<PartialDate> {
 }
 
 /**
- * 1er vendémiaire des années I à XIV, telles qu'appliquées historiquement
- * (années sextiles III, VII et XI).
+ * 1 Vendémiaire of years I to XIV, as historically applied
+ * (leap years III, VII and XI).
  */
 const REPUBLICAN_NEW_YEAR: Record<number, [number, number, number]> = {
   1: [1792, 9, 22],
@@ -69,7 +68,7 @@ function republicanNewYearJdn(year: number): number {
   if (known) {
     return gregorianToJdn(...known);
   }
-  // Hors période d'usage : extrapolation à 365,25 jours par an.
+  // Outside the period of use: extrapolate at 365.25 days per year.
   return gregorianToJdn(1792, 9, 22) + Math.round((year - 1) * 365.25);
 }
 
@@ -81,7 +80,7 @@ export function toGregorian(date: PartialDate, calendar: Calendar): PartialDate 
       if (date.month === undefined) {
         return date;
       }
-      // Jour inconnu : on convertit le milieu du mois puis on oublie le jour.
+      // Unknown day: convert the middle of the month then drop the day.
       const converted = jdnToGregorian(julianToJdn(date.year, date.month, date.day ?? 15));
       return date.day === undefined ? { year: converted.year, month: converted.month } : converted;
     }
@@ -95,7 +94,7 @@ export function toGregorian(date: PartialDate, calendar: Calendar): PartialDate 
       return date.day === undefined ? { year: converted.year, month: converted.month } : converted;
     }
     case 'hebrew':
-      // Approximation : l'année hébraïque commence à l'automne.
+      // Approximation: the Hebrew year starts in autumn.
       return { year: date.year - 3760 };
   }
 }
