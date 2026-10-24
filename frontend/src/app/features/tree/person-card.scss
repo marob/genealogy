@@ -1,0 +1,93 @@
+:host {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  position: relative;
+  min-width: 10rem;
+  max-width: 18rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--sex-unknown);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  text-align: left;
+}
+
+:host(.sex-M) {
+  border-left-color: var(--sex-male);
+}
+
+:host(.sex-F) {
+  border-left-color: var(--sex-female);
+}
+
+:host(:not(.part-root)) {
+  padding-right: 2.2rem;
+}
+
+:host(.part-root) {
+  background: var(--highlight);
+  box-shadow: var(--shadow-md);
+}
+
+.name {
+  all: unset;
+  cursor: pointer;
+  font-weight: 600;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
+  }
+}
+
+.surname {
+  text-transform: uppercase;
+}
+
+.sex {
+  margin-right: 0.3rem;
+  color: var(--sex-unknown);
+}
+
+:host(.sex-M) .sex {
+  color: var(--sex-male);
+}
+
+:host(.sex-F) .sex {
+  color: var(--sex-female);
+}
+
+.focus {
+  position: absolute;
+  top: 0.2rem;
+  right: 0.2rem;
+}
+
+.attribute {
+  white-space: nowrap;
+  font-size: 0.875rem;
+
+  fa-icon {
+    width: 1.1rem;
+    color: var(--text-muted);
+  }
+}
+
+.occupation {
+  display: flex;
+  gap: 0.25rem;
+  white-space: normal;
+  overflow-wrap: anywhere;
+
+  fa-icon {
+    flex-shrink: 0;
+  }
+}
+
+.muted {
+  color: var(--text-muted);
+  font-style: italic;
+}

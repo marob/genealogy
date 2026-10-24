@@ -1,0 +1,299 @@
+// La page occupe la hauteur disponible : formulaire en haut, aperçu
+// défilant en dessous (défilement interne, dans les deux sens).
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 1.5rem 1rem 1rem;
+}
+
+.settings {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.75rem 1rem;
+  align-items: start;
+  flex-shrink: 0;
+  width: min(70rem, 100%);
+  margin: 0 auto 1rem;
+
+  h1 {
+    grid-column: 1 / -1;
+    margin: 0;
+  }
+}
+
+.person-field {
+  grid-column: span 2;
+  position: relative;
+
+  label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+}
+
+.selected {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+}
+
+.surname {
+  text-transform: uppercase;
+}
+
+.picker {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  fa-icon {
+    color: var(--text-muted);
+  }
+}
+
+.candidates {
+  position: absolute;
+  z-index: 5;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 18rem;
+  margin: 0.25rem 0 0;
+  padding: 0.25rem 0;
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+
+  li {
+    padding: 0.3rem 0.75rem;
+  }
+}
+
+.form-actions {
+  display: flex;
+  align-items: end;
+  justify-content: flex-end;
+  grid-column: -2 / -1;
+}
+
+.hint {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.warning {
+  display: block;
+  color: var(--warning);
+}
+
+.checkbox {
+  flex-direction: row;
+  align-items: center;
+  align-self: end;
+  gap: 0.5rem;
+}
+
+.print-preview {
+  position: relative;
+  flex: 1;
+  min-height: 20rem;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+.loader {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: fit-content;
+  margin: 0.75rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+}
+
+.spinner {
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// L'aperçu est une image de ce qui sera imprimé : pas de survol ni de clic
+// sur les cartes (noms, boutons).
+.print-area,
+.tile-content {
+  pointer-events: none;
+}
+
+.print-area {
+  display: inline-block;
+  min-width: 100%;
+  padding: 1.5rem;
+
+  // Mode papier : l'arbre source reste mesurable mais hors de l'écran ;
+  // seules les pages découpées sont affichées.
+  &.offscreen {
+    position: fixed;
+    top: 0;
+    left: -100000px;
+    // Largeur naturelle de l'arbre, indépendante de la fenêtre : même
+    // découpage quel que soit l'écran.
+    width: max-content;
+    min-width: 0;
+  }
+}
+
+.mode {
+  margin: 0;
+  padding: 0;
+  border: none;
+
+  legend {
+    padding: 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  label {
+    display: block;
+  }
+}
+
+.sheets {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+}
+
+// Aperçu à l'écran : une feuille blanche par page, aux couleurs de l'impression.
+.sheet {
+  --surface: #ffffff;
+  --highlight: #f3f3f3;
+  --text: #000000;
+  --text-muted: #444444;
+  --border: #999999;
+  --line: #000000;
+  --shadow-sm: none;
+
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  box-sizing: content-box;
+  color: #000;
+  background: #fff;
+  box-shadow: var(--shadow-md);
+}
+
+.tile-area {
+  position: relative;
+  overflow: hidden;
+  // Repère de découpe : en coupant le long de ce cadre, les pages se juxtaposent sans écart.
+  outline: 0.2mm dashed #bbb;
+}
+
+.tile-frame {
+  position: absolute;
+}
+
+.tile {
+  position: relative;
+  overflow: hidden;
+  // Sans confinement, Chromium tient compte du contenu débordant (masqué) et
+  // réduit toute la page à l'impression.
+  contain: strict;
+}
+
+.lines {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  stroke: var(--line);
+  // À l'écran, la page est réduite (échelle d'impression) : sans compensation,
+  // les traits feraient moins d'un pixel et s'estomperaient dans l'aperçu.
+  stroke-width: calc(var(--screen-stroke, 1) * 1px);
+  // Traits alignés sur les pixels : nets plutôt que gris et flous.
+  shape-rendering: crispEdges;
+}
+
+.sheet-label {
+  height: 4mm;
+  margin-top: auto;
+  padding-top: 1mm;
+  font-size: 7pt;
+  text-align: right;
+  color: #555;
+}
+
+.empty {
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .person-field,
+  .form-actions {
+    grid-column: 1 / -1;
+  }
+}
+
+@media print {
+  :host {
+    display: block;
+    padding: 0;
+  }
+
+  .print-preview {
+    overflow: visible;
+    border: none;
+    background: none;
+  }
+
+  .print-area {
+    display: block;
+    padding: 0;
+  }
+
+  .sheets {
+    display: block;
+    padding: 0;
+  }
+
+  // Épaisseur réelle à l'impression (l'imprimante rend les traits fins).
+  .lines {
+    stroke-width: 1;
+  }
+
+  // Les marges sont celles de @page.
+  .sheet {
+    padding: 0 !important;
+    box-shadow: none;
+    break-inside: avoid;
+    break-after: page;
+
+    &:last-child {
+      break-after: auto;
+    }
+  }
+}

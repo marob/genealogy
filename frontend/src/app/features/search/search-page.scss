@@ -1,0 +1,74 @@
+:host {
+  display: block;
+  width: min(70rem, 100%);
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+.search-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: 0.75rem 1rem;
+  align-items: end;
+}
+
+.wide {
+  grid-column: span 2;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  grid-column: -2 / -1;
+}
+
+.hint {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.surname {
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.badge {
+  margin-left: 0.5rem;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.initial {
+  margin: 1rem 0 0.25rem;
+  color: var(--accent);
+}
+
+.surnames {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.muted {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 640px) {
+  .wide,
+  .form-actions {
+    grid-column: 1 / -1;
+  }
+}

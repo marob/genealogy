@@ -1,0 +1,91 @@
+0 HEAD
+1 SOUR HEREDIS
+2 NAME Heredis
+2 VERS 2024
+1 GEDC
+2 VERS 5.5.1
+2 FORM LINEAGE-LINKED
+1 CHAR UTF-8
+1 PLAC
+2 FORM Ville, Code INSEE, Département, Région, Pays
+0 @N1@ NOTE Boulanger réputé dans tout le quartier,
+1 CONC  il reprit la boutique de son père.
+1 CONT Médaille du travail en 1910.
+0 @I0@ INDI
+1 NAME Pierre /MARTIN/
+1 SEX M
+1 BIRT
+2 DATE @#DFRENCH R@ 18 BRUM 8
+2 PLAC Lyon, 69123, Rhône, Auvergne-Rhône-Alpes, France
+1 FAMS @F0@
+0 @I1@ INDI
+1 NAME Émile Joseph /MARTIN/
+2 GIVN Émile Joseph
+2 SURN MARTIN
+1 SEX M
+1 BIRT
+2 DATE 12 MAR 1850
+2 PLAC Lyon, 69123, Rhône, Auvergne-Rhône-Alpes, France
+3 MAP
+4 LATI N45.7578
+4 LONG E4.8320
+1 CHR
+2 DATE 14 MAR 1850
+2 PLAC Lyon, 69123, Rhône, Auvergne-Rhône-Alpes, France
+1 OCCU Boulanger
+1 DEAT
+2 DATE ABT 1920
+2 PLAC Villeurbanne, 69266, Rhône, Auvergne-Rhône-Alpes, France
+1 NOTE @N1@
+1 FAMC @F0@
+1 FAMS @F1@
+1 SOUR @S1@
+0 @I2@ INDI
+1 NAME Hélène /DUPRÉ/
+1 SEX F
+1 BIRT
+2 DATE BET 1854 AND 1856
+2 PLAC Paris, 75056, Paris, Île-de-France, France
+1 FAMS @F1@
+0 @I3@ INDI
+1 NAME François /MARTIN/
+1 SEX M
+1 BIRT
+2 DATE 2 FEB 1880
+1 FAMC @F1@
+1 FAMS @F2@
+0 @I4@ INDI
+1 NAME Zoé /MARTIN/
+1 SEX F
+1 BIRT
+2 DATE 5 MAY 1990
+1 FAMC @F1@
+2 PEDI adopted
+0 @I5@ INDI
+1 NAME Louise /BERNARD/
+1 SEX F
+1 FAMS @F2@
+0 @I6@ INDI
+1 NAME Jules /MARTIN/
+1 SEX M
+1 FAMC @F2@
+0 @F0@ FAM
+1 HUSB @I0@
+1 CHIL @I1@
+0 @F1@ FAM
+1 HUSB @I1@
+1 WIFE @I2@
+1 MARR
+2 DATE 1 JUN 1878
+2 PLAC Paris, 75056, Paris, Île-de-France, France
+1 CHIL @I3@
+1 CHIL @I4@
+0 @F2@ FAM
+1 HUSB @I3@
+1 WIFE @I5@
+1 MARR
+2 DATE 1905
+1 CHIL @I6@
+0 @S1@ SOUR
+1 TITL Registres paroissiaux
+0 TRLR

@@ -1,0 +1,121 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Lint, types et tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+
+  e2e:
+    name: Tests de bout en bout
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx -w @genealogie/e2e playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: e2e/test-results
+          retention-days: 7
+
+  # Image construite nativement sur chaque architecture (arm64 pour Oracle Cloud
+  # Ampere), puis réunie en un manifeste multi-architecture. Publiée sur GHCR
+  # uniquement depuis main, une fois les tests passés.
+  docker:
+    name: Image Docker (${{ matrix.platform }})
+    needs: [check, e2e]
+    strategy:
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-latest
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+      packages: write
+    env:
+      PUBLISH: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: arch
+        run: echo "name=${PLATFORM#linux/}" >> "$GITHUB_OUTPUT"
+        env:
+          PLATFORM: ${{ matrix.platform }}
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        if: env.PUBLISH == 'true'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          outputs: ${{ env.PUBLISH == 'true' && format('type=image,name=ghcr.io/{0},push-by-digest=true,name-canonical=true,push=true', github.repository) || 'type=cacheonly' }}
+          cache-from: type=gha,scope=${{ steps.arch.outputs.name }}
+          cache-to: type=gha,mode=max,scope=${{ steps.arch.outputs.name }}
+      - name: Mémorise le digest
+        if: env.PUBLISH == 'true'
+        run: mkdir -p /tmp/digests && touch "/tmp/digests/${DIGEST#sha256:}"
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+      - uses: actions/upload-artifact@v4
+        if: env.PUBLISH == 'true'
+        with:
+          name: digest-${{ steps.arch.outputs.name }}
+          path: /tmp/digests/*
+          retention-days: 1
+
+  publish:
+    name: Publication de l'image
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: docker
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digest-*
+          merge-multiple: true
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Crée le manifeste multi-architecture
+        working-directory: /tmp/digests
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          docker buildx imagetools create -t "$image:latest" -t "$image:sha-${GITHUB_SHA::7}" \
+            $(printf "$image@sha256:%s " *)
+          docker buildx imagetools inspect "$image:latest"

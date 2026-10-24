@@ -1,0 +1,41 @@
+import { computed, inject, Injectable, signal } from '@angular/core';
+import type { MeDto } from '@genealogie/shared';
+import { ApiService } from './api.service';
+
+/** État de la session (utilisateur connecté, fournisseurs d'identité). */
+@Injectable({ providedIn: 'root' })
+export class SessionStore {
+  private readonly api = inject(ApiService);
+  private readonly state = signal<MeDto>({ providers: [], devBypass: false });
+
+  readonly user = computed(() => this.state().user);
+  readonly providers = computed(() => this.state().providers);
+  readonly devBypass = computed(() => this.state().devBypass);
+  readonly isAuthenticated = computed(() => !!this.user());
+  readonly isAdmin = computed(() => this.user()?.role === 'ADMIN');
+  readonly canSeeContemporary = computed(() => this.isAdmin() || !!this.user()?.canSeeContemporary);
+
+  async load(): Promise<void> {
+    try {
+      this.state.set(await this.api.me());
+    } catch {
+      // API indisponible : l'application reste utilisable en anonyme.
+    }
+  }
+
+  /** Redirige vers le fournisseur d'identité (flux géré par le backend). */
+  login(provider: string, returnTo = '/'): void {
+    window.location.assign(`/api/auth/${encodeURIComponent(provider)}/login?returnTo=${encodeURIComponent(returnTo)}`);
+  }
+
+  async setPersonalRoot(personId: string | null): Promise<void> {
+    await this.api.setMyRoot(personId);
+    await this.load();
+  }
+
+  async logout(): Promise<void> {
+    await this.api.logout();
+    this.api.clearCache();
+    await this.load();
+  }
+}

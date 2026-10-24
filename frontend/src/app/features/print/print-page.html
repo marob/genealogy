@@ -1,0 +1,198 @@
+<form class="settings card no-print" (submit)="$event.preventDefault()">
+  <h1>{{ 'print.title' | transloco }}</h1>
+
+  <div class="field person-field">
+    <label for="print-person">{{ 'print.person' | transloco }}</label>
+    <div class="picker">
+      <fa-icon [icon]="icons.iconSearch" />
+      <input
+        id="print-person"
+        type="search"
+        autocomplete="off"
+        [placeholder]="'print.personPlaceholder' | transloco"
+        [ngModel]="query()"
+        (ngModelChange)="query.set($event)"
+        name="query"
+      />
+    </div>
+    @if (tree.root(); as root) {
+      <p class="selected">
+        <strong
+          ><span class="surname">{{ root.person.surname }}</span> {{ root.person.givenNames }}</strong
+        >
+      </p>
+    }
+    @if (candidates.value(); as people) {
+      <ul class="candidates" role="listbox" [attr.aria-label]="'print.person' | transloco">
+        @for (candidate of people; track candidate.id) {
+          <li role="option" [attr.aria-selected]="candidate.id === person()">
+            <button type="button" class="link" (click)="choose(candidate)">
+              <span class="surname">{{ candidate.surname }}</span> {{ candidate.givenNames }}
+              @if (candidate.birth?.date?.start; as start) {
+                <span class="muted">({{ start.year }})</span>
+              }
+            </button>
+          </li>
+        } @empty {
+          <li class="muted">{{ 'print.noMatch' | transloco }}</li>
+        }
+      </ul>
+    }
+  </div>
+
+  <label class="field">
+    <span>{{ 'print.ancestors' | transloco }}</span>
+    <input
+      type="number"
+      min="0"
+      [max]="depth.value()?.ancestors ?? 0"
+      [ngModel]="ancestors()"
+      name="up"
+      (change)="update({ up: $any($event.target).value })"
+    />
+  </label>
+  <label class="field">
+    <span>{{ 'print.descendants' | transloco }}</span>
+    <input
+      type="number"
+      min="0"
+      [max]="depth.value()?.descendants ?? 0"
+      [ngModel]="descendants()"
+      name="down"
+      (change)="update({ down: $any($event.target).value })"
+    />
+  </label>
+  <fieldset class="field mode">
+    <legend>{{ 'print.mode' | transloco }}</legend>
+    <label>
+      <input type="radio" name="mode" value="pdf" [ngModel]="printMode()" (ngModelChange)="update({ mode: $event })" />
+      {{ 'print.modePdf' | transloco }}
+    </label>
+    <label>
+      <input
+        type="radio"
+        name="mode"
+        value="paper"
+        [ngModel]="printMode()"
+        (ngModelChange)="update({ mode: $event })"
+      />
+      {{ 'print.modePaper' | transloco }}
+    </label>
+  </fieldset>
+  @if (printMode() === 'paper') {
+    <label class="field">
+      <span>{{ 'print.paper' | transloco }}</span>
+      <select [ngModel]="paperFormat()" name="paper" (ngModelChange)="update({ paper: $event })">
+        @for (value of papers; track value) {
+          <option [value]="value">{{ value }}</option>
+        }
+      </select>
+    </label>
+    <label class="field">
+      <span>{{ 'print.orientation' | transloco }}</span>
+      <select [ngModel]="pageOrientation()" name="orientation" (ngModelChange)="update({ orientation: $event })">
+        <option value="landscape">{{ 'print.landscape' | transloco }}</option>
+        <option value="portrait">{{ 'print.portrait' | transloco }}</option>
+      </select>
+    </label>
+    <label class="field checkbox">
+      <input
+        type="checkbox"
+        [ngModel]="skipEmpty()"
+        name="empty"
+        (ngModelChange)="update({ empty: $event ? undefined : 'keep' })"
+      />
+      <span>{{ 'print.skipEmpty' | transloco }}</span>
+    </label>
+    <label class="field">
+      <span>{{ 'print.scale' | transloco }}</span>
+      <select [ngModel]="zoom()" name="scale" (ngModelChange)="update({ scale: $event })">
+        @for (value of scales; track value) {
+          <option [ngValue]="value">{{ value }} %</option>
+        }
+      </select>
+    </label>
+  }
+  <div class="form-actions">
+    <button type="button" class="btn btn-primary" [disabled]="!tree.root() || busy()" (click)="print()">
+      <fa-icon [icon]="icons.iconPrint" /> {{ 'print.print' | transloco }}
+    </button>
+  </div>
+  <p class="hint">
+    @if (printMode() === 'pdf') {
+      {{ 'print.hintPdf' | transloco }}
+    } @else if (layout(); as result) {
+      {{ 'print.hintPaper' | transloco: { count: result.pages.length } }}
+      @if (result.skipped) {
+        {{ 'print.skipped' | transloco: { count: result.skipped } }}
+      }
+      @if (result.cutCards) {
+        <strong class="warning">{{ 'print.cutCards' | transloco: { count: result.cutCards } }}</strong>
+      }
+    }
+  </p>
+</form>
+
+<div class="print-preview" #preview>
+  @if (busy()) {
+    <div class="loader no-print" role="status">
+      <span class="spinner" aria-hidden="true"></span>
+      {{ (tree.loading() || depth.isLoading() ? 'print.loadingTree' : 'print.computingPages') | transloco }}
+    </div>
+  }
+  <div class="print-area" [class.offscreen]="printMode() === 'paper'">
+    @if (tree.root(); as root) {
+      <table #chart appChartNode [node]="root" part="root"></table>
+    } @else if (!busy()) {
+      <p class="muted no-print empty">{{ 'print.choosePerson' | transloco }}</p>
+    }
+  </div>
+
+  @if (printMode() === 'paper' && tree.root() && layout(); as result) {
+    <div class="sheets">
+      @for (page of result.pages; track $index) {
+        <section
+          class="sheet"
+          [style.width.mm]="sheet().width"
+          [style.height.mm]="sheet().height + labelHeight"
+          [style.padding.mm]="margin"
+        >
+          <div class="tile-area" [style.height.mm]="sheet().height">
+            <!-- Portion calée contre les pages voisines (première rangée en bas, première colonne à droite). -->
+            <div
+              class="tile-frame"
+              [style.left.px]="(page.offsetX * zoom()) / 100"
+              [style.top.px]="(page.offsetY * zoom()) / 100"
+            >
+              <div
+                class="tile"
+                [style.zoom]="zoom() / 100"
+                [style.--screen-stroke]="screenStroke()"
+                [style.width.px]="page.width"
+                [style.height.px]="page.height"
+              >
+                <svg class="lines" [attr.width]="page.width" [attr.height]="page.height" aria-hidden="true">
+                  @for (segment of segmentsOf(page.segments); track $index) {
+                    <line
+                      [attr.x1]="segment.x1 - page.x"
+                      [attr.y1]="segment.y1 - page.y"
+                      [attr.x2]="segment.x2 - page.x"
+                      [attr.y2]="segment.y2 - page.y"
+                    />
+                  }
+                </svg>
+                <div #tileContent class="tile-content"></div>
+              </div>
+            </div>
+          </div>
+          <footer class="sheet-label">
+            {{
+              'print.sheetLabel'
+                | transloco: { page: $index + 1, count: result.pages.length, row: page.row + 1, col: page.col + 1 }
+            }}
+          </footer>
+        </section>
+      }
+    </div>
+  }
+</div>

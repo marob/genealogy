@@ -1,0 +1,46 @@
+@let p = person();
+@if (part() !== 'root') {
+  <button
+    type="button"
+    class="btn-icon focus"
+    [appTooltip]="'tree.focus' | transloco"
+    [attr.aria-label]="'tree.focus' | transloco"
+    (click)="tree.focus(p)"
+  >
+    <fa-icon [icon]="icons.iconFocus" />
+  </button>
+}
+<button type="button" class="name" (click)="tree.select(p)">
+  <fa-icon class="sex" [icon]="sexIcon()" [attr.aria-label]="'sex.' + p.sex | transloco" />
+  <span class="surname">{{ p.surname }}</span> {{ p.givenNames }}
+</button>
+@if (p.restricted) {
+  <div class="attribute muted">{{ 'person.contemporary' | transloco }}</div>
+} @else {
+  @if (p.occupation) {
+    <ng-template #occupationDetail>
+      <strong>{{ 'events.OCCU' | transloco }}</strong>
+      <div>{{ p.occupation }}</div>
+    </ng-template>
+    <div class="attribute occupation" [appTooltip]="occupationDetail" tooltipPosition="left" tabindex="0">
+      <fa-icon [icon]="icons.iconOccupation" />
+      {{ p.occupation }}
+    </div>
+  }
+  @for (milestone of milestones(); track milestone.key) {
+    <ng-template #detail>
+      <strong>{{ 'events.' + milestone.event.type | transloco }}</strong>
+      <div><fa-icon [icon]="icons.iconDate" /> {{ milestone.event.date | genealogyDate: lang() }}</div>
+      @if (milestone.event.place) {
+        <div><fa-icon [icon]="icons.iconPlace" /> {{ milestone.event.place.name }}</div>
+      }
+    </ng-template>
+    <div class="attribute" [appTooltip]="detail" tooltipPosition="left" tabindex="0">
+      <fa-icon [icon]="milestone.icon" />
+      {{ milestone.event.date | genealogyDate: lang() }}
+      @if (milestone.event.place && !milestone.event.date) {
+        {{ milestone.event.place | place }}
+      }
+    </div>
+  }
+}

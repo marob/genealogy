@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+out-tsc/
+.angular/
+coverage/
+*.tsbuildinfo
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Databases & personal genealogy data (never commit real family data)
+*.db
+*.db-journal
+*.sqlite
+*.ged
+*.GED
+# Fichiers GEDCOM fictifs utilisés par les tests
+!**/test/fixtures/*.ged
+data/
+private/
+
+# Generated
+backend/src/generated/
+
+# Tests
+playwright-report/
+test-results/
+blob-report/
+
+# IDE / OS
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+*.log
+
+# Legacy code (kept locally for reference until removal)
+legacy/
+
+# Configuration locale de Claude Code
+.claude/

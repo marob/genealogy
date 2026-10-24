@@ -1,0 +1,41 @@
+<a class="skip-link" href="#main">{{ 'nav.skip' | transloco }}</a>
+<header class="app-header">
+  <a class="brand" routerLink="/">{{ 'app.title' | transloco }}</a>
+  <nav [attr.aria-label]="'nav.main' | transloco">
+    <a routerLink="/tree" routerLinkActive="active">{{ 'nav.tree' | transloco }}</a>
+    <a routerLink="/search" routerLinkActive="active">{{ 'nav.search' | transloco }}</a>
+    <a routerLink="/print" routerLinkActive="active">{{ 'nav.print' | transloco }}</a>
+    @if (session.isAdmin()) {
+      <a routerLink="/admin" routerLinkActive="active">{{ 'nav.admin' | transloco }}</a>
+    }
+  </nav>
+  <app-quick-search class="quick-search" />
+  <div class="header-end">
+    @if (session.devBypass()) {
+      <span class="badge badge-warning" [title]="'app.devBypassHint' | transloco">{{
+        'app.devBypass' | transloco
+      }}</span>
+    }
+    @if (!session.user()) {
+      <a class="btn btn-small btn-primary" routerLink="/login">{{ 'nav.login' | transloco }}</a>
+    }
+    <a
+      class="btn-icon account"
+      routerLink="/account"
+      routerLinkActive="active"
+      [attr.aria-label]="'nav.account' | transloco"
+      [title]="session.user()?.displayName ?? session.user()?.email ?? ('nav.account' | transloco)"
+    >
+      <fa-icon [icon]="icons.iconSettings" />
+    </a>
+    @if (session.user() && !session.devBypass()) {
+      <button type="button" class="btn-icon" [attr.aria-label]="'nav.logout' | transloco" (click)="logout()">
+        <fa-icon [icon]="icons.iconLogout" />
+      </button>
+    }
+  </div>
+</header>
+<main id="main" tabindex="-1">
+  <router-outlet />
+</main>
+<app-toasts />

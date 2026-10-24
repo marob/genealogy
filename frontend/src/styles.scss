@@ -1,0 +1,432 @@
+@use '@angular/cdk/overlay-prebuilt.css';
+
+/* Jetons de design : thème clair par défaut, sombre selon le système. */
+:root {
+  color-scheme: light dark;
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --highlight: #fff7e0;
+  --text: #1d2330;
+  --text-muted: #5f6b7a;
+  --border: #d9dee5;
+  --line: #8a94a3;
+  --accent: #b5651d;
+  --accent-contrast: #ffffff;
+  --danger: #c0392b;
+  --success: #2e7d32;
+  --warning: #9a6700;
+  --sex-male: #2f6fb5;
+  --sex-female: #c2407a;
+  --sex-unknown: #8a94a3;
+  --radius: 8px;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 8%);
+  --shadow-md: 0 4px 14px rgb(0 0 0 / 12%);
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14171c;
+    --surface: #1d2128;
+    --highlight: #3a3120;
+    --text: #e7eaee;
+    --text-muted: #a3adba;
+    --border: #343a44;
+    --line: #6f7987;
+    --accent: #e0954f;
+    --accent-contrast: #1d2128;
+    --danger: #ef6b5b;
+    --success: #6cc070;
+    --warning: #e3b341;
+    --sex-male: #6ea8ec;
+    --sex-female: #eb7fb0;
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
+    --shadow-md: 0 4px 14px rgb(0 0 0 / 50%);
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.45;
+}
+
+a {
+  color: var(--accent);
+}
+
+h1 {
+  font-size: 1.6rem;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  left: -999px;
+
+  &:focus {
+    left: 1rem;
+    top: 0.5rem;
+    z-index: 10;
+    padding: 0.5rem 1rem;
+    background: var(--surface);
+  }
+}
+
+/* Formulaires */
+input:not([type='checkbox'], [type='radio']),
+select {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+}
+
+input[type='checkbox'] {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--accent);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  > span {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+}
+
+/* Boutons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: var(--accent);
+  }
+
+  &:disabled,
+  &.disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+  background: var(--accent);
+}
+
+.btn-danger {
+  border-color: var(--danger);
+  color: #fff;
+  background: var(--danger);
+}
+
+.btn-text {
+  border-color: transparent;
+  background: transparent;
+}
+
+.btn-small {
+  padding: 0.25rem 0.6rem;
+  font-size: 0.875rem;
+}
+
+.btn-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  color: var(--text-muted);
+  background: transparent;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    color: var(--text);
+    background: color-mix(in srgb, var(--text) 8%, transparent);
+  }
+}
+
+.link {
+  all: unset;
+  color: var(--accent);
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
+  }
+}
+
+/* Conteneurs */
+.card {
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+
+  h2 {
+    margin-top: 0;
+  }
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 0.5rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+}
+
+.row-actions {
+  white-space: nowrap;
+  text-align: right;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.05rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+.badge-success {
+  color: var(--success);
+  background: color-mix(in srgb, var(--success) 15%, transparent);
+}
+
+.badge-warning {
+  color: var(--warning);
+  background: color-mix(in srgb, var(--warning) 15%, transparent);
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.error {
+  color: var(--danger);
+}
+
+/* Import GEDCOM */
+.file-button {
+  cursor: pointer;
+}
+
+.preview {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px dashed var(--accent);
+  border-radius: var(--radius);
+
+  h3 {
+    margin-top: 0;
+  }
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem 1.5rem;
+
+  dt {
+    color: var(--text-muted);
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+.warnings {
+  max-height: 16rem;
+  overflow: auto;
+  font-size: 0.85rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+/* Infobulles, dialogues et notifications */
+.tooltip-panel {
+  // Le conteneur de la CDK est en flex ligne : le contenu s'empile ici en colonne.
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  max-width: 22rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: var(--bg);
+  background: var(--text);
+  box-shadow: var(--shadow-md);
+  pointer-events: auto;
+
+  fa-icon {
+    margin-right: 0.3rem;
+  }
+}
+
+.cdk-overlay-backdrop.cdk-overlay-backdrop-showing {
+  background: rgb(0 0 0 / 40%);
+}
+
+.dialog {
+  display: block;
+  width: min(30rem, calc(100vw - 2rem));
+  padding: 1.25rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+}
+
+.dialog-title {
+  margin-top: 0;
+  font-size: 1.2rem;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.toasts {
+  position: fixed;
+  z-index: 1100;
+  right: 1rem;
+  bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.6rem 0.6rem 1rem;
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+}
+
+.toast-success {
+  border-left-color: var(--success);
+}
+
+.toast-error {
+  border-left-color: var(--danger);
+}
+
+/* Aperçu des pages d'impression : sans les boutons de l'arbre. */
+.sheet .toggle,
+.sheet app-person-card .focus {
+  visibility: hidden;
+}
+
+/* Impression : uniquement le contenu, en clair, sans couper les cartes. */
+@media print {
+  :root {
+    color-scheme: light;
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --highlight: #f3f3f3;
+    --text: #000000;
+    --text-muted: #444444;
+    --border: #999999;
+    --line: #000000;
+    --shadow-sm: none;
+    --shadow-md: none;
+  }
+
+  body {
+    background: #ffffff;
+    print-color-adjust: exact;
+  }
+
+  .app-header,
+  .toasts,
+  .skip-link,
+  .no-print,
+  .toggle,
+  app-person-card .focus {
+    display: none !important;
+  }
+
+  app-root,
+  main {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  app-person-card,
+  tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

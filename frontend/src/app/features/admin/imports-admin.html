@@ -1,0 +1,127 @@
+<section class="card">
+  <h2>{{ 'admin.imports.title' | transloco }}</h2>
+  <p class="muted">{{ 'admin.imports.intro' | transloco }}</p>
+
+  <label class="btn btn-primary file-button" [class.disabled]="busy()">
+    <fa-icon [icon]="icons.iconImport" />
+    {{ 'admin.imports.choose' | transloco }}
+    <input #file type="file" accept=".ged,.GED,.gedcom" [disabled]="busy()" (change)="upload(file)" hidden />
+  </label>
+  @if (busy()) {
+    <span class="muted" role="status">{{ 'common.loading' | transloco }}</span>
+  }
+
+  @if (preview(); as run) {
+    <div class="preview" role="region" [attr.aria-label]="'admin.imports.preview' | transloco">
+      <h3>{{ 'admin.imports.preview' | transloco }} — {{ run.fileName }}</h3>
+      <dl class="stats">
+        <dt>{{ 'admin.imports.stats.persons' | transloco }}</dt>
+        <dd>{{ run.stats.persons | number: '1.0-0' : lang() }}</dd>
+        <dt>{{ 'admin.imports.stats.families' | transloco }}</dt>
+        <dd>{{ run.stats.families | number: '1.0-0' : lang() }}</dd>
+        <dt>{{ 'admin.imports.stats.events' | transloco }}</dt>
+        <dd>{{ run.stats.events | number: '1.0-0' : lang() }}</dd>
+        <dt>{{ 'admin.imports.stats.places' | transloco }}</dt>
+        <dd>{{ run.stats.places | number: '1.0-0' : lang() }}</dd>
+        <dt>{{ 'admin.imports.stats.dated' | transloco }}</dt>
+        <dd>
+          {{ run.stats.datedPersons | number: '1.0-0' : lang() }} / {{ run.stats.persons | number: '1.0-0' : lang() }}
+        </dd>
+        <dt>{{ 'admin.imports.encoding' | transloco }}</dt>
+        <dd>
+          {{ run.encoding }}
+          @if (run.declaredCharset && run.declaredCharset !== run.encoding) {
+            <span class="muted">({{ 'admin.imports.declared' | transloco: { charset: run.declaredCharset } }})</span>
+          }
+        </dd>
+        @if (run.sourceSoftware) {
+          <dt>{{ 'admin.imports.software' | transloco }}</dt>
+          <dd>{{ run.sourceSoftware }} — GEDCOM {{ run.gedcomVersion }}</dd>
+        }
+      </dl>
+      @if (run.warnings.length) {
+        <details>
+          <summary>{{ 'admin.imports.warnings' | transloco: { count: run.warnings.length } }}</summary>
+          <ul class="warnings">
+            @for (warning of run.warnings; track $index) {
+              <li>{{ warning }}</li>
+            }
+          </ul>
+        </details>
+      }
+      @if ((run.stats.ignoredTags | keyvalue).length) {
+        <details>
+          <summary>{{ 'admin.imports.ignoredTags' | transloco }}</summary>
+          <ul class="warnings">
+            @for (tag of run.stats.ignoredTags | keyvalue; track tag.key) {
+              <li>
+                <code>{{ tag.key }}</code> × {{ tag.value }}
+              </li>
+            }
+          </ul>
+        </details>
+      }
+      <div class="actions">
+        <button type="button" class="btn btn-text" [disabled]="busy()" (click)="remove(run)">
+          {{ 'common.cancel' | transloco }}
+        </button>
+        <button type="button" class="btn btn-danger" [disabled]="busy()" (click)="commit(run)">
+          <fa-icon [icon]="icons.iconCheck" /> {{ 'admin.imports.apply' | transloco }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <h3>{{ 'admin.imports.history' | transloco }}</h3>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">{{ 'admin.imports.file' | transloco }}</th>
+          <th scope="col">{{ 'admin.imports.date' | transloco }}</th>
+          <th scope="col">{{ 'admin.imports.stats.persons' | transloco }}</th>
+          <th scope="col">{{ 'admin.imports.status' | transloco }}</th>
+          <th scope="col">
+            <span class="sr-only">{{ 'common.actions' | transloco }}</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (run of history.value(); track run.id) {
+          <tr>
+            <td>{{ run.fileName }}</td>
+            <td>{{ run.createdAt | date: 'short' : undefined : lang() }}</td>
+            <td>{{ run.stats.persons | number: '1.0-0' : lang() }}</td>
+            <td>
+              @if (run.current) {
+                <span class="badge badge-success">{{ 'admin.imports.current' | transloco }}</span>
+              } @else {
+                {{ 'admin.imports.statuses.' + run.status | transloco }}
+              }
+            </td>
+            <td class="row-actions">
+              @if (!run.current) {
+                <button type="button" class="btn btn-small" [disabled]="busy()" (click)="commit(run)">
+                  {{ 'admin.imports.apply' | transloco }}
+                </button>
+                <button
+                  type="button"
+                  class="btn-icon"
+                  [disabled]="busy()"
+                  [attr.aria-label]="'common.delete' | transloco"
+                  (click)="remove(run)"
+                >
+                  <fa-icon [icon]="icons.iconDelete" />
+                </button>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="muted">{{ 'admin.imports.none' | transloco }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

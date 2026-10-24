@@ -1,0 +1,121 @@
+<h1>{{ 'search.title' | transloco }}</h1>
+
+<form class="search-form card" [formGroup]="form" (ngSubmit)="submit()" role="search">
+  <label class="field wide">
+    <span>{{ 'search.name' | transloco }}</span>
+    <input type="search" formControlName="q" [placeholder]="'search.namePlaceholder' | transloco" />
+  </label>
+  <label class="field wide">
+    <span>{{ 'search.place' | transloco }}</span>
+    <input type="text" formControlName="place" [placeholder]="'search.placePlaceholder' | transloco" />
+  </label>
+  <label class="field">
+    <span>{{ 'search.bornFrom' | transloco }}</span>
+    <input type="number" formControlName="bornFrom" inputmode="numeric" />
+  </label>
+  <label class="field">
+    <span>{{ 'search.bornTo' | transloco }}</span>
+    <input type="number" formControlName="bornTo" inputmode="numeric" />
+  </label>
+  <label class="field">
+    <span>{{ 'person.sex' | transloco }}</span>
+    <select formControlName="sex">
+      <option value="">{{ 'search.anySex' | transloco }}</option>
+      <option value="M">{{ 'sex.M' | transloco }}</option>
+      <option value="F">{{ 'sex.F' | transloco }}</option>
+      <option value="U">{{ 'sex.U' | transloco }}</option>
+    </select>
+  </label>
+  <div class="form-actions">
+    <button type="button" class="btn btn-text" (click)="reset()">{{ 'common.reset' | transloco }}</button>
+    <button type="submit" class="btn btn-primary">
+      <fa-icon [icon]="icons.iconSearch" /> {{ 'search.submit' | transloco }}
+    </button>
+  </div>
+  <p class="hint">{{ 'search.privacyHint' | transloco }}</p>
+</form>
+
+@if (criteria()) {
+  <section aria-live="polite">
+    @if (results.isLoading()) {
+      <p class="muted">{{ 'common.loading' | transloco }}</p>
+    } @else if (results.error()) {
+      <p class="error">{{ 'common.error' | transloco }}</p>
+    } @else if (results.value(); as result) {
+      <h2>{{ 'search.results' | transloco: { count: result.total } }}</h2>
+      @if (result.items.length) {
+        <div class="table-wrapper">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">{{ 'person.name' | transloco }}</th>
+                <th scope="col">{{ 'events.BIRT' | transloco }}</th>
+                <th scope="col">{{ 'events.DEAT' | transloco }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (person of result.items; track person.id) {
+                <tr>
+                  <td>
+                    <a [routerLink]="['/tree', person.id]">
+                      <span class="surname">{{ person.surname }}</span> {{ person.givenNames }}
+                    </a>
+                    @if (person.restricted) {
+                      <span class="badge">{{ 'person.contemporary' | transloco }}</span>
+                    }
+                  </td>
+                  <td>
+                    {{ person.birth?.date | genealogyDate: lang() }}
+                    <div class="muted">{{ person.birth?.place | place }}</div>
+                  </td>
+                  <td>
+                    {{ person.death?.date | genealogyDate: lang() }}
+                    <div class="muted">{{ person.death?.place | place }}</div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (pageCount() > 1) {
+          <nav class="pagination" [attr.aria-label]="'search.pagination' | transloco">
+            <button
+              type="button"
+              class="btn btn-small"
+              [disabled]="result.page <= 1"
+              (click)="goToPage(result.page - 1)"
+            >
+              {{ 'common.previous' | transloco }}
+            </button>
+            <span>{{ 'search.page' | transloco: { page: result.page, count: pageCount() } }}</span>
+            <button
+              type="button"
+              class="btn btn-small"
+              [disabled]="result.page >= pageCount()"
+              (click)="goToPage(result.page + 1)"
+            >
+              {{ 'common.next' | transloco }}
+            </button>
+          </nav>
+        }
+      }
+    }
+  </section>
+} @else {
+  <section>
+    <h2>{{ 'search.surnames' | transloco }}</h2>
+    @for (group of surnameIndex(); track group[0]) {
+      <h3 class="initial">{{ group[0] }}</h3>
+      <ul class="surnames">
+        @for (entry of group[1]; track entry.surname) {
+          <li>
+            <a [routerLink]="['/search']" [queryParams]="{ surname: entry.surname }">{{
+              entry.surname || ('search.noSurname' | transloco)
+            }}</a>
+            <span class="muted">({{ entry.count }})</span>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+}

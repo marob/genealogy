@@ -1,0 +1,195 @@
+// Schéma de la base de données de l'application de généalogie.
+// Les données généalogiques (Person, Family, Event, Place) sont entièrement
+// remplacées à chaque import GEDCOM ; les identifiants publics des personnes
+// et familles sont les références GEDCOM (ex. "I123", "F45") afin que les
+// URL restent stables d'un import à l'autre.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ---------------------------------------------------------------------------
+// Généalogie
+// ---------------------------------------------------------------------------
+
+model Person {
+  /// Référence GEDCOM sans les @ (ex. "I123").
+  id                 String  @id
+  givenNames         String  @default("")
+  surname            String  @default("")
+  /// "M", "F" ou "U" (inconnu).
+  sex                String  @default("U")
+  occupation         String?
+  note               String?
+  /// Nom complet normalisé (minuscules, sans accents) pour la recherche.
+  searchName         String  @default("")
+  /// « nom prénoms » normalisé, pour un tri alphabétique insensible aux accents.
+  sortName           String  @default("")
+  /// Date de naissance AAAAMMJJ connue ou estimée (via les parents, enfants,
+  /// unions…), parties inconnues complétées au plus tard. Sert à la règle de
+  /// confidentialité des moins de 100 ans ; null = inconnue (contemporain).
+  birthKey           Int?
+  /// true si birthKey est estimée et non issue d'une naissance datée.
+  birthKeyEstimated  Boolean @default(false)
+
+  events        Event[]
+  childOf       FamilyChild[]
+  asPartner1    Family[]      @relation("partner1")
+  asPartner2    Family[]      @relation("partner2")
+
+  @@index([searchName])
+  @@index([sortName])
+  @@index([surname])
+  @@index([birthKey])
+}
+
+model Family {
+  /// Référence GEDCOM sans les @ (ex. "F45").
+  id         String  @id
+  partner1Id String?
+  partner2Id String?
+
+  partner1 Person?       @relation("partner1", fields: [partner1Id], references: [id], onDelete: SetNull)
+  partner2 Person?       @relation("partner2", fields: [partner2Id], references: [id], onDelete: SetNull)
+  children FamilyChild[]
+  events   Event[]
+
+  @@index([partner1Id])
+  @@index([partner2Id])
+}
+
+model FamilyChild {
+  familyId String
+  childId  String
+  /// Ordre de l'enfant dans la famille (ordre du fichier GEDCOM).
+  position Int    @default(0)
+  /// Lien de filiation GEDCOM (PEDI) : birth, adopted, foster…
+  pedigree String?
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  child  Person @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@id([familyId, childId])
+  @@index([childId])
+}
+
+model Event {
+  id          Int     @id @default(autoincrement())
+  /// Tag GEDCOM : BIRT, CHR, BAPM, DEAT, BURI, MARR, DIV, OCCU…
+  type        String
+  personId    String?
+  familyId    String?
+  /// Valeur ou description libre (ex. intitulé de la profession).
+  value       String?
+
+  // Date structurée : jamais convertie en Date JS pour éviter tout
+  // décalage de fuseau horaire.
+  dateOriginal  String?
+  /// exact, about, calculated, estimated, before, after, between, from, to, from-to, phrase
+  dateQualifier String?
+  dateCalendar  String?
+  dateYear      Int?
+  dateMonth     Int?
+  dateDay       Int?
+  dateEndYear   Int?
+  dateEndMonth  Int?
+  dateEndDay    Int?
+  /// Clé de tri grégorienne AAAAMMJJ (00 pour les parties inconnues).
+  dateSortKey   Int?
+
+  placeId Int?
+
+  person Person? @relation(fields: [personId], references: [id], onDelete: Cascade)
+  family Family? @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  place  Place?  @relation(fields: [placeId], references: [id], onDelete: SetNull)
+
+  @@index([personId])
+  @@index([familyId])
+  @@index([type, dateSortKey])
+  @@index([placeId])
+}
+
+model Place {
+  id          Int     @id @default(autoincrement())
+  /// Libellé complet tel qu'il apparaît dans le GEDCOM.
+  fullName    String  @unique
+  locality    String?
+  postalCode  String?
+  county      String?
+  region      String?
+  country     String?
+  latitude    Float?
+  longitude   Float?
+  /// Libellé normalisé pour la recherche.
+  searchName  String  @default("")
+
+  events Event[]
+
+  @@index([searchName])
+}
+
+model ImportRun {
+  id             Int       @id @default(autoincrement())
+  createdAt      DateTime  @default(now())
+  committedAt    DateTime?
+  /// preview, committed, failed, discarded
+  status         String
+  fileName       String
+  encoding       String
+  gedcomVersion  String?
+  sourceSoftware String?
+  /// Statistiques et avertissements sérialisés en JSON.
+  stats          String    @default("{}")
+  warnings       String    @default("[]")
+  /// Fichier GEDCOM d'origine, conservé pour pouvoir le réappliquer.
+  content        Bytes
+  userId         Int?
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+// ---------------------------------------------------------------------------
+// Utilisateurs et paramètres
+// ---------------------------------------------------------------------------
+
+model User {
+  id                 Int       @id @default(autoincrement())
+  email              String    @unique
+  displayName        String?
+  avatarUrl          String?
+  /// ADMIN ou MEMBER.
+  role               String    @default("MEMBER")
+  /// Droit de consulter le détail des personnes nées il y a moins de 100 ans.
+  canSeeContemporary Boolean   @default(false)
+  /// Racine personnelle de l'arbre (référence GEDCOM, sans clé étrangère car
+  /// les personnes sont recréées à chaque import ; ignorée si elle n'existe plus).
+  rootPersonId       String?
+  createdAt          DateTime  @default(now())
+  lastLoginAt        DateTime?
+
+  identities Identity[]
+  imports    ImportRun[]
+}
+
+model Identity {
+  id       Int    @id @default(autoincrement())
+  /// Fournisseur OIDC / OAuth2 : google, facebook…
+  provider String
+  /// Identifiant de l'utilisateur chez le fournisseur ("sub").
+  subject  String
+  userId   Int
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, subject])
+}
+
+model Setting {
+  key   String @id
+  value String
+}

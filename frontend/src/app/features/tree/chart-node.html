@@ -1,0 +1,122 @@
+@let n = node();
+<tbody>
+  @if (showParents()) {
+    <tr>
+      <td [attr.colspan]="colspan()">
+        <table class="parents">
+          <tr>
+            @for (parent of n.parents(); track parent.person.id) {
+              <td colspan="2" class="parent-cell">
+                <table appChartNode [node]="parent" part="parents"></table>
+              </td>
+            }
+          </tr>
+          <tr>
+            @for (parent of n.parents(); track parent.person.id; let first = $first, last = $last) {
+              <td class="line-left" [class.line-bottom]="!first">&nbsp;</td>
+              <td class="line-right" [class.line-bottom]="!last">&nbsp;</td>
+            }
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td [attr.colspan]="colspan()"><div class="vertical-line"></div></td>
+    </tr>
+  }
+  <tr>
+    <td [attr.colspan]="colspan()">
+      <div class="node-row">
+        <div
+          class="node-center"
+          [attr.data-node]="n.uid"
+          [class.line-above]="lineAbove()"
+          [class.line-below]="lineBelow()"
+        >
+          @if (canToggleParents()) {
+            <button
+              type="button"
+              class="btn-icon toggle toggle-parents"
+              [attr.aria-expanded]="!!n.parents()"
+              [attr.aria-label]="(n.parents() ? 'tree.hideParents' : 'tree.showParents') | transloco"
+              (click)="tree.toggleParents(n)"
+            >
+              <fa-icon [icon]="n.parents() ? icons.iconCaretDown : icons.iconCaretUp" />
+            </button>
+          }
+          <app-person-card [person]="n.person" [part]="part()" />
+          @if (canToggleChildren()) {
+            <button
+              type="button"
+              class="btn-icon toggle toggle-children"
+              [attr.aria-expanded]="!!n.children()"
+              [attr.aria-label]="(n.children() ? 'tree.hideChildren' : 'tree.showChildren') | transloco"
+              (click)="tree.toggleChildren(n)"
+            >
+              <fa-icon [icon]="n.children() ? icons.iconCaretUp : icons.iconCaretDown" />
+            </button>
+          }
+        </div>
+        @if (part() === 'root') {
+          <div class="node-partners">
+            @for (partner of n.partners(); track partner.person.id) {
+              @let union = unionWith(partner.person.id);
+              <div class="partner">
+                <ng-template #unionDetail>
+                  @if (union?.restricted) {
+                    <em>{{ 'person.contemporary' | transloco }}</em>
+                  } @else {
+                    @for (event of union?.events; track $index) {
+                      <div>
+                        <strong>{{ 'events.' + event.type | transloco }}</strong>
+                        @if (event.date) {
+                          <div><fa-icon [icon]="icons.iconDate" /> {{ event.date | genealogyDate: lang() }}</div>
+                        }
+                        @if (event.place) {
+                          <div><fa-icon [icon]="icons.iconPlace" /> {{ event.place.name }}</div>
+                        }
+                      </div>
+                    } @empty {
+                      <em>{{ 'tree.unionWithoutDetails' | transloco }}</em>
+                    }
+                  }
+                </ng-template>
+                <span
+                  class="union-icon"
+                  tabindex="0"
+                  [appTooltip]="unionDetail"
+                  [attr.aria-label]="'events.MARR' | transloco"
+                >
+                  <fa-icon [icon]="icons.iconUnion" />
+                </span>
+                <app-person-card [person]="partner.person" part="parents" />
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </td>
+  </tr>
+  @if (showChildren()) {
+    <tr>
+      <td [attr.colspan]="colspan()"><div class="vertical-line"></div></td>
+    </tr>
+    <tr>
+      @if (n.children()!.length === 1) {
+        <td [attr.colspan]="colspan()"><div class="vertical-line"></div></td>
+      } @else {
+        @for (child of n.children(); track child.person.id; let first = $first, last = $last) {
+          <td class="line-left" [class.line-top]="!first">&nbsp;</td>
+          <td class="line-right" [class.line-top]="!last">&nbsp;</td>
+        }
+      }
+    </tr>
+    <tr>
+      @for (child of n.children(); track child.person.id) {
+        <td colspan="2" class="child-cell">
+          <table appChartNode [node]="child" part="children"></table>
+        </td>
+      }
+    </tr>
+  }
+</tbody>

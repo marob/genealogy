@@ -1,0 +1,141 @@
+:host {
+  border-spacing: 0;
+  border-collapse: collapse;
+  margin: 0 auto;
+}
+
+table.parents {
+  border-spacing: 0;
+  border-collapse: collapse;
+  margin: 0 auto;
+}
+
+td {
+  padding: 0 0.6rem;
+  text-align: center;
+}
+
+.parent-cell {
+  vertical-align: bottom;
+}
+
+.child-cell {
+  vertical-align: top;
+}
+
+.vertical-line {
+  width: var(--line-width, 1px);
+  height: 1.5rem;
+  margin: 0 auto;
+  background: var(--line);
+}
+
+// Traits de liaison dessinés avec des fonds plutôt que des bordures de
+// cellules : Firefox arrondit les bordures avant d'appliquer le zoom et les
+// fait disparaître quand on dézoome.
+.line-left,
+.line-top,
+.line-bottom {
+  position: relative;
+}
+
+.line-left::after,
+.line-top::before,
+.line-bottom::before {
+  content: '';
+  position: absolute;
+  background: var(--line);
+}
+
+.line-left::after {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--line-width, 1px);
+  // Centré sur le bord de la cellule, comme les traits qui descendent des cartes.
+  transform: translateX(50%);
+}
+
+.line-top::before,
+.line-bottom::before {
+  left: 0;
+  right: 0;
+  height: var(--line-width, 1px);
+}
+
+.line-top::before {
+  top: 0;
+}
+
+.line-bottom::before {
+  bottom: 0;
+}
+
+.node-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+}
+
+.node-center {
+  grid-column: 2;
+  position: relative;
+  padding: 1.4rem 0;
+
+  // Prolonge les traits de liaison jusqu'à la carte, à travers la marge
+  // réservée aux boutons de dépliage.
+  &.line-above::before,
+  &.line-below::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    width: var(--line-width, 1px);
+    height: 1.4rem;
+    transform: translateX(-50%);
+    background: var(--line);
+  }
+
+  &.line-above::before {
+    top: 0;
+  }
+
+  &.line-below::after {
+    bottom: 0;
+  }
+}
+
+.node-partners {
+  grid-column: 3;
+  display: flex;
+  gap: 0.5rem;
+  margin-left: 0.75rem;
+}
+
+.partner {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.union-icon {
+  color: var(--accent);
+  cursor: help;
+}
+
+.toggle {
+  position: absolute;
+  z-index: 1;
+  width: 1.4rem;
+  height: 1.4rem;
+  background: var(--bg);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.toggle-parents {
+  top: 0;
+}
+
+.toggle-children {
+  bottom: 0;
+}

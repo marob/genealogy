@@ -1,0 +1,16 @@
+# Déploiement de production derrière un reverse proxy (nginx).
+# Sur le serveur, à côté d'un fichier .env construit à partir de .env.example :
+#   docker compose pull && docker compose up -d
+services:
+  app:
+    image: ghcr.io/marob/genealogy:latest
+    # Écoute locale uniquement : nginx assure le HTTPS.
+    ports:
+      - '127.0.0.1:3100:3000'
+    env_file: .env
+    volumes:
+      - genealogie-data:/data
+    restart: unless-stopped
+
+volumes:
+  genealogie-data:

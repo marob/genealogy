@@ -1,0 +1,56 @@
+<div class="toolbar no-pan" role="toolbar" [attr.aria-label]="'tree.toolbar' | transloco">
+  <button type="button" class="btn-icon" [attr.aria-label]="'tree.zoomIn' | transloco" (click)="zoomIn()">
+    <fa-icon [icon]="icons.iconZoomIn" />
+  </button>
+  <button type="button" class="btn-icon" [attr.aria-label]="'tree.zoomOut' | transloco" (click)="zoomOut()">
+    <fa-icon [icon]="icons.iconZoomOut" />
+  </button>
+  <button type="button" class="btn-icon" [attr.aria-label]="'tree.recenter' | transloco" (click)="center()">
+    <fa-icon [icon]="icons.iconReset" />
+  </button>
+  <span class="separator" aria-hidden="true"></span>
+  <button
+    type="button"
+    class="btn-icon"
+    [disabled]="tree.loading()"
+    [attr.aria-label]="'tree.expandAncestors' | transloco"
+    [title]="'tree.expandAncestors' | transloco"
+    (click)="tree.expandAll('ancestors')"
+  >
+    <fa-icon [icon]="icons.iconExpandAncestors" />
+  </button>
+  <button
+    type="button"
+    class="btn-icon"
+    [disabled]="tree.loading()"
+    [attr.aria-label]="'tree.expandDescendants' | transloco"
+    [title]="'tree.expandDescendants' | transloco"
+    (click)="tree.expandAll('descendants')"
+  >
+    <fa-icon [icon]="icons.iconExpandDescendants" />
+  </button>
+  <a
+    class="btn-icon"
+    routerLink="/print"
+    [queryParams]="{ person: tree.root()?.person?.id }"
+    [attr.aria-label]="'tree.print' | transloco"
+    [title]="'tree.print' | transloco"
+  >
+    <fa-icon [icon]="icons.iconPrint" />
+  </a>
+</div>
+
+<div class="viewport" #viewport>
+  @if (tree.notFound()) {
+    <p class="empty">{{ 'tree.empty' | transloco }}</p>
+  }
+  <div class="canvas" #canvas>
+    @if (tree.root(); as root) {
+      <table appChartNode [node]="root" part="root"></table>
+    }
+  </div>
+</div>
+
+@if (tree.selected(); as selected) {
+  <app-person-details class="details" [person]="selected" (closed)="tree.select(undefined)" (focused)="focus($event)" />
+}

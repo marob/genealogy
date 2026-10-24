@@ -1,0 +1,14 @@
+node_modules
+dist
+coverage
+.angular
+legacy
+data
+private
+backend/src/generated
+backend/prisma/migrations
+package-lock.json
+playwright-report
+test-results
+LICENSE
+*.ged

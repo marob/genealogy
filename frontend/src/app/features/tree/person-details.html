@@ -1,0 +1,120 @@
+@let p = person();
+<header>
+  <h2>
+    <fa-icon
+      class="sex"
+      [class]="'sex sex-' + p.sex"
+      [icon]="sexIcon(p.sex)"
+      [attr.aria-label]="'sex.' + p.sex | transloco"
+    />
+    <span class="surname">{{ p.surname }}</span> {{ p.givenNames }}
+  </h2>
+  <button type="button" class="btn-icon" [attr.aria-label]="'common.close' | transloco" (click)="closed.emit()">
+    <fa-icon [icon]="icons.iconClose" />
+  </button>
+</header>
+
+<div class="actions">
+  <button type="button" class="btn btn-small" (click)="focused.emit(p)">
+    <fa-icon [icon]="icons.iconFocus" /> {{ 'tree.focus' | transloco }}
+  </button>
+  @if (session.isAuthenticated() && session.user()?.rootPersonId !== p.id) {
+    <button type="button" class="btn btn-small btn-text" (click)="setAsMyRoot()">
+      <fa-icon [icon]="icons.iconRoot" /> {{ 'tree.setAsMyRoot' | transloco }}
+    </button>
+  }
+  @if (session.isAdmin()) {
+    <button type="button" class="btn btn-small btn-text" (click)="setAsRoot()">
+      <fa-icon [icon]="icons.iconRoot" /> {{ 'tree.setAsRoot' | transloco }}
+    </button>
+  }
+</div>
+
+@if (p.restricted) {
+  <p class="notice">{{ 'person.restrictedNotice' | transloco }}</p>
+} @else if (p.events.length) {
+  <h3>{{ 'person.events' | transloco }}</h3>
+  <ul class="events">
+    @for (event of p.events; track $index) {
+      <li>
+        <fa-icon class="event-icon" [icon]="eventIcon(event.type)" />
+        <div>
+          <strong>{{ 'events.' + event.type | transloco }}</strong>
+          @if (event.value) {
+            <span> — {{ event.value }}</span>
+          }
+          @if (event.date) {
+            <div class="line"><fa-icon [icon]="icons.iconDate" /> {{ event.date | genealogyDate: lang() }}</div>
+          }
+          @if (event.place) {
+            <div class="line muted"><fa-icon [icon]="icons.iconPlace" /> {{ event.place.name }}</div>
+          }
+        </div>
+      </li>
+    }
+  </ul>
+}
+
+@if (p.fatherId || p.motherId) {
+  <h3>{{ 'person.parents' | transloco }}</h3>
+  <ul class="links">
+    @for (id of [p.fatherId, p.motherId]; track $index) {
+      @if (relative(id); as parent) {
+        <li>
+          <fa-icon [class]="'sex sex-' + parent.sex" [icon]="sexIcon(parent.sex)" />
+          <button type="button" class="link" (click)="focused.emit(parent)">
+            {{ parent.givenNames }} {{ parent.surname }}
+          </button>
+        </li>
+      }
+    }
+  </ul>
+}
+
+@for (union of p.unions; track union.familyId) {
+  <h3>{{ 'person.union' | transloco }}</h3>
+  @if (relative(union.partnerId); as partner) {
+    <p class="line">
+      <fa-icon [class]="'sex sex-' + partner.sex" [icon]="sexIcon(partner.sex)" />
+      <button type="button" class="link" (click)="focused.emit(partner)">
+        {{ partner.givenNames }} {{ partner.surname }}
+      </button>
+    </p>
+  }
+  <ul class="events">
+    @for (event of union.events; track $index) {
+      <li>
+        <fa-icon class="event-icon" [icon]="eventIcon(event.type)" />
+        <div>
+          <strong>{{ 'events.' + event.type | transloco }}</strong>
+          @if (event.date) {
+            <div class="line"><fa-icon [icon]="icons.iconDate" /> {{ event.date | genealogyDate: lang() }}</div>
+          }
+          @if (event.place) {
+            <div class="line muted"><fa-icon [icon]="icons.iconPlace" /> {{ event.place.name }}</div>
+          }
+        </div>
+      </li>
+    }
+  </ul>
+  @if (union.childIds.length) {
+    <h4><fa-icon [icon]="icons.iconFamily" /> {{ 'person.children' | transloco }}</h4>
+    <ul class="links">
+      @for (id of union.childIds; track id) {
+        @if (relative(id); as child) {
+          <li>
+            <fa-icon [class]="'sex sex-' + child.sex" [icon]="sexIcon(child.sex)" />
+            <button type="button" class="link" (click)="focused.emit(child)">
+              {{ child.givenNames }} {{ child.surname }}
+            </button>
+          </li>
+        }
+      }
+    </ul>
+  }
+}
+
+@if (p.note) {
+  <h3><fa-icon [icon]="icons.iconNote" /> {{ 'person.note' | transloco }}</h3>
+  <p class="note">{{ p.note }}</p>
+}
