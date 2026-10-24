@@ -1,7 +1,7 @@
 {
   "name": "@genealogie/backend",
   "version": "0.0.1",
-  "description": "API NestJS de l\u2019application de g\u00e9n\u00e9alogie",
+  "description": "API NestJS de l’application de généalogie",
   "author": "",
   "private": true,
   "license": "MIT",
@@ -34,6 +34,7 @@
     "@prisma/client": "7.10.1",
     "better-sqlite3": "13.0.3",
     "cookie-parser": "1.4.7",
+    "helmet": "^8.3.0",
     "jose": "6.2.13",
     "nestjs-pino": "5.3.1",
     "openid-client": "6.8.8",
