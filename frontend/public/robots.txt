@@ -1,5 +1,10 @@
 # Family data: not for search engines. The legal pages stay reachable
 # (identity providers such as Facebook check them with their crawlers).
+
+# Facebook link checker (data deletion instructions URL, link previews).
+User-agent: facebookexternalhit
+Allow: /
+
 User-agent: *
 Allow: /privacy
 Allow: /terms
