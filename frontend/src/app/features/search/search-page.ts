@@ -1,5 +1,5 @@
 import { Component, computed, effect, inject, input, resource, untracked } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import type { SurnameDto } from '@genealogie/shared';
@@ -47,8 +47,9 @@ export class SearchPage {
   protected readonly form = inject(FormBuilder).nonNullable.group({
     q: '',
     place: '',
-    bornFrom: '',
-    bornTo: '',
+    // Number inputs: a number once typed, null when cleared.
+    bornFrom: new FormControl<string | number | null>(''),
+    bornTo: new FormControl<string | number | null>(''),
     sex: '',
   });
 
@@ -106,7 +107,11 @@ export class SearchPage {
 
   protected submit(): void {
     const values = this.form.getRawValue();
-    const queryParams = Object.fromEntries(Object.entries(values).filter(([, value]) => value.trim() !== ''));
+    const queryParams = Object.fromEntries(
+      Object.entries(values)
+        .map(([key, value]) => [key, String(value ?? '').trim()] as const)
+        .filter(([, value]) => value !== ''),
+    );
     void this.router.navigate(['/search'], { queryParams });
   }
 

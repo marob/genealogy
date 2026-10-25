@@ -65,4 +65,15 @@ describe('SearchPage', () => {
     element.querySelector('form')!.dispatchEvent(new Event('submit'));
     expect(navigate).toHaveBeenCalledWith(['/search'], { queryParams: { place: 'Lyon' } });
   });
+
+  it('accepts the numbers given by the birth year fields', async () => {
+    const fixture = await render();
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    const element = fixture.nativeElement as HTMLElement;
+    const input = element.querySelector<HTMLInputElement>('input[formcontrolname="bornFrom"]')!;
+    input.value = '1850';
+    input.dispatchEvent(new Event('input'));
+    element.querySelector('form')!.dispatchEvent(new Event('submit'));
+    expect(navigate).toHaveBeenCalledWith(['/search'], { queryParams: { bornFrom: '1850' } });
+  });
 });
