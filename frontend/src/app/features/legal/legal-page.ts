@@ -23,7 +23,7 @@ const SECTIONS = {
       @for (section of sections(); track section) {
         <section [id]="section">
           <h2>{{ key + '.' + section + '.title' | transloco }}</h2>
-          <p>{{ key + '.' + section + '.' + bodyKey(section) | transloco }}</p>
+          <p>{{ key + '.' + section + '.' + bodyKey(section) | transloco: { providers: session.providerList() } }}</p>
         </section>
       }
       @if (page() === 'terms') {

@@ -14,7 +14,10 @@ describe('LegalPage', () => {
       providers: [
         provideTestTransloco(),
         provideRouter([]),
-        { provide: SessionStore, useValue: { contactEmail, contemporaryPrivacy } },
+        {
+          provide: SessionStore,
+          useValue: { contactEmail, contemporaryPrivacy, providerList: () => 'Google ou Microsoft' },
+        },
       ],
     });
   });
@@ -31,6 +34,8 @@ describe('LegalPage', () => {
     const element = await render('privacy');
     expect(element.querySelector('h1')?.textContent).toContain('Politique de confidentialité');
     expect(element.querySelector('#deletion')?.textContent).toContain('Supprimer mon compte');
+    // Only the configured identity providers are named.
+    expect(element.querySelector('#collected')?.textContent).toContain('avec Google ou Microsoft,');
     expect(element.querySelector('#contact')?.textContent).toContain('l’administrateur du site');
   });
 

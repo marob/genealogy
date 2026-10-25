@@ -166,7 +166,7 @@
     "preferences": "Préférences",
     "loginPrompt": "Connectez-vous pour voir votre profil, vos droits et choisir votre racine de l’arbre.",
     "deleteTitle": "Supprimer mon compte",
-    "deleteIntro": "Votre compte, vos préférences et le lien avec votre compte Google, Facebook ou Microsoft seront supprimés immédiatement. Vous pourrez vous reconnecter plus tard, mais sans vos droits actuels.",
+    "deleteIntro": "Votre compte, vos préférences et le lien avec votre compte {{providers}} seront supprimés immédiatement. Vous pourrez vous reconnecter plus tard, mais sans vos droits actuels.",
     "deleteButton": "Supprimer mon compte",
     "deleteConfirmTitle": "Supprimer votre compte ?",
     "deleteConfirmMessage": "Cette action est immédiate et définitive.",
@@ -267,7 +267,7 @@
       "intro": "Ce site familial, privé et non commercial, permet de consulter l’arbre généalogique de la famille. Il est édité par un particulier, son administrateur.",
       "collected": {
         "title": "Données collectées",
-        "body": "Le site se consulte sans compte. Si vous vous connectez avec Google, Facebook ou Microsoft, nous recevons et conservons uniquement : l’identifiant technique de votre compte chez ce fournisseur, votre nom, votre adresse e-mail et votre photo de profil, ainsi que les dates de création du compte et de dernière connexion. Aucun mot de passe n’est transmis ni conservé."
+        "body": "Le site se consulte sans compte. Si vous vous connectez avec {{providers}}, nous recevons et conservons uniquement : l’identifiant technique de votre compte chez ce fournisseur, votre nom, votre adresse e-mail et votre photo de profil, ainsi que les dates de création du compte et de dernière connexion. Aucun mot de passe n’est transmis ni conservé."
       },
       "purpose": {
         "title": "Utilisation",
@@ -288,7 +288,7 @@
       },
       "deletion": {
         "title": "Suppression de vos données",
-        "body": "Vous pouvez supprimer vous-même votre compte et toutes les données associées à tout moment : connectez-vous, ouvrez la page « Compte et préférences » et cliquez sur « Supprimer mon compte ». La suppression est immédiate. Vous pouvez aussi retirer l’accès du site depuis les paramètres de votre compte Google, Facebook ou Microsoft, ou demander la suppression à l’administrateur."
+        "body": "Vous pouvez supprimer vous-même votre compte et toutes les données associées à tout moment : connectez-vous, ouvrez la page « Compte et préférences » et cliquez sur « Supprimer mon compte ». La suppression est immédiate. Vous pouvez aussi retirer l’accès du site depuis les paramètres de votre compte {{providers}}, ou demander la suppression à l’administrateur."
       },
       "rights": {
         "title": "Vos droits",
@@ -305,7 +305,7 @@
       "intro": "Ce site familial, gratuit et non commercial, permet de consulter l’arbre généalogique de la famille. En l’utilisant, vous acceptez les conditions suivantes.",
       "access": {
         "title": "Accès",
-        "body": "La consultation est libre. La connexion se fait avec un compte Google, Facebook ou Microsoft ; l’administrateur décide des droits accordés à chaque compte et peut suspendre ou supprimer un compte à tout moment."
+        "body": "La consultation est libre. La connexion se fait avec un compte {{providers}} ; l’administrateur décide des droits accordés à chaque compte et peut suspendre ou supprimer un compte à tout moment."
       },
       "content": {
         "title": "Contenu",

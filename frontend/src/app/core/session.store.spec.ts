@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import type { MeDto } from '@genealogie/shared';
 import { ApiService } from './api.service';
 import { SessionStore } from './session.store';
+import { provideTestTransloco } from '../../testing/test-helpers';
 
 describe('SessionStore', () => {
   const me = vi.fn<() => Promise<MeDto>>();
@@ -12,7 +13,10 @@ describe('SessionStore', () => {
   beforeEach(() => {
     me.mockReset();
     TestBed.configureTestingModule({
-      providers: [{ provide: ApiService, useValue: { me, logout, setMyRoot, clearCache: vi.fn() } }],
+      providers: [
+        provideTestTransloco(),
+        { provide: ApiService, useValue: { me, logout, setMyRoot, clearCache: vi.fn() } },
+      ],
     });
     store = TestBed.inject(SessionStore);
   });
@@ -35,6 +39,19 @@ describe('SessionStore', () => {
     expect(store.isAuthenticated()).toBe(false);
     expect(store.canSeeContemporary()).toBe(false);
     expect(store.providers()).toEqual([{ name: 'google', label: 'Google' }]);
+  });
+
+  it('lists the configured identity providers for the texts', async () => {
+    me.mockResolvedValue({
+      providers: [
+        { name: 'google', label: 'Google' },
+        { name: 'microsoft', label: 'Microsoft' },
+      ],
+      devBypass: false,
+      contemporaryPrivacy: 'names',
+    });
+    await store.load();
+    expect(store.providerList()).toMatch(/^Google (ou|or|o) Microsoft$/);
   });
 
   it('computes the permissions of an authorized member', async () => {

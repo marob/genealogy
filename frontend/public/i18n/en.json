@@ -166,7 +166,7 @@
     "preferences": "Preferences",
     "loginPrompt": "Sign in to see your profile and access rights and to choose your tree root.",
     "deleteTitle": "Delete my account",
-    "deleteIntro": "Your account, your preferences and the link with your Google, Facebook or Microsoft account will be deleted immediately. You can sign in again later, but without your current rights.",
+    "deleteIntro": "Your account, your preferences and the link with your {{providers}} account will be deleted immediately. You can sign in again later, but without your current rights.",
     "deleteButton": "Delete my account",
     "deleteConfirmTitle": "Delete your account?",
     "deleteConfirmMessage": "This takes effect immediately and cannot be undone.",
@@ -267,7 +267,7 @@
       "intro": "This private, non-commercial family website lets you browse the family tree. It is run by an individual, its administrator.",
       "collected": {
         "title": "Data we collect",
-        "body": "You can browse the site without an account. If you sign in with Google, Facebook or Microsoft, we receive and keep only: the technical identifier of your account with that provider, your name, your email address and your profile picture, as well as the account creation and last sign-in dates. No password is ever sent or stored."
+        "body": "You can browse the site without an account. If you sign in with {{providers}}, we receive and keep only: the technical identifier of your account with that provider, your name, your email address and your profile picture, as well as the account creation and last sign-in dates. No password is ever sent or stored."
       },
       "purpose": {
         "title": "How we use it",
@@ -288,7 +288,7 @@
       },
       "deletion": {
         "title": "Deleting your data",
-        "body": "You can delete your account and all associated data yourself at any time: sign in, open the “Account and preferences” page and click “Delete my account”. Deletion is immediate. You can also remove the site’s access from your Google, Facebook or Microsoft account settings, or ask the administrator to delete your data."
+        "body": "You can delete your account and all associated data yourself at any time: sign in, open the “Account and preferences” page and click “Delete my account”. Deletion is immediate. You can also remove the site’s access from your {{providers}} account settings, or ask the administrator to delete your data."
       },
       "rights": {
         "title": "Your rights",
@@ -305,7 +305,7 @@
       "intro": "This free, non-commercial family website lets you browse the family tree. By using it, you accept the following terms.",
       "access": {
         "title": "Access",
-        "body": "Browsing is open to everyone. Sign-in uses a Google, Facebook or Microsoft account; the administrator decides which rights each account gets and may suspend or delete an account at any time."
+        "body": "Browsing is open to everyone. Sign-in uses a {{providers}} account; the administrator decides which rights each account gets and may suspend or delete an account at any time."
       },
       "content": {
         "title": "Content",

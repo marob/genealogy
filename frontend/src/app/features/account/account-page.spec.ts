@@ -33,7 +33,13 @@ describe('AccountPage', () => {
         provideRouter([]),
         {
           provide: SessionStore,
-          useValue: { user, setPersonalRoot, deleteAccount, canSeeContemporary: () => true },
+          useValue: {
+            user,
+            setPersonalRoot,
+            deleteAccount,
+            canSeeContemporary: () => true,
+            providerList: () => 'Google',
+          },
         },
         {
           provide: ApiService,

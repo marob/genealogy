@@ -166,7 +166,7 @@
     "preferences": "Preferencias",
     "loginPrompt": "Inicie sesión para ver su perfil y sus permisos y elegir la raíz de su árbol.",
     "deleteTitle": "Eliminar mi cuenta",
-    "deleteIntro": "Su cuenta, sus preferencias y el vínculo con su cuenta de Google, Facebook o Microsoft se eliminarán de inmediato. Podrá volver a conectarse más adelante, pero sin sus permisos actuales.",
+    "deleteIntro": "Su cuenta, sus preferencias y el vínculo con su cuenta de {{providers}} se eliminarán de inmediato. Podrá volver a conectarse más adelante, pero sin sus permisos actuales.",
     "deleteButton": "Eliminar mi cuenta",
     "deleteConfirmTitle": "¿Eliminar su cuenta?",
     "deleteConfirmMessage": "Esta acción es inmediata y definitiva.",
@@ -267,7 +267,7 @@
       "intro": "Este sitio familiar, privado y sin fines comerciales, permite consultar el árbol genealógico de la familia. Lo gestiona un particular, su administrador.",
       "collected": {
         "title": "Datos recogidos",
-        "body": "El sitio puede consultarse sin cuenta. Si se conecta con Google, Facebook o Microsoft, solo recibimos y conservamos: el identificador técnico de su cuenta en ese proveedor, su nombre, su dirección de correo electrónico y su foto de perfil, así como las fechas de creación de la cuenta y de última conexión. Nunca se transmite ni se guarda ninguna contraseña."
+        "body": "El sitio puede consultarse sin cuenta. Si se conecta con {{providers}}, solo recibimos y conservamos: el identificador técnico de su cuenta en ese proveedor, su nombre, su dirección de correo electrónico y su foto de perfil, así como las fechas de creación de la cuenta y de última conexión. Nunca se transmite ni se guarda ninguna contraseña."
       },
       "purpose": {
         "title": "Uso",
@@ -288,7 +288,7 @@
       },
       "deletion": {
         "title": "Eliminación de sus datos",
-        "body": "Puede eliminar usted mismo su cuenta y todos los datos asociados en cualquier momento: conéctese, abra la página «Cuenta y preferencias» y haga clic en «Eliminar mi cuenta». La eliminación es inmediata. También puede retirar el acceso del sitio desde la configuración de su cuenta de Google, Facebook o Microsoft, o pedir la eliminación al administrador."
+        "body": "Puede eliminar usted mismo su cuenta y todos los datos asociados en cualquier momento: conéctese, abra la página «Cuenta y preferencias» y haga clic en «Eliminar mi cuenta». La eliminación es inmediata. También puede retirar el acceso del sitio desde la configuración de su cuenta de {{providers}}, o pedir la eliminación al administrador."
       },
       "rights": {
         "title": "Sus derechos",
@@ -305,7 +305,7 @@
       "intro": "Este sitio familiar, gratuito y sin fines comerciales, permite consultar el árbol genealógico de la familia. Al utilizarlo, acepta las siguientes condiciones.",
       "access": {
         "title": "Acceso",
-        "body": "La consulta es libre. La conexión se realiza con una cuenta de Google, Facebook o Microsoft; el administrador decide los permisos de cada cuenta y puede suspender o eliminar una cuenta en cualquier momento."
+        "body": "La consulta es libre. La conexión se realiza con una cuenta de {{providers}}; el administrador decide los permisos de cada cuenta y puede suspender o eliminar una cuenta en cualquier momento."
       },
       "content": {
         "title": "Contenido",

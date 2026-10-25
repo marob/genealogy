@@ -81,7 +81,7 @@ import { isNameOrder, NAME_ORDERS, NameOrderService } from '../../core/name-orde
       </section>
       <section class="card">
         <h2>{{ 'account.deleteTitle' | transloco }}</h2>
-        <p class="hint">{{ 'account.deleteIntro' | transloco }}</p>
+        <p class="hint">{{ 'account.deleteIntro' | transloco: { providers: session.providerList() } }}</p>
         <button type="button" class="btn btn-danger" (click)="deleteAccount()">
           {{ 'account.deleteButton' | transloco }}
         </button>
