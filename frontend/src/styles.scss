@@ -430,3 +430,8 @@ input[type='checkbox'] {
     page-break-inside: avoid;
   }
 }
+
+/* Contemporary whose identity is hidden (strict privacy mode). */
+.hidden-person {
+  color: var(--text-muted);
+}

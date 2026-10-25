@@ -68,7 +68,8 @@
     "parents": "Padres",
     "union": "Unión",
     "children": "Hijos",
-    "note": "Notas"
+    "note": "Notas",
+    "hidden": "Persona contemporánea"
   },
   "sex": {
     "M": "Hombre",
@@ -136,7 +137,8 @@
     "quickPlaceholder": "Buscar una persona…",
     "quickLabel": "Búsqueda rápida de una persona",
     "noMatch": "No se ha encontrado a nadie.",
-    "open": "Abrir la búsqueda rápida"
+    "open": "Abrir la búsqueda rápida",
+    "privacyHintHidden": "Las personas nacidas hace menos de 100 años solo aparecen en las búsquedas para los usuarios autorizados."
   },
   "login": {
     "title": "Iniciar sesión",
@@ -272,7 +274,8 @@
       },
       "genealogy": {
         "title": "Datos genealógicos",
-        "body": "El árbol contiene información sobre los miembros de la familia (nombres, fechas, lugares, profesiones). De las personas nacidas hace menos de 100 años solo el nombre es visible públicamente; los detalles solo son accesibles para los miembros autorizados por el administrador. Cualquier persona que figure en el árbol puede solicitar la rectificación o la supresión de sus datos."
+        "body": "El árbol contiene información sobre los miembros de la familia (nombres, fechas, lugares, profesiones). De las personas nacidas hace menos de 100 años solo el nombre es visible públicamente; los detalles solo son accesibles para los miembros autorizados por el administrador. Cualquier persona que figure en el árbol puede solicitar la rectificación o la supresión de sus datos.",
+        "bodyHidden": "El árbol contiene información sobre los miembros de la familia (nombres, fechas, lugares, profesiones). Las personas nacidas hace menos de 100 años solo aparecen públicamente de forma anónima, sin nombre ni ninguna otra información; los detalles solo son accesibles para los miembros autorizados por el administrador. Cualquier persona que figure en el árbol puede solicitar la rectificación o la supresión de sus datos."
       },
       "retention": {
         "title": "Conservación",

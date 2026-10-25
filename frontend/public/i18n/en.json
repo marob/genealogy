@@ -68,7 +68,8 @@
     "parents": "Parents",
     "union": "Union",
     "children": "Children",
-    "note": "Notes"
+    "note": "Notes",
+    "hidden": "Contemporary person"
   },
   "sex": {
     "M": "Male",
@@ -136,7 +137,8 @@
     "quickPlaceholder": "Search for a person…",
     "quickLabel": "Quick person search",
     "noMatch": "No one found.",
-    "open": "Open quick search"
+    "open": "Open quick search",
+    "privacyHintHidden": "People born less than 100 years ago only appear in searches for authorized users."
   },
   "login": {
     "title": "Sign in",
@@ -272,7 +274,8 @@
       },
       "genealogy": {
         "title": "Genealogical data",
-        "body": "The tree contains information about family members (names, dates, places, occupations). For people born less than 100 years ago, only the name is publicly visible; details are only available to members authorized by the administrator. Anyone listed in the tree may ask for their information to be corrected or removed."
+        "body": "The tree contains information about family members (names, dates, places, occupations). For people born less than 100 years ago, only the name is publicly visible; details are only available to members authorized by the administrator. Anyone listed in the tree may ask for their information to be corrected or removed.",
+        "bodyHidden": "The tree contains information about family members (names, dates, places, occupations). People born less than 100 years ago only appear anonymously to the public, with no name or any other information; details are only available to members authorized by the administrator. Anyone listed in the tree may ask for their information to be corrected or removed."
       },
       "retention": {
         "title": "Retention",

@@ -47,6 +47,13 @@ const envSchema = z.object({
    * that does not let its users pick an arbitrary address.
    */
   OIDC_TRUST_EMAIL: booleanString,
+  /**
+   * What unauthorized users see of contemporaries (born less than 100 years
+   * ago): their name and family links ("names"), or only their existence in
+   * the tree ("hidden": no name, no sex, excluded from searches and the
+   * surname index).
+   */
+  CONTEMPORARY_PRIVACY: z.enum(['names', 'hidden']).default('names'),
   /** Contact address shown on the privacy policy page. */
   CONTACT_EMAIL: z.email().optional(),
   /** Directory containing the frontend build, served statically (Docker image). */

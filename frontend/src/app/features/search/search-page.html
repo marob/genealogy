@@ -32,7 +32,11 @@
       <fa-icon [icon]="icons.iconSearch" /> {{ 'search.submit' | transloco }}
     </button>
   </div>
-  <p class="hint">{{ 'search.privacyHint' | transloco }}</p>
+  @if (!session.canSeeContemporary()) {
+    <p class="hint">
+      {{ (session.contemporaryPrivacy() === 'hidden' ? 'search.privacyHintHidden' : 'search.privacyHint') | transloco }}
+    </p>
+  }
 </form>
 
 @if (criteria()) {

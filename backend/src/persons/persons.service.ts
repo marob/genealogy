@@ -31,6 +31,7 @@ const DEATH_TYPES = ['DEAT', 'BURI', 'CREM'];
 @Injectable()
 export class PersonsService {
   private readonly timeZone: string;
+  private readonly hideIdentity: boolean;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -38,10 +39,11 @@ export class PersonsService {
     config: ConfigService<Env, true>,
   ) {
     this.timeZone = config.get('APP_TIMEZONE', { infer: true });
+    this.hideIdentity = config.get('CONTEMPORARY_PRIVACY', { infer: true }) === 'hidden';
   }
 
   private policy(user: AuthUser | undefined): PrivacyPolicy {
-    return new PrivacyPolicy(canSeeContemporary(user), todayKey(this.timeZone));
+    return new PrivacyPolicy(canSeeContemporary(user), todayKey(this.timeZone), this.hideIdentity);
   }
 
   private async load(ids: string[], user: AuthUser | undefined): Promise<PersonDto[]> {
@@ -173,9 +175,10 @@ export class PersonsService {
       });
     }
     // Searching by date or place must not reveal information about
-    // contemporaries: they are then excluded for unauthorized users.
-    if (usesDetails && !policy.canSeeContemporary) {
-      and.push({ birthKey: { not: null, lte: policy.threshold } });
+    // contemporaries: they are then excluded for unauthorized users. In
+    // strict mode, they never appear in searches.
+    if ((usesDetails || policy.hideIdentity) && !policy.canSeeContemporary) {
+      and.push(this.notContemporary(policy));
     }
 
     const where: Prisma.PersonWhereInput = { AND: and };
@@ -207,8 +210,18 @@ export class PersonsService {
     };
   }
 
-  async surnames(): Promise<SurnameDto[]> {
-    const groups = await this.prisma.person.groupBy({ by: ['surname'], _count: { _all: true } });
+  private notContemporary(policy: PrivacyPolicy): Prisma.PersonWhereInput {
+    return { birthKey: { not: null, lte: policy.threshold } };
+  }
+
+  /** Surname index; in strict mode, contemporaries are not counted for unauthorized users. */
+  async surnames(user: AuthUser | undefined): Promise<SurnameDto[]> {
+    const policy = this.policy(user);
+    const groups = await this.prisma.person.groupBy({
+      by: ['surname'],
+      _count: { _all: true },
+      ...(policy.hideIdentity && !policy.canSeeContemporary ? { where: this.notContemporary(policy) } : {}),
+    });
     return groups
       .map((group) => ({ surname: group.surname, count: group._count._all }))
       .sort((a, b) => normalizeForSearch(a.surname).localeCompare(normalizeForSearch(b.surname)));

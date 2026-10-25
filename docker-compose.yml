@@ -15,6 +15,7 @@ services:
       # Handy for a local trial without an OIDC provider; rejected if PUBLIC_URL is not localhost.
       AUTH_DEV_BYPASS: ${AUTH_DEV_BYPASS:-false}
       APP_TIMEZONE: ${APP_TIMEZONE:-Europe/Paris}
+      CONTEMPORARY_PRIVACY: ${CONTEMPORARY_PRIVACY:-names}
       CONTACT_EMAIL: ${CONTACT_EMAIL:-}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}

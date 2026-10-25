@@ -1,7 +1,7 @@
-import { Component, inject, input, output, resource } from '@angular/core';
+import { Component, computed, inject, input, output, resource } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import type { PersonDto } from '@genealogie/shared';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, translateSignal } from '@jsverse/transloco';
 import { ApiService } from '../../core/api.service';
 import { GenealogyDatePipe } from '../../core/genealogy-pipes';
 import { LanguageService } from '../../core/language.service';
@@ -17,10 +17,15 @@ import { iconClose, iconDate, iconFamily, iconFocus, iconNote, iconPlace, iconRo
   imports: [FaIconComponent, TranslocoPipe, GenealogyDatePipe],
   templateUrl: './person-details.html',
   styleUrl: './person-details.scss',
-  host: { role: 'complementary', '[attr.aria-label]': 'person().givenNames + " " + person().surname' },
+  host: { role: 'complementary', '[attr.aria-label]': 'label()' },
 })
 export class PersonDetails {
   readonly person = input.required<PersonDto>();
+  private readonly hiddenLabel = translateSignal('person.hidden');
+  protected readonly label = computed(() => {
+    const person = this.person();
+    return person.hidden ? this.hiddenLabel() : `${person.givenNames} ${person.surname}`;
+  });
   readonly closed = output();
   readonly focused = output<PersonDto>();
 

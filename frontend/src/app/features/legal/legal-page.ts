@@ -23,7 +23,7 @@ const SECTIONS = {
       @for (section of sections(); track section) {
         <section [id]="section">
           <h2>{{ key + '.' + section + '.title' | transloco }}</h2>
-          <p>{{ key + '.' + section + '.body' | transloco }}</p>
+          <p>{{ key + '.' + section + '.' + bodyKey(section) | transloco }}</p>
         </section>
       }
       @if (page() === 'terms') {
@@ -71,6 +71,11 @@ export class LegalPage {
   readonly page = input.required<keyof typeof SECTIONS>();
   protected readonly session = inject(SessionStore);
   protected readonly sections = computed(() => SECTIONS[this.page()]);
+
+  /** The genealogy section depends on what is shown of contemporaries. */
+  protected bodyKey(section: string): string {
+    return section === 'genealogy' && this.session.contemporaryPrivacy() === 'hidden' ? 'bodyHidden' : 'body';
+  }
 
   private readonly fragment = toSignal(inject(ActivatedRoute).fragment);
   private readonly translation = toSignal(inject(TranslocoService).selectTranslation());

@@ -12,7 +12,11 @@
 }
 <button type="button" class="name" (click)="tree.select(p)">
   <fa-icon class="sex" role="img" [icon]="sexIcon()" [attr.aria-label]="'sex.' + p.sex | transloco" />
-  <span class="surname">{{ p.surname }}</span> {{ p.givenNames }}
+  @if (p.hidden) {
+    <em class="hidden-person">{{ 'person.hidden' | transloco }}</em>
+  } @else {
+    <span class="surname">{{ p.surname }}</span> {{ p.givenNames }}
+  }
 </button>
 @if (p.restricted) {
   <div class="attribute muted">{{ 'person.contemporary' | transloco }}</div>

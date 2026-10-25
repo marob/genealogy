@@ -26,7 +26,11 @@ describe('SessionStore', () => {
   });
 
   it('exposes an anonymous visitor', async () => {
-    me.mockResolvedValue({ providers: [{ name: 'google', label: 'Google' }], devBypass: false });
+    me.mockResolvedValue({
+      providers: [{ name: 'google', label: 'Google' }],
+      devBypass: false,
+      contemporaryPrivacy: 'names',
+    });
     await store.load();
     expect(store.isAuthenticated()).toBe(false);
     expect(store.canSeeContemporary()).toBe(false);
@@ -34,14 +38,14 @@ describe('SessionStore', () => {
   });
 
   it('computes the permissions of an authorized member', async () => {
-    me.mockResolvedValue({ user: user('MEMBER', true), providers: [], devBypass: false });
+    me.mockResolvedValue({ user: user('MEMBER', true), providers: [], devBypass: false, contemporaryPrivacy: 'names' });
     await store.load();
     expect(store.isAdmin()).toBe(false);
     expect(store.canSeeContemporary()).toBe(true);
   });
 
   it('grants all permissions to an administrator', async () => {
-    me.mockResolvedValue({ user: user('ADMIN', false), providers: [], devBypass: false });
+    me.mockResolvedValue({ user: user('ADMIN', false), providers: [], devBypass: false, contemporaryPrivacy: 'names' });
     await store.load();
     expect(store.isAdmin()).toBe(true);
     expect(store.canSeeContemporary()).toBe(true);
@@ -54,16 +58,26 @@ describe('SessionStore', () => {
   });
 
   it('saves the personal root then reloads the session', async () => {
-    me.mockResolvedValue({ user: { ...user('MEMBER', false), rootPersonId: 'I23' }, providers: [], devBypass: false });
+    me.mockResolvedValue({
+      user: { ...user('MEMBER', false), rootPersonId: 'I23' },
+      providers: [],
+      devBypass: false,
+      contemporaryPrivacy: 'names',
+    });
     await store.setPersonalRoot('I23');
     expect(setMyRoot).toHaveBeenCalledWith('I23');
     expect(store.user()?.rootPersonId).toBe('I23');
   });
 
   it('reloads the session after logout', async () => {
-    me.mockResolvedValueOnce({ user: user('MEMBER', false), providers: [], devBypass: false });
+    me.mockResolvedValueOnce({
+      user: user('MEMBER', false),
+      providers: [],
+      devBypass: false,
+      contemporaryPrivacy: 'names',
+    });
     await store.load();
-    me.mockResolvedValueOnce({ providers: [], devBypass: false });
+    me.mockResolvedValueOnce({ providers: [], devBypass: false, contemporaryPrivacy: 'names' });
     await store.logout();
     expect(logout).toHaveBeenCalled();
     expect(store.isAuthenticated()).toBe(false);

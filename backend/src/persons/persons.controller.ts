@@ -84,8 +84,8 @@ export class PersonsController {
   }
 
   @Get('surnames')
-  surnames(): Promise<SurnameDto[]> {
-    return this.persons.surnames();
+  surnames(@CurrentUser() user: AuthUser | undefined): Promise<SurnameDto[]> {
+    return this.persons.surnames(user);
   }
 
   @Get('persons/:id/lineage')

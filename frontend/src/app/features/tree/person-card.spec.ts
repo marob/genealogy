@@ -22,6 +22,11 @@ describe('PersonCard', () => {
     });
   });
 
+  it('shows a placeholder for a contemporary whose identity is hidden', () => {
+    const element = render(person({ id: 'I4', givenNames: '', surname: '', sex: 'U', restricted: true, hidden: true }));
+    expect(element.querySelector('.name')?.textContent).toContain('Personne contemporaine');
+  });
+
   it('shows the name, occupation and key dates', () => {
     const element = render(
       person({

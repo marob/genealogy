@@ -20,6 +20,7 @@ export class AuthController {
   private readonly publicUrl: string;
   private readonly devBypass: boolean;
   private readonly contactEmail: string | undefined;
+  private readonly contemporaryPrivacy: MeDto['contemporaryPrivacy'];
 
   constructor(
     private readonly providers: AuthProvidersService,
@@ -30,6 +31,7 @@ export class AuthController {
     this.publicUrl = config.get('PUBLIC_URL', { infer: true }).replace(/\/$/, '');
     this.devBypass = config.get('AUTH_DEV_BYPASS', { infer: true });
     this.contactEmail = config.get('CONTACT_EMAIL', { infer: true });
+    this.contemporaryPrivacy = config.get('CONTEMPORARY_PRIVACY', { infer: true });
   }
 
   @Get('me')
@@ -39,6 +41,7 @@ export class AuthController {
       ...(user ? { user: toUserDto(user) } : {}),
       providers: this.providers.list(),
       devBypass: this.devBypass,
+      contemporaryPrivacy: this.contemporaryPrivacy,
       ...(this.contactEmail ? { contactEmail: this.contactEmail } : {}),
     };
   }

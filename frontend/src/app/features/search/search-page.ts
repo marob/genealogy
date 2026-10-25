@@ -8,6 +8,7 @@ import { ApiService, type SearchCriteria } from '../../core/api.service';
 import { GenealogyDatePipe, PlacePipe } from '../../core/genealogy-pipes';
 import { LanguageService } from '../../core/language.service';
 import { valueOf } from '../../core/resources';
+import { SessionStore } from '../../core/session.store';
 import { iconSearch } from '../../ui/icons';
 
 const PAGE_SIZE = 50;
@@ -38,6 +39,7 @@ export class SearchPage {
   readonly page = input<string>();
 
   private readonly api = inject(ApiService);
+  protected readonly session = inject(SessionStore);
   private readonly router = inject(Router);
   protected readonly lang = inject(LanguageService).current;
 

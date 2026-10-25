@@ -51,9 +51,13 @@ import { ConfirmService } from '../../ui/confirm-dialog';
           <dt>{{ 'account.root' | transloco }}</dt>
           <dd class="root">
             @if (rootValue(); as root) {
-              <a [routerLink]="['/tree', root.id]"
-                ><span class="surname">{{ root.surname }}</span> {{ root.givenNames }}</a
-              >
+              <a [routerLink]="['/tree', root.id]">
+                @if (root.hidden) {
+                  <em>{{ 'person.hidden' | transloco }}</em>
+                } @else {
+                  <span class="surname">{{ root.surname }}</span> {{ root.givenNames }}
+                }
+              </a>
               <button type="button" class="btn btn-small btn-text" (click)="resetRoot()">
                 {{ 'account.resetRoot' | transloco }}
               </button>

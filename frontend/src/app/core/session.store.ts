@@ -6,12 +6,13 @@ import { ApiService } from './api.service';
 @Injectable({ providedIn: 'root' })
 export class SessionStore {
   private readonly api = inject(ApiService);
-  private readonly state = signal<MeDto>({ providers: [], devBypass: false });
+  private readonly state = signal<MeDto>({ providers: [], devBypass: false, contemporaryPrivacy: 'names' });
 
   readonly user = computed(() => this.state().user);
   readonly providers = computed(() => this.state().providers);
   readonly devBypass = computed(() => this.state().devBypass);
   readonly contactEmail = computed(() => this.state().contactEmail);
+  readonly contemporaryPrivacy = computed(() => this.state().contemporaryPrivacy);
   readonly isAuthenticated = computed(() => !!this.user());
   readonly isAdmin = computed(() => this.user()?.role === 'ADMIN');
   readonly canSeeContemporary = computed(() => this.isAdmin() || !!this.user()?.canSeeContemporary);

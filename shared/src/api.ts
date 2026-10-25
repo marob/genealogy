@@ -48,6 +48,11 @@ export interface PersonDto {
    * provided.
    */
   restricted: boolean;
+  /**
+   * true if even the identity is hidden (strict privacy mode): no name and
+   * an unknown sex, only the person's place in the tree.
+   */
+  hidden?: boolean;
   events: EventDto[];
   occupation?: string;
   note?: string;
@@ -81,6 +86,8 @@ export interface MeDto {
   devBypass: boolean;
   /** Contact address of the site owner (privacy policy). */
   contactEmail?: string;
+  /** What unauthorized users see of contemporaries: their names, or only their existence. */
+  contemporaryPrivacy: 'names' | 'hidden';
 }
 
 export type ImportStatus = 'preview' | 'committed';
@@ -118,6 +125,8 @@ export interface PersonSummaryDto {
   surname: string;
   sex: Sex;
   restricted: boolean;
+  /** See `PersonDto.hidden`. */
+  hidden?: boolean;
   birth?: EventDto;
   death?: EventDto;
 }

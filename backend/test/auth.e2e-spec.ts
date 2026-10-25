@@ -24,7 +24,11 @@ describe('Authentication and users', () => {
   describe('GET /api/me', () => {
     it('describes an anonymous visitor and the available providers', async () => {
       const me = (await request(server()).get('/api/me').expect(200)).body as MeDto;
-      expect(me).toEqual({ providers: [{ name: 'google', label: 'Google' }], devBypass: false });
+      expect(me).toEqual({
+        providers: [{ name: 'google', label: 'Google' }],
+        devBypass: false,
+        contemporaryPrivacy: 'names',
+      });
     });
 
     it('describes the logged-in user', async () => {

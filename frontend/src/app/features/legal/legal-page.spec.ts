@@ -7,10 +7,15 @@ import { LegalPage } from './legal-page';
 
 describe('LegalPage', () => {
   const contactEmail = signal<string | undefined>(undefined);
+  const contemporaryPrivacy = signal<'names' | 'hidden'>('names');
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideTestTransloco(), provideRouter([]), { provide: SessionStore, useValue: { contactEmail } }],
+      providers: [
+        provideTestTransloco(),
+        provideRouter([]),
+        { provide: SessionStore, useValue: { contactEmail, contemporaryPrivacy } },
+      ],
     });
   });
 
@@ -35,5 +40,11 @@ describe('LegalPage', () => {
     expect(element.querySelector('h1')?.textContent).toContain('Conditions d’utilisation');
     expect(element.querySelector('#source a')?.getAttribute('href')).toBe('https://github.com/marob/genealogy');
     expect(element.querySelector('#contact')?.textContent).toContain('contact@example.com');
+  });
+
+  it('describes the strict privacy mode when it is enabled', async () => {
+    contemporaryPrivacy.set('hidden');
+    const element = await render('privacy');
+    expect(element.querySelector('#genealogy')?.textContent).toContain('de façon anonyme');
   });
 });

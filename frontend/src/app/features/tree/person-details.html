@@ -8,7 +8,11 @@
       [icon]="sexIcon(p.sex)"
       [attr.aria-label]="'sex.' + p.sex | transloco"
     />
-    <span class="surname">{{ p.surname }}</span> {{ p.givenNames }}
+    @if (p.hidden) {
+      <em class="hidden-person">{{ 'person.hidden' | transloco }}</em>
+    } @else {
+      <span class="surname">{{ p.surname }}</span> {{ p.givenNames }}
+    }
   </h2>
   <button type="button" class="btn-icon" [attr.aria-label]="'common.close' | transloco" (click)="closed.emit()">
     <fa-icon [icon]="icons.iconClose" />
@@ -64,7 +68,11 @@
         <li>
           <fa-icon [class]="'sex sex-' + parent.sex" [icon]="sexIcon(parent.sex)" />
           <button type="button" class="link" (click)="focused.emit(parent)">
-            {{ parent.givenNames }} {{ parent.surname }}
+            @if (parent.hidden) {
+              <em class="hidden-person">{{ 'person.hidden' | transloco }}</em>
+            } @else {
+              {{ parent.givenNames }} {{ parent.surname }}
+            }
           </button>
         </li>
       }
@@ -78,7 +86,11 @@
     <p class="line">
       <fa-icon [class]="'sex sex-' + partner.sex" [icon]="sexIcon(partner.sex)" />
       <button type="button" class="link" (click)="focused.emit(partner)">
-        {{ partner.givenNames }} {{ partner.surname }}
+        @if (partner.hidden) {
+          <em class="hidden-person">{{ 'person.hidden' | transloco }}</em>
+        } @else {
+          {{ partner.givenNames }} {{ partner.surname }}
+        }
       </button>
     </p>
   }
@@ -106,7 +118,11 @@
           <li>
             <fa-icon [class]="'sex sex-' + child.sex" [icon]="sexIcon(child.sex)" />
             <button type="button" class="link" (click)="focused.emit(child)">
-              {{ child.givenNames }} {{ child.surname }}
+              @if (child.hidden) {
+                <em class="hidden-person">{{ 'person.hidden' | transloco }}</em>
+              } @else {
+                {{ child.givenNames }} {{ child.surname }}
+              }
             </button>
           </li>
         }

@@ -22,6 +22,8 @@ export class PrivacyPolicy {
   constructor(
     readonly canSeeContemporary: boolean,
     today: number,
+    /** Strict mode: the identity of restricted persons is hidden too. */
+    readonly hideIdentity = false,
   ) {
     this.threshold = today - HUNDRED_YEARS;
   }
@@ -33,6 +35,10 @@ export class PrivacyPolicy {
 
   isPersonRestricted(birthKey: number | null | undefined): boolean {
     return !this.canSeeContemporary && this.isContemporary(birthKey);
+  }
+
+  isIdentityHidden(birthKey: number | null | undefined): boolean {
+    return this.hideIdentity && this.isPersonRestricted(birthKey);
   }
 
   /** Latest possible date of an event (`Infinity` for open-ended dates such as "after 1920"). */

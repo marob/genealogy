@@ -68,7 +68,8 @@
     "parents": "Parents",
     "union": "Union",
     "children": "Enfants",
-    "note": "Notes"
+    "note": "Notes",
+    "hidden": "Personne contemporaine"
   },
   "sex": {
     "M": "Homme",
@@ -136,7 +137,8 @@
     "quickPlaceholder": "Rechercher une personne…",
     "quickLabel": "Recherche rapide d’une personne",
     "noMatch": "Aucune personne trouvée.",
-    "open": "Ouvrir la recherche rapide"
+    "open": "Ouvrir la recherche rapide",
+    "privacyHintHidden": "Les personnes nées il y a moins de 100 ans n’apparaissent dans les recherches que pour les utilisateurs autorisés."
   },
   "login": {
     "title": "Connexion",
@@ -272,7 +274,8 @@
       },
       "genealogy": {
         "title": "Données généalogiques",
-        "body": "L’arbre contient des informations sur les membres de la famille (noms, dates, lieux, professions). Pour les personnes nées il y a moins de 100 ans, seul le nom est visible publiquement ; le détail n’est accessible qu’aux membres autorisés par l’administrateur. Toute personne figurant dans l’arbre peut en demander la rectification ou la suppression."
+        "body": "L’arbre contient des informations sur les membres de la famille (noms, dates, lieux, professions). Pour les personnes nées il y a moins de 100 ans, seul le nom est visible publiquement ; le détail n’est accessible qu’aux membres autorisés par l’administrateur. Toute personne figurant dans l’arbre peut en demander la rectification ou la suppression.",
+        "bodyHidden": "L’arbre contient des informations sur les membres de la famille (noms, dates, lieux, professions). Les personnes nées il y a moins de 100 ans n’apparaissent publiquement que de façon anonyme, sans nom ni aucune autre information ; le détail n’est accessible qu’aux membres autorisés par l’administrateur. Toute personne figurant dans l’arbre peut en demander la rectification ou la suppression."
       },
       "retention": {
         "title": "Conservation",

@@ -99,6 +99,14 @@ export class PersonMapper {
     return !!personId && this.policy.isPersonRestricted(this.birthKeys.get(personId));
   }
 
+  /** Name and sex, or nothing at all in strict mode. */
+  private identity(person: Person): Pick<PersonDto, 'givenNames' | 'surname' | 'sex' | 'hidden'> {
+    if (this.policy.isIdentityHidden(this.birthKeys.get(person.id))) {
+      return { givenNames: '', surname: '', sex: 'U', hidden: true };
+    }
+    return { givenNames: person.givenNames, surname: person.surname, sex: person.sex as Sex };
+  }
+
   private toUnion(person: Person, family: FamilyWithDetails): UnionDto {
     const partnerId = family.partner1Id === person.id ? family.partner2Id : family.partner1Id;
     const restricted =
@@ -131,9 +139,7 @@ export class PersonMapper {
 
     return {
       id: person.id,
-      givenNames: person.givenNames,
-      surname: person.surname,
-      sex: person.sex as Sex,
+      ...this.identity(person),
       ...(parents?.partner1Id ? { fatherId: parents.partner1Id } : {}),
       ...(parents?.partner2Id ? { motherId: parents.partner2Id } : {}),
       unions,
@@ -150,9 +156,7 @@ export class PersonMapper {
     const death = firstOfTypes(person.events, ['DEAT', 'BURI', 'CREM']);
     return {
       id: person.id,
-      givenNames: person.givenNames,
-      surname: person.surname,
-      sex: person.sex as Sex,
+      ...this.identity(person),
       restricted,
       ...(!restricted && birth ? { birth: toEvent(birth) } : {}),
       ...(!restricted && death ? { death: toEvent(death) } : {}),

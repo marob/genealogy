@@ -17,9 +17,13 @@
     </div>
     @if (tree.root(); as root) {
       <p class="selected">
-        <strong
-          ><span class="surname">{{ root.person.surname }}</span> {{ root.person.givenNames }}</strong
-        >
+        <strong>
+          @if (root.person.hidden) {
+            <em>{{ 'person.hidden' | transloco }}</em>
+          } @else {
+            <span class="surname">{{ root.person.surname }}</span> {{ root.person.givenNames }}
+          }
+        </strong>
       </p>
     }
     @if (candidates.error()) {
