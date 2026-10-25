@@ -8,10 +8,12 @@ import { isLanguage, LANGUAGES, LanguageService } from '../../core/language.serv
 import { valueOf } from '../../core/resources';
 import { SessionStore } from '../../core/session.store';
 import { ConfirmService } from '../../ui/confirm-dialog';
+import { PersonName } from '../../ui/person-name';
+import { isNameOrder, NAME_ORDERS, NameOrderService } from '../../core/name-order.service';
 
 @Component({
   selector: 'app-account-page',
-  imports: [TranslocoPipe, DatePipe, RouterLink],
+  imports: [PersonName, TranslocoPipe, DatePipe, RouterLink],
   template: `
     <h1>{{ 'nav.account' | transloco }}</h1>
     <section class="card">
@@ -21,6 +23,16 @@ import { ConfirmService } from '../../ui/confirm-dialog';
         <select (change)="changeLanguage($any($event.target).value)">
           @for (code of languages; track code) {
             <option [value]="code" [selected]="code === lang()">{{ 'languages.' + code | transloco }}</option>
+          }
+        </select>
+      </label>
+      <label class="field language">
+        <span>{{ 'account.nameOrder' | transloco }}</span>
+        <select (change)="changeNameOrder($any($event.target).value)">
+          @for (order of nameOrders; track order) {
+            <option [value]="order" [selected]="order === nameOrder()">
+              {{ 'account.nameOrders.' + order | transloco }}
+            </option>
           }
         </select>
       </label>
@@ -52,11 +64,7 @@ import { ConfirmService } from '../../ui/confirm-dialog';
           <dd class="root">
             @if (rootValue(); as root) {
               <a [routerLink]="['/tree', root.id]">
-                @if (root.hidden) {
-                  <em>{{ 'person.hidden' | transloco }}</em>
-                } @else {
-                  <span class="surname">{{ root.surname }}</span> {{ root.givenNames }}
-                }
+                <app-person-name [person]="root" />
               </a>
               <button type="button" class="btn btn-small btn-text" (click)="resetRoot()">
                 {{ 'account.resetRoot' | transloco }}
@@ -135,9 +143,6 @@ import { ConfirmService } from '../../ui/confirm-dialog';
       align-items: center;
       gap: 0.25rem 0.75rem;
     }
-    .surname {
-      text-transform: uppercase;
-    }
     .hint {
       color: var(--text-muted);
       font-size: 0.9rem;
@@ -155,6 +160,16 @@ export class AccountPage {
   private readonly language = inject(LanguageService);
   protected readonly lang = this.language.current;
   protected readonly languages = LANGUAGES;
+
+  private readonly names = inject(NameOrderService);
+  protected readonly nameOrder = this.names.current;
+  protected readonly nameOrders = NAME_ORDERS;
+
+  protected changeNameOrder(value: string): void {
+    if (isNameOrder(value)) {
+      this.names.use(value);
+    }
+  }
 
   protected changeLanguage(value: string): void {
     if (isLanguage(value)) {

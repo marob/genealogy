@@ -18,11 +18,7 @@
     @if (tree.root(); as root) {
       <p class="selected">
         <strong>
-          @if (root.person.hidden) {
-            <em>{{ 'person.hidden' | transloco }}</em>
-          } @else {
-            <span class="surname">{{ root.person.surname }}</span> {{ root.person.givenNames }}
-          }
+          <app-person-name [person]="root.person" />
         </strong>
       </p>
     }
@@ -38,7 +34,7 @@
               [attr.aria-pressed]="candidate.id === person()"
               (click)="choose(candidate)"
             >
-              <span class="surname">{{ candidate.surname }}</span> {{ candidate.givenNames }}
+              <app-person-name [person]="candidate" />
               @if (candidate.birth?.date?.start; as start) {
                 <span class="muted">({{ start.year }})</span>
               }

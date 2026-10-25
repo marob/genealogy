@@ -68,7 +68,7 @@ test('opens a relative’s details from a details panel and recenters the tree',
     .locator('app-person-card.part-root')
     .getByRole('button', { name: /MARTIN Émile Joseph/ })
     .click();
-  await page.getByRole('complementary').getByRole('button', { name: 'Hélène DUPRÉ' }).click();
+  await page.getByRole('complementary').getByRole('button', { name: 'DUPRÉ Hélène' }).click();
   await expect(page).toHaveURL(/\/tree\/I2$/);
   await expect(page.locator('app-person-card.part-root')).toContainText('DUPRÉ Hélène');
   await expect(page.getByRole('complementary')).toContainText('DUPRÉ Hélène');

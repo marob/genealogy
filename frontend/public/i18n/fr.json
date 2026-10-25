@@ -170,7 +170,12 @@
     "deleteButton": "Supprimer mon compte",
     "deleteConfirmTitle": "Supprimer votre compte ?",
     "deleteConfirmMessage": "Cette action est immédiate et définitive.",
-    "deleted": "Votre compte a été supprimé."
+    "deleted": "Votre compte a été supprimé.",
+    "nameOrder": "Ordre des noms",
+    "nameOrders": {
+      "surname-first": "NOM Prénom",
+      "given-first": "Prénom NOM"
+    }
   },
   "roles": {
     "ADMIN": "Administrateur",

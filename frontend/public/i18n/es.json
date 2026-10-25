@@ -170,7 +170,12 @@
     "deleteButton": "Eliminar mi cuenta",
     "deleteConfirmTitle": "¿Eliminar su cuenta?",
     "deleteConfirmMessage": "Esta acción es inmediata y definitiva.",
-    "deleted": "Su cuenta ha sido eliminada."
+    "deleted": "Su cuenta ha sido eliminada.",
+    "nameOrder": "Orden de los nombres",
+    "nameOrders": {
+      "surname-first": "APELLIDO Nombre",
+      "given-first": "Nombre APELLIDO"
+    }
   },
   "roles": {
     "ADMIN": "Administrador",

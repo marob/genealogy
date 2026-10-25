@@ -62,7 +62,7 @@
                 <tr>
                   <td>
                     <a [routerLink]="['/tree', person.id]">
-                      <span class="surname">{{ person.surname }}</span> {{ person.givenNames }}
+                      <app-person-name class="strong" [person]="person" />
                     </a>
                     @if (person.restricted) {
                       <span class="badge">{{ 'person.contemporary' | transloco }}</span>

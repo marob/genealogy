@@ -10,11 +10,13 @@ import { valueOf } from '../../core/resources';
 import { SessionStore } from '../../core/session.store';
 import { eventIcon } from '../../ui/event-icons';
 import { iconClose, iconDate, iconFamily, iconFocus, iconNote, iconPlace, iconRoot, sexIcon } from '../../ui/icons';
+import { PersonName } from '../../ui/person-name';
+import { NameOrderService } from '../../core/name-order.service';
 
 /** Side panel with a person's full record. */
 @Component({
   selector: 'app-person-details',
-  imports: [FaIconComponent, TranslocoPipe, GenealogyDatePipe],
+  imports: [PersonName, FaIconComponent, TranslocoPipe, GenealogyDatePipe],
   templateUrl: './person-details.html',
   styleUrl: './person-details.scss',
   host: { role: 'complementary', '[attr.aria-label]': 'label()' },
@@ -22,9 +24,10 @@ import { iconClose, iconDate, iconFamily, iconFocus, iconNote, iconPlace, iconRo
 export class PersonDetails {
   readonly person = input.required<PersonDto>();
   private readonly hiddenLabel = translateSignal('person.hidden');
+  private readonly names = inject(NameOrderService);
   protected readonly label = computed(() => {
     const person = this.person();
-    return person.hidden ? this.hiddenLabel() : `${person.givenNames} ${person.surname}`;
+    return person.hidden ? this.hiddenLabel() : this.names.format(person);
   });
   readonly closed = output();
   readonly focused = output<PersonDto>();

@@ -9,11 +9,12 @@ import { iconDate, iconFocus, iconOccupation, iconPlace, sexIcon } from '../../u
 import { Tooltip } from '../../ui/tooltip';
 import { TreeController } from './tree-controller';
 import type { TreePart } from './tree-node';
+import { PersonName } from '../../ui/person-name';
 
 /** Card of a person in the tree. */
 @Component({
   selector: 'app-person-card',
-  imports: [FaIconComponent, TranslocoPipe, GenealogyDatePipe, PlacePipe, Tooltip],
+  imports: [PersonName, FaIconComponent, TranslocoPipe, GenealogyDatePipe, PlacePipe, Tooltip],
   templateUrl: './person-card.html',
   styleUrl: './person-card.scss',
   host: {

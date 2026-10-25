@@ -10,6 +10,7 @@ import { LanguageService } from '../../core/language.service';
 import { valueOf } from '../../core/resources';
 import { SessionStore } from '../../core/session.store';
 import { iconSearch } from '../../ui/icons';
+import { PersonName } from '../../ui/person-name';
 
 const PAGE_SIZE = 50;
 
@@ -24,7 +25,7 @@ function toNumber(value: string | undefined): number | undefined {
  */
 @Component({
   selector: 'app-search-page',
-  imports: [ReactiveFormsModule, RouterLink, FaIconComponent, TranslocoPipe, GenealogyDatePipe, PlacePipe],
+  imports: [PersonName, ReactiveFormsModule, RouterLink, FaIconComponent, TranslocoPipe, GenealogyDatePipe, PlacePipe],
   templateUrl: './search-page.html',
   styleUrl: './search-page.scss',
 })

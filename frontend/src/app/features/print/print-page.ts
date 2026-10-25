@@ -28,6 +28,7 @@ import { MAX_GENERATIONS, MAX_RENDERED_NODES, TreeController } from '../tree/tre
 import { type ChartDrawing, measureChart, placedCopy } from './chart-drawing';
 import { lineageDepth } from './lineage-depth';
 import { type Layout, type LayoutInput, layoutPages } from './pagination';
+import { PersonName } from '../../ui/person-name';
 
 const SCALES = [100, 85, 70, 60, 50, 40, 30];
 type Mode = 'pdf' | 'paper';
@@ -59,7 +60,7 @@ function generations(value: string | undefined, available: number): number {
  */
 @Component({
   selector: 'app-print-page',
-  imports: [ChartNode, FaIconComponent, FormsModule, TranslocoPipe],
+  imports: [PersonName, ChartNode, FaIconComponent, FormsModule, TranslocoPipe],
   providers: [TreeController],
   templateUrl: './print-page.html',
   styleUrl: './print-page.scss',

@@ -8,6 +8,7 @@ import { formatGenealogyDate } from '../core/genealogy-format';
 import { LanguageService } from '../core/language.service';
 import { valueOf } from '../core/resources';
 import { iconClose, iconSearch } from './icons';
+import { PersonName } from './person-name';
 
 /** Delay before searching while typing. */
 const DEBOUNCE_MS = 200;
@@ -24,7 +25,7 @@ let nextId = 1;
  */
 @Component({
   selector: 'app-quick-search',
-  imports: [FaIconComponent, TranslocoPipe],
+  imports: [PersonName, FaIconComponent, TranslocoPipe],
   host: {
     '[class.expanded]': 'expanded()',
     '(focusout)': 'onFocusOut($event)',
@@ -73,9 +74,7 @@ let nextId = 1;
               (click)="choose(person)"
               (mouseenter)="active.set(index)"
             >
-              <span class="name"
-                ><span class="surname">{{ person.surname }}</span> {{ person.givenNames }}</span
-              >
+              <app-person-name class="name strong" [person]="person" />
               @if (lifespan(person); as years) {
                 <span class="years">{{ years }}</span>
               }
@@ -175,10 +174,6 @@ let nextId = 1;
     li.empty {
       cursor: default;
       color: var(--text-muted);
-    }
-    .surname {
-      text-transform: uppercase;
-      font-weight: 600;
     }
     .years {
       flex-shrink: 0;
