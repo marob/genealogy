@@ -42,6 +42,11 @@ export function mediaUrl(media: Pick<MediaDto, 'id'>): string {
   return `/api/media/${media.id}`;
 }
 
+/** URL of a small version of an image (192 px), for thumbnails and portraits. */
+export function mediaThumbnailUrl(media: Pick<MediaDto, 'id'>): string {
+  return `${mediaUrl(media)}/thumbnail`;
+}
+
 export interface UnionDto {
   familyId: string;
   partnerId?: string;

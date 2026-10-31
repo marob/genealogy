@@ -1,8 +1,7 @@
 :host {
   display: inline-flex;
-  flex-direction: column;
   align-items: flex-start;
-  gap: 0.15rem;
+  gap: 0.6rem;
   position: relative;
   min-width: 10rem;
   max-width: 18rem;
@@ -30,6 +29,25 @@
 :host(.part-root) {
   background: var(--highlight);
   box-shadow: var(--shadow-md);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.portrait {
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: top;
+  border: 1px solid var(--border);
+  background: var(--bg);
 }
 
 .name {

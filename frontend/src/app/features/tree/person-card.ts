@@ -1,12 +1,13 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import type { EventDto, PersonDto } from '@genealogie/shared';
+import { type EventDto, mediaThumbnailUrl, type PersonDto } from '@genealogie/shared';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { GenealogyDatePipe, PlacePipe } from '../../core/genealogy-pipes';
 import { LanguageService } from '../../core/language.service';
 import { eventIcon } from '../../ui/event-icons';
 import { iconDate, iconFocus, iconOccupation, iconPlace, sexIcon } from '../../ui/icons';
 import { Tooltip } from '../../ui/tooltip';
+import { portraitOf } from './media-list';
 import { TreeController } from './tree-controller';
 import type { TreePart } from './tree-node';
 import { PersonName } from '../../ui/person-name';
@@ -28,6 +29,10 @@ export class PersonCard {
 
   protected readonly tree = inject(TreeController);
   protected readonly lang = inject(LanguageService).current;
+
+  /** Photo of the person (not shown when printing). */
+  protected readonly portrait = computed(() => portraitOf(this.person().media));
+  protected readonly thumbnailUrl = mediaThumbnailUrl;
 
   protected readonly milestones = computed(() => {
     const events = this.person().events;

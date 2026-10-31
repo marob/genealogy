@@ -1,6 +1,6 @@
 import { Component, computed, inject, input, output, resource } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { mediaUrl, type MediaDto, type PersonDto } from '@genealogie/shared';
+import { mediaThumbnailUrl, type MediaDto, type PersonDto } from '@genealogie/shared';
 import { TranslocoPipe, translateSignal } from '@jsverse/transloco';
 import { ApiService } from '../../core/api.service';
 import { GenealogyDatePipe } from '../../core/genealogy-pipes';
@@ -23,7 +23,7 @@ import {
 import { PersonName } from '../../ui/person-name';
 import { NameOrderService } from '../../core/name-order.service';
 import { MediaViewerService } from '../../ui/media-viewer';
-import { hasVisibleMedia, isImage, MediaList } from './media-list';
+import { hasVisibleMedia, isImage, MediaList, portraitOf } from './media-list';
 
 /** Side panel with a person's full record. */
 @Component({
@@ -63,11 +63,8 @@ export class PersonDetails {
     },
   });
 
-  /**
-   * First available image not attached to an event, shown as a portrait:
-   * images of events are usually scanned records.
-   */
-  protected readonly portrait = computed(() => this.person().media.find((m) => isImage(m) && !m.eventType));
+  /** Portrait shown in the header. */
+  protected readonly portrait = computed(() => portraitOf(this.person().media));
 
   protected openPortrait(portrait: MediaDto): void {
     const images = this.person().media.filter(isImage);
@@ -101,7 +98,7 @@ export class PersonDetails {
   }
 
   protected readonly sexIcon = sexIcon;
-  protected readonly mediaUrl = mediaUrl;
+  protected readonly thumbnailUrl = mediaThumbnailUrl;
 
   protected readonly eventIcon = eventIcon;
   protected readonly icons = {

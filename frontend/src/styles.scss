@@ -475,3 +475,14 @@ input[type='checkbox'] {
 .hidden-person {
   color: var(--text-muted);
 }
+
+/* Portraits of the tree cards: not in the print layouts (fixed card sizes). */
+.print-area .person-card .portrait,
+.tile-content .person-card .portrait {
+  display: none;
+}
+@media print {
+  .person-card .portrait {
+    display: none;
+  }
+}

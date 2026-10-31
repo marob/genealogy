@@ -100,4 +100,21 @@ describe('PersonCard', () => {
     expect(icon.getAttribute('role')).toBe('img');
     expect(icon.getAttribute('aria-label')).toBe('Femme');
   });
+
+  it('shows the photo of the person as a thumbnail', () => {
+    const element = render(
+      person({
+        id: 'I1',
+        media: [
+          { id: 7, fileName: 'acte.jpg', mimeType: 'image/jpeg', eventType: 'BIRT', available: true },
+          { id: 8, fileName: 'photo.jpg', mimeType: 'image/jpeg', available: true },
+        ],
+      }),
+    );
+    expect(element.querySelector('.portrait')?.getAttribute('src')).toBe('/api/media/8/thumbnail');
+  });
+
+  it('shows no portrait without a photo', () => {
+    expect(render(person({ id: 'I1' })).querySelector('.portrait')).toBeNull();
+  });
 });

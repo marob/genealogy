@@ -7,7 +7,7 @@
       [attr.aria-label]="'media.view' | transloco: { title: image.title || image.fileName }"
       (click)="openPortrait(image)"
     >
-      <img [src]="mediaUrl(image)" alt="" />
+      <img [src]="thumbnailUrl(image)" alt="" />
     </button>
   }
   <h2>

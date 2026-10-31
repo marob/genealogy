@@ -1,7 +1,9 @@
 import { readdirSync } from 'node:fs';
+import { join } from 'node:path';
 import type { ImportDto, PersonDto } from '@genealogie/shared';
 import request from 'supertest';
 import type { App } from 'supertest/types.js';
+import sharp from 'sharp';
 import yazl from 'yazl';
 import { MediaStore } from '../src/media/media-store.service.js';
 import { createTestApp, loginAs, type TestContext } from './utils/test-app.js';
@@ -41,15 +43,20 @@ const gedcom = [
   '0 TRLR',
 ].join('\n');
 
-const files: Record<string, string> = {
+/** A real photo, to check the thumbnails. */
+const photo = await sharp({ create: { width: 800, height: 600, channels: 3, background: '#a33' } })
+  .jpeg()
+  .toBuffer();
+
+const files: Record<string, string | Buffer> = {
   'Actes/Naissance Louis.png': 'png-bytes',
   'photos/robert louis.JPG': 'jpg-bytes',
-  'Zoé.jpg': 'zoe-bytes',
+  'Zoé.jpg': photo,
   'Mariage.pdf': '%PDF-1.4',
   'Inutile.jpg': 'not referenced',
 };
 
-function zip(entries: Record<string, string>): Promise<Buffer> {
+function zip(entries: Record<string, string | Buffer>): Promise<Buffer> {
   const archive = new yazl.ZipFile();
   for (const [name, content] of Object.entries(entries)) {
     archive.addBuffer(Buffer.from(content), name);
@@ -68,7 +75,8 @@ describe('Documents (photos, scanned records)', () => {
   let admin: string;
   let trusted: string;
   const server = (): App => ctx.app.getHttpServer() as App;
-  const storedFiles = () => readdirSync(ctx.app.get(MediaStore).dir).filter((name) => !name.startsWith('.'));
+  const storedFiles = () =>
+    readdirSync(ctx.app.get(MediaStore).dir).filter((name) => !name.startsWith('.') && name !== 'thumbnails');
 
   beforeAll(async () => {
     ctx = await createTestApp();
@@ -144,6 +152,28 @@ describe('Documents (photos, scanned records)', () => {
     await request(server()).get('/api/media/99999').expect(404);
   });
 
+  it('serves a small WebP version of the photos', async () => {
+    const zoe = (await person('I2', trusted)).media[0]!;
+    const response = await request(server()).get(`/api/media/${zoe.id}/thumbnail`).set('Cookie', trusted).expect(200);
+    expect(response.headers['content-type']).toBe('image/webp');
+    const { width, height, format } = await sharp(response.body as Buffer).metadata();
+    expect({ width, height, format }).toEqual({ width: 192, height: 144, format: 'webp' });
+    expect(Number(response.headers['content-length'])).toBeLessThan(photo.length);
+    // Cached on disk: served again without being regenerated.
+    await request(server()).get(`/api/media/${zoe.id}/thumbnail`).set('Cookie', trusted).expect(200);
+    // Same privacy rule as the original.
+    await request(server()).get(`/api/media/${zoe.id}/thumbnail`).expect(404);
+  });
+
+  it('serves the original when it cannot be resized', async () => {
+    const pdf = (await person('I1')).unions[0]!.media[0]!;
+    const response = await request(server()).get(`/api/media/${pdf.id}/thumbnail`).expect(200);
+    expect(response.headers['content-type']).toBe('application/pdf');
+    const invalid = (await person('I1')).media[1]!;
+    const fallback = await request(server()).get(`/api/media/${invalid.id}/thumbnail`).expect(200);
+    expect(Buffer.from(fallback.body as Buffer).toString()).toBe('jpg-bytes');
+  });
+
   it('applies the privacy rule to documents', async () => {
     expect((await person('I2')).media).toEqual([]);
     const zoe = (await person('I2', trusted)).media[0]!;
@@ -190,6 +220,7 @@ describe('Documents (photos, scanned records)', () => {
       await request(server()).delete(`/api/admin/imports/${run.id}`).set('Cookie', admin).expect(204);
     }
     expect(storedFiles()).toHaveLength(0);
+    expect(readdirSync(join(ctx.app.get(MediaStore).dir, 'thumbnails'))).toEqual([]);
     expect((await person('I1')).media.every((m) => !m.available)).toBe(true);
   });
 });

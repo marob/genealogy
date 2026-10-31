@@ -1,6 +1,6 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { type MediaDto, mediaUrl } from '@genealogie/shared';
+import { type MediaDto, mediaThumbnailUrl, mediaUrl } from '@genealogie/shared';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { SessionStore } from '../../core/session.store';
 import { iconFile, iconPdf } from '../../ui/icons';
@@ -8,6 +8,14 @@ import { MediaViewerService } from '../../ui/media-viewer';
 
 export function isImage(media: MediaDto): boolean {
   return media.available && !!media.mimeType?.startsWith('image/');
+}
+
+/**
+ * Portrait of a person: first available image not attached to an event
+ * (images of events are usually scanned records).
+ */
+export function portraitOf(media: readonly MediaDto[]): MediaDto | undefined {
+  return media.find((item) => isImage(item) && !item.eventType);
 }
 
 /** Whether a list of documents has something to show to the current user. */
@@ -45,4 +53,5 @@ export class MediaList {
   }
 
   protected readonly url = mediaUrl;
+  protected readonly thumbnailUrl = mediaThumbnailUrl;
 }

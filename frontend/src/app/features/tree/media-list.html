@@ -8,7 +8,7 @@
           [attr.aria-label]="'media.view' | transloco: { title: image.title || image.fileName }"
           (click)="open($index)"
         >
-          <img loading="lazy" [src]="url(image)" [alt]="image.title || image.fileName" />
+          <img loading="lazy" [src]="thumbnailUrl(image)" [alt]="image.title || image.fileName" />
         </button>
         @if (image.eventType) {
           <span class="event muted">{{ 'events.' + image.eventType | transloco }}</span>

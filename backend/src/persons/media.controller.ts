@@ -1,3 +1,5 @@
+import { createReadStream } from 'node:fs';
+import { stat } from 'node:fs/promises';
 import { Controller, Get, Param, ParseIntPipe, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import type { AuthUser } from '../auth/auth-user.js';
@@ -23,6 +25,40 @@ export class MediaController {
     @Res() res: Response,
   ): Promise<void> {
     const file = await this.persons.mediaFile(id, user);
+    this.send(res, {
+      path: this.store.path(file.hash),
+      etag: file.hash,
+      mimeType: file.mimeType,
+      size: file.size,
+      fileName: file.fileName,
+    });
+  }
+
+  /** Small version of an image (the original for other files or unsupported formats). */
+  @Get(':id/thumbnail')
+  async thumbnail(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: AuthUser | undefined,
+    @Res() res: Response,
+  ): Promise<void> {
+    const file = await this.persons.mediaFile(id, user);
+    const thumbnail = await this.store.thumbnail(file.hash, file.mimeType);
+    if (!thumbnail) {
+      return this.content(id, user, res);
+    }
+    this.send(res, {
+      path: thumbnail,
+      etag: `${file.hash}-thumbnail`,
+      mimeType: 'image/webp',
+      size: (await stat(thumbnail)).size,
+      fileName: file.fileName.replace(/\.[^.]*$/, '.webp'),
+    });
+  }
+
+  private send(
+    res: Response,
+    file: { path: string; etag: string; mimeType: string; size: number; fileName: string },
+  ): void {
     const disposition = INLINE_TYPES.test(file.mimeType) ? 'inline' : 'attachment';
     res.set({
       'Content-Type': file.mimeType,
@@ -30,12 +66,12 @@ export class MediaController {
       'Content-Disposition': `${disposition}; filename*=UTF-8''${encodeURIComponent(file.fileName)}`,
       // Content-addressed: never changes, but private (privacy rule per user).
       'Cache-Control': 'private, max-age=86400',
-      ETag: `"${file.hash}"`,
+      ETag: `"${file.etag}"`,
     });
-    if (res.req.headers['if-none-match'] === `"${file.hash}"`) {
+    if (res.req.headers['if-none-match'] === `"${file.etag}"`) {
       res.status(304).end();
       return;
     }
-    this.store.read(file.hash).pipe(res);
+    createReadStream(file.path).pipe(res);
   }
 }

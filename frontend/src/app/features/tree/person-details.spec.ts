@@ -67,7 +67,10 @@ describe('PersonDetails', () => {
     const element = await render(withDocuments);
     const [own] = element.querySelectorAll('app-media-list');
     const thumbnails = [...own!.querySelectorAll<HTMLImageElement>('.thumbnail img')];
-    expect(thumbnails.map((img) => img.getAttribute('src'))).toEqual(['/api/media/1', '/api/media/2']);
+    expect(thumbnails.map((img) => img.getAttribute('src'))).toEqual([
+      '/api/media/1/thumbnail',
+      '/api/media/2/thumbnail',
+    ]);
     expect(thumbnails.map((img) => img.alt)).toEqual(['portrait.jpg', 'Acte de naissance']);
     expect(thumbnails[0]!.getAttribute('loading')).toBe('lazy');
     expect(own!.querySelector('.thumbnails')!.textContent).toContain('Naissance');
@@ -89,7 +92,7 @@ describe('PersonDetails', () => {
     const element = await render(withDocuments);
     const lists = element.querySelectorAll('app-media-list');
     expect(lists).toHaveLength(2);
-    expect(lists[1]!.querySelector('img')!.getAttribute('src')).toBe('/api/media/5');
+    expect(lists[1]!.querySelector('img')!.getAttribute('src')).toBe('/api/media/5/thumbnail');
     expect(lists[1]!.textContent).toContain('Mariage');
   });
 
@@ -114,7 +117,7 @@ describe('PersonDetails', () => {
   it('shows the first photo not attached to an event as a portrait', async () => {
     const element = await render(withDocuments);
     const portrait = element.querySelector<HTMLButtonElement>('header .portrait')!;
-    expect(portrait.querySelector('img')!.getAttribute('src')).toBe('/api/media/1');
+    expect(portrait.querySelector('img')!.getAttribute('src')).toBe('/api/media/1/thumbnail');
     portrait.click();
     expect(open).toHaveBeenCalledWith([photo, birthRecord], 0);
   });
