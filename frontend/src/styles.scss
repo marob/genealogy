@@ -123,6 +123,13 @@ input[type='checkbox'] {
   }
 }
 
+/* Checkbox followed by its label, on one line. */
+.field.checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 /* Buttons */
 .btn {
   display: inline-flex;
