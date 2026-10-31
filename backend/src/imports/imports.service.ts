@@ -32,6 +32,8 @@ export interface UploadedImport {
   fileName: string;
   /** Optional zip archive of the documents. */
   mediaPath?: string;
+  /** false to leave the notes out of the tree (default: true). */
+  importNotes?: boolean;
 }
 
 async function readHead(path: string): Promise<Uint8Array> {
@@ -79,6 +81,7 @@ const summarySelect = {
   stats: true,
   warnings: true,
   userId: true,
+  importNotes: true,
 } as const;
 
 @Injectable()
@@ -116,6 +119,7 @@ export class ImportsService implements OnApplicationBootstrap {
       stats: importStats,
       warnings: JSON.parse(run.warnings) as string[],
       current: run.id === currentId,
+      importNotes: run.importNotes,
       ...(declaredCharset ? { declaredCharset } : {}),
       ...(run.gedcomVersion ? { gedcomVersion: run.gedcomVersion } : {}),
       ...(run.sourceSoftware ? { sourceSoftware: run.sourceSoftware } : {}),
@@ -169,8 +173,7 @@ export class ImportsService implements OnApplicationBootstrap {
       }
       return await this.createPreview(
         user,
-        fileName,
-        content,
+        { fileName, content, importNotes: upload.importNotes ?? true },
         archives.flatMap((archive) => archive.entries),
       );
     } catch (error) {
@@ -185,8 +188,7 @@ export class ImportsService implements OnApplicationBootstrap {
 
   private async createPreview(
     user: AuthUser,
-    fileName: string,
-    content: Uint8Array,
+    { fileName, content, importNotes }: { fileName: string; content: Uint8Array; importNotes: boolean },
     entries: ArchiveEntry[],
   ): Promise<ImportDto> {
     if (content.length === 0) {
@@ -251,6 +253,7 @@ export class ImportsService implements OnApplicationBootstrap {
           stats: JSON.stringify(stats),
           warnings: JSON.stringify(warnings),
           content: Uint8Array.from(content),
+          importNotes,
           userId: user.id,
           files: { create: [...files].map(([key, file]) => ({ key, fileName: file.fileName, hash: file.hash })) },
         },
@@ -270,6 +273,11 @@ export class ImportsService implements OnApplicationBootstrap {
       throw new NotFoundException('Import not found.');
     }
     const data = parseGedcom(run.content);
+    if (!run.importNotes) {
+      for (const person of data.persons) {
+        delete person.note;
+      }
+    }
     const files = new Map(
       (await this.prisma.importFile.findMany({ where: { importId: id } })).map((file) => [file.key, file.hash]),
     );

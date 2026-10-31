@@ -160,8 +160,16 @@ export class ApiService {
    * analysis, with an optional .zip of the documents. `onProgress` receives
    * the fraction of the upload already sent (0 to 1).
    */
-  uploadGedcom(file: File, media?: File, onProgress?: (sent: number) => void): Promise<ImportDto> {
+  uploadGedcom(
+    file: File,
+    media?: File,
+    onProgress?: (sent: number) => void,
+    options: { importNotes?: boolean } = {},
+  ): Promise<ImportDto> {
     const body = new FormData();
+    if (options.importNotes === false) {
+      body.append('importNotes', 'false');
+    }
     body.append('file', file, file.name);
     if (media) {
       body.append('media', media, media.name);

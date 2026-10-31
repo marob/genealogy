@@ -206,7 +206,8 @@
         "events": "Eventos",
         "places": "Lugares",
         "dated": "Nacimiento conocido o estimado",
-        "media": "Documentos"
+        "media": "Documentos",
+        "notes": "Notas"
       },
       "encoding": "Codificación",
       "declared": "declarada: {{charset}}",
@@ -229,7 +230,9 @@
       "confirmMessage": "Todos los datos actuales se sustituirán por los de «{{file}}» ({{persons}} personas).",
       "applied": "Importación aplicada: {{persons}} personas.",
       "deleteTitle": "¿Eliminar esta importación?",
-      "deleteMessage": "El archivo «{{file}}» se eliminará del historial."
+      "deleteMessage": "El archivo «{{file}}» se eliminará del historial.",
+      "importNotes": "Importar las notas",
+      "notesSkipped": "no importadas"
     },
     "users": {
       "title": "Usuarios",

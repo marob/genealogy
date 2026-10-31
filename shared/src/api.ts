@@ -121,6 +121,8 @@ export interface ImportStatsDto {
   events: number;
   places: number;
   datedPersons: number;
+  /** Persons with a note in the file. */
+  notes?: number;
   ignoredTags: Record<string, number>;
   /** Documents referenced by the GEDCOM file, and how many were provided. */
   media?: { referenced: number; found: number };
@@ -141,6 +143,8 @@ export interface ImportDto {
   warnings: string[];
   /** Currently applied import (the latest committed one). */
   current: boolean;
+  /** false if the notes of the file are left out of the tree. */
+  importNotes: boolean;
 }
 
 /** Search result: minimal information for the list. */

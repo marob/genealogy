@@ -115,4 +115,26 @@ describe('Import GEDCOM (/api/admin/imports)', () => {
     expect((await ctx.prisma.person.findUniqueOrThrow({ where: { id: 'I5' } })).birthKey).toBe(19_051_231);
     expect((await ctx.prisma.setting.findUniqueOrThrow({ where: { key: 'derivedDataVersion' } })).value).toBe('3');
   });
+
+  it('can leave the notes out of the tree', async () => {
+    const preview = (
+      await request(ctx.app.getHttpServer())
+        .post('/api/admin/imports')
+        .set('Cookie', admin)
+        .field('importNotes', 'false')
+        .attach('file', Buffer.from(fixture), 'famille.ged')
+        .expect(201)
+    ).body as ImportDto;
+    expect(preview).toMatchObject({ importNotes: false, stats: { notes: 1 } });
+    await request(ctx.app.getHttpServer())
+      .post(`/api/admin/imports/${preview.id}/commit`)
+      .set('Cookie', admin)
+      .expect(201);
+    expect(await ctx.prisma.person.count({ where: { note: { not: null } } })).toBe(0);
+
+    // Re-applied at startup: the choice is kept.
+    await ctx.prisma.setting.update({ where: { key: 'derivedDataVersion' }, data: { value: '0' } });
+    await ctx.app.get(ImportsService).onApplicationBootstrap();
+    expect(await ctx.prisma.person.count({ where: { note: { not: null } } })).toBe(0);
+  });
 });

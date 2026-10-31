@@ -206,7 +206,8 @@
         "events": "Events",
         "places": "Places",
         "dated": "Known or estimated birth",
-        "media": "Documents"
+        "media": "Documents",
+        "notes": "Notes"
       },
       "encoding": "Encoding",
       "declared": "declared: {{charset}}",
@@ -229,7 +230,9 @@
       "confirmMessage": "All current data will be replaced by “{{file}}” ({{persons}} people).",
       "applied": "Import applied: {{persons}} people.",
       "deleteTitle": "Delete this import?",
-      "deleteMessage": "The file “{{file}}” will be removed from the history."
+      "deleteMessage": "The file “{{file}}” will be removed from the history.",
+      "importNotes": "Import the notes",
+      "notesSkipped": "not imported"
     },
     "users": {
       "title": "Users",

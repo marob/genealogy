@@ -38,6 +38,8 @@ export class ImportsAdmin {
   protected readonly media = signal<File | undefined>(undefined);
   /** Fraction of the upload already sent, while uploading. */
   protected readonly progress = signal<number | undefined>(undefined);
+  /** Notes can be personal: they may be left out of the tree. */
+  protected readonly importNotes = signal(true);
 
   protected select(input: HTMLInputElement, target: WritableSignal<File | undefined>): void {
     target.set(input.files?.[0]);
@@ -55,7 +57,11 @@ export class ImportsAdmin {
     }
     this.progress.set(0);
     await this.run(async () => {
-      this.preview.set(await this.api.uploadGedcom(file, this.media(), (sent) => this.progress.set(sent)));
+      this.preview.set(
+        await this.api.uploadGedcom(file, this.media(), (sent) => this.progress.set(sent), {
+          importNotes: this.importNotes(),
+        }),
+      );
       this.history.reload();
       for (const input of inputs) {
         input.value = '';

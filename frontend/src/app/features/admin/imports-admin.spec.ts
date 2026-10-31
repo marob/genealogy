@@ -23,6 +23,7 @@ const preview: ImportDto = {
   },
   warnings: ['Date non reconnue'],
   current: false,
+  importNotes: true,
 };
 
 describe('ImportsAdmin', () => {
@@ -85,6 +86,7 @@ describe('ImportsAdmin', () => {
       expect.objectContaining({ name: 'famille.ged' }),
       expect.objectContaining({ name: 'documents.zip' }),
       expect.any(Function),
+      { importNotes: true },
     );
   });
 
@@ -94,7 +96,24 @@ describe('ImportsAdmin', () => {
       expect.objectContaining({ name: 'famille.ged' }),
       undefined,
       expect.any(Function),
+      { importNotes: true },
     );
+  });
+
+  it('can leave the notes out', async () => {
+    const fixture = TestBed.createComponent(ImportsAdmin);
+    await fixture.whenStable();
+    const element = fixture.nativeElement as HTMLElement;
+    choose(element, 0, new File(['0 HEAD'], 'famille.ged'));
+    const checkbox = element.querySelector<HTMLInputElement>('.import-form input[type="checkbox"]')!;
+    checkbox.checked = false;
+    checkbox.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+    analyzeButton(element).click();
+    await fixture.whenStable();
+    expect(api.uploadGedcom).toHaveBeenCalledWith(expect.anything(), undefined, expect.any(Function), {
+      importNotes: false,
+    });
   });
 
   it('shows the upload progress', async () => {

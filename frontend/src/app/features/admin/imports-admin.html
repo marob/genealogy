@@ -40,6 +40,15 @@
       }
     </div>
     <p class="muted hint">{{ 'admin.imports.mediaHint' | transloco }}</p>
+    <label class="field checkbox">
+      <input
+        type="checkbox"
+        [checked]="importNotes()"
+        [disabled]="busy()"
+        (change)="importNotes.set($any($event.target).checked)"
+      />
+      <span>{{ 'admin.imports.importNotes' | transloco }}</span>
+    </label>
     <div>
       <button
         type="button"
@@ -99,6 +108,15 @@
                       referenced: (documents.referenced | number: '1.0-0' : lang()),
                     }
             }}
+          </dd>
+        }
+        @if (run.stats.notes !== undefined) {
+          <dt>{{ 'admin.imports.stats.notes' | transloco }}</dt>
+          <dd>
+            {{ run.stats.notes | number: '1.0-0' : lang() }}
+            @if (!run.importNotes) {
+              <span class="muted">({{ 'admin.imports.notesSkipped' | transloco }})</span>
+            }
           </dd>
         }
         @if (run.sourceSoftware) {

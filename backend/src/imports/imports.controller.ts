@@ -2,6 +2,7 @@ import { rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import {
   BadRequestException,
+  Body,
   Controller,
   Delete,
   Get,
@@ -52,7 +53,11 @@ export class ImportsController {
       { dest: tmpdir(), limits: { fileSize: MAX_FILE_SIZE } },
     ),
   )
-  async upload(@CurrentUser() user: AuthUser, @UploadedFiles() files: UploadedFields | undefined): Promise<ImportDto> {
+  async upload(
+    @CurrentUser() user: AuthUser,
+    @UploadedFiles() files: UploadedFields | undefined,
+    @Body() body: { importNotes?: string } | undefined,
+  ): Promise<ImportDto> {
     const [file] = files?.file ?? [];
     const [media] = files?.media ?? [];
     try {
@@ -67,6 +72,8 @@ export class ImportsController {
         // multer decodes the file name as latin1.
         fileName: Buffer.from(file.originalname, 'latin1').toString('utf8'),
         ...(media ? { mediaPath: media.path } : {}),
+        // Multipart text field: "false" leaves the notes out.
+        importNotes: body?.importNotes !== 'false',
       });
     } finally {
       const uploads = [file, media].filter((upload) => upload !== undefined);

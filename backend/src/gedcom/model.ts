@@ -56,6 +56,8 @@ interface ImportStats {
   datedPersons: number;
   /** Referenced documents (OBJE files). */
   media: number;
+  /** Persons with a note. */
+  notes: number;
   /** Tags encountered but not imported, with their number of occurrences. */
   ignoredTags: Record<string, number>;
 }

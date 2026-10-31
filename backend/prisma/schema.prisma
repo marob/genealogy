@@ -202,6 +202,8 @@ model ImportRun {
   warnings       String    @default("[]")
   /// Original GEDCOM file, kept so it can be re-applied.
   content        Bytes
+  /// false to leave the notes of the file out of the tree.
+  importNotes    Boolean   @default(true)
   userId         Int?
 
   user  User?        @relation(fields: [userId], references: [id], onDelete: SetNull)

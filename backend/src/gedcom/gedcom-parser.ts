@@ -417,6 +417,7 @@ export function parseGedcom(bytes: Uint8Array): ParseResult {
       places: ctx.places.size,
       datedPersons: birthKeys.size,
       media: persons.reduce((n, p) => n + p.media.length, 0) + families.reduce((n, f) => n + f.media.length, 0),
+      notes: persons.filter((p) => p.note).length,
       ignoredTags: ctx.ignoredTags,
     },
   };
