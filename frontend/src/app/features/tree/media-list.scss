@@ -1,0 +1,77 @@
+:host {
+  display: block;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.thumbnails {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+
+  li {
+    display: flex;
+    flex-direction: column;
+    width: 6rem;
+  }
+}
+
+.thumbnail {
+  width: 6rem;
+  height: 6rem;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  cursor: zoom-in;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--accent);
+  }
+}
+
+.event {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.files li {
+  margin-bottom: 0.2rem;
+
+  fa-icon {
+    width: 1.1rem;
+    color: var(--text-muted);
+  }
+}
+
+.muted {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.missing {
+  margin-top: 0.25rem;
+
+  summary {
+    cursor: pointer;
+  }
+
+  li {
+    overflow-wrap: anywhere;
+  }
+}

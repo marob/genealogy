@@ -14,8 +14,27 @@ header {
   gap: 0.5rem;
 
   h2 {
+    flex: 1;
     margin: 0;
     font-size: 1.25rem;
+  }
+}
+
+.portrait {
+  flex: none;
+  width: 3rem;
+  height: 3rem;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  cursor: zoom-in;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 }
 

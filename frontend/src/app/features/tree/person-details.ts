@@ -1,6 +1,6 @@
 import { Component, computed, inject, input, output, resource } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import type { PersonDto } from '@genealogie/shared';
+import { mediaUrl, type MediaDto, type PersonDto } from '@genealogie/shared';
 import { TranslocoPipe, translateSignal } from '@jsverse/transloco';
 import { ApiService } from '../../core/api.service';
 import { GenealogyDatePipe } from '../../core/genealogy-pipes';
@@ -9,14 +9,26 @@ import { NotificationsService } from '../../core/notifications.service';
 import { valueOf } from '../../core/resources';
 import { SessionStore } from '../../core/session.store';
 import { eventIcon } from '../../ui/event-icons';
-import { iconClose, iconDate, iconFamily, iconFocus, iconNote, iconPlace, iconRoot, sexIcon } from '../../ui/icons';
+import {
+  iconClose,
+  iconDate,
+  iconDocuments,
+  iconFamily,
+  iconFocus,
+  iconNote,
+  iconPlace,
+  iconRoot,
+  sexIcon,
+} from '../../ui/icons';
 import { PersonName } from '../../ui/person-name';
 import { NameOrderService } from '../../core/name-order.service';
+import { MediaViewerService } from '../../ui/media-viewer';
+import { hasVisibleMedia, isImage, MediaList } from './media-list';
 
 /** Side panel with a person's full record. */
 @Component({
   selector: 'app-person-details',
-  imports: [PersonName, FaIconComponent, TranslocoPipe, GenealogyDatePipe],
+  imports: [PersonName, FaIconComponent, TranslocoPipe, GenealogyDatePipe, MediaList],
   templateUrl: './person-details.html',
   styleUrl: './person-details.scss',
   host: { role: 'complementary', '[attr.aria-label]': 'label()' },
@@ -36,6 +48,7 @@ export class PersonDetails {
   private readonly notifications = inject(NotificationsService);
   protected readonly session = inject(SessionStore);
   protected readonly lang = inject(LanguageService).current;
+  private readonly viewer = inject(MediaViewerService);
 
   /** Relatives (parents, spouses, children) to display their names. */
   protected readonly relatives = resource({
@@ -49,6 +62,21 @@ export class PersonDetails {
       return new Map((await this.api.people(ids)).map((relative) => [relative.id, relative]));
     },
   });
+
+  /**
+   * First available image not attached to an event, shown as a portrait:
+   * images of events are usually scanned records.
+   */
+  protected readonly portrait = computed(() => this.person().media.find((m) => isImage(m) && !m.eventType));
+
+  protected openPortrait(portrait: MediaDto): void {
+    const images = this.person().media.filter(isImage);
+    this.viewer.open(images, images.indexOf(portrait));
+  }
+
+  protected hasMedia(media: readonly MediaDto[]): boolean {
+    return hasVisibleMedia(media, this.session.isAdmin());
+  }
 
   protected relative(id: string | undefined): PersonDto | undefined {
     return id ? valueOf(this.relatives)?.get(id) : undefined;
@@ -73,11 +101,13 @@ export class PersonDetails {
   }
 
   protected readonly sexIcon = sexIcon;
+  protected readonly mediaUrl = mediaUrl;
 
   protected readonly eventIcon = eventIcon;
   protected readonly icons = {
     iconClose,
     iconDate,
+    iconDocuments,
     iconFamily,
     iconFocus,
     iconNote,

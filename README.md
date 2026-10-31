@@ -30,6 +30,16 @@ The rule is enforced **on the server**: hidden information never leaves the API.
 - **Places**: split according to the declared format (`HEAD.PLAC.FORM`) or the common "City, Code, County, Region, Country" format, GPS coordinates.
 - The original file is kept with each import; warnings (broken references, unrecognized dates, information not imported) are shown before committing.
 
+## Documents (photos, scanned records)
+
+Documents referenced by the GEDCOM file (`OBJE` / `FILE`, including Généatique's `_IMAGE`) are imported with it:
+
+- upload the `.ged` file with a `.zip` archive of the documents, or a single `.zip` containing both;
+- files are matched by **file name only** (case-insensitive): the folders written in the GEDCOM are those of the author's computer;
+- only referenced files are kept, stored once (SHA-256) in `MEDIA_DIR` (default: `media` next to the database, i.e. `/data/media` in the Docker image); files no longer used by any import are deleted;
+- missing documents are listed in the import preview; their names stay visible to administrators;
+- documents follow the 100-year rule of their person or union (served by `/api/media/:id` only to users allowed to see them).
+
 ## Architecture
 
 ```
@@ -118,6 +128,7 @@ docker compose pull && docker compose up -d
 | `APP_TIMEZONE`                                                                   | Reference time zone for the 100-year rule                                                                                                                                                              |
 | `CONTEMPORARY_PRIVACY`                                                           | `names` (default): unauthorized users see the name of people born less than 100 years ago; `hidden`: only their existence (no name, no sex), and they are excluded from searches and the surname index |
 | `CONTACT_EMAIL`                                                                  | Contact address shown on the privacy policy (`/privacy`) and terms of use (`/terms`) pages                                                                                                             |
+| `MEDIA_DIR`                                                                      | Directory of the imported documents (default: `media` next to the database)                                                                                                                            |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`                                      | Google sign-in                                                                                                                                                                                         |
 | `FACEBOOK_CLIENT_ID` / `FACEBOOK_CLIENT_SECRET`                                  | Facebook sign-in                                                                                                                                                                                       |
 | `OIDC_NAME`, `OIDC_LABEL`, `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET` | Generic OpenID Connect provider (Keycloak, Microsoft…)                                                                                                                                                 |

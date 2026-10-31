@@ -1,4 +1,4 @@
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import {
   type ApplicationConfig,
   inject,
@@ -21,7 +21,8 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes, withComponentInputBinding()),
-    provideHttpClient(),
+    // XHR: the only backend reporting upload progress (large GEDCOM + documents archives).
+    provideHttpClient(withXhr()),
     provideTransloco({
       config: {
         availableLangs: [...LANGUAGES],

@@ -3,6 +3,7 @@ import type {
   DateQualifier,
   EventDto,
   GenealogyDate,
+  MediaDto,
   PartialDate,
   PersonDto,
   PersonSummaryDto,
@@ -10,26 +11,39 @@ import type {
   Sex,
   UnionDto,
 } from '@genealogie/shared';
-import type { Event, Family, FamilyChild, Person, Place, Prisma } from '../generated/prisma/client.js';
+import type { Event, Family, FamilyChild, Media, Person, Place, Prisma } from '../generated/prisma/client.js';
 import { PrivacyPolicy } from './privacy.js';
 
 export type EventWithPlace = Event & { place: Place | null };
-export type FamilyWithDetails = Family & { events: EventWithPlace[]; children: FamilyChild[] };
+type MediaWithFile = Media & { file: { mimeType: string } | null };
+export type FamilyWithDetails = Family & {
+  events: EventWithPlace[];
+  children: FamilyChild[];
+  media: MediaWithFile[];
+};
+
+const mediaInclude = {
+  include: { file: { select: { mimeType: true } } },
+  orderBy: { position: 'asc' },
+} satisfies Prisma.Person$mediaArgs;
 
 /** Prisma relations to load to build a `PersonDto` (events in file order). */
 export const personInclude = {
   events: { include: { place: true }, orderBy: { id: 'asc' } },
+  media: mediaInclude,
   childOf: { include: { family: true } },
   asPartner1: {
     include: {
       events: { include: { place: true }, orderBy: { id: 'asc' } },
       children: { orderBy: { position: 'asc' } },
+      media: mediaInclude,
     },
   },
   asPartner2: {
     include: {
       events: { include: { place: true }, orderBy: { id: 'asc' } },
       children: { orderBy: { position: 'asc' } },
+      media: mediaInclude,
     },
   },
 } satisfies Prisma.PersonInclude;
@@ -84,6 +98,17 @@ function toEvent(event: EventWithPlace): EventDto {
   };
 }
 
+function toMedia(media: MediaWithFile): MediaDto {
+  return {
+    id: media.id,
+    fileName: media.fileName,
+    ...(media.title ? { title: media.title } : {}),
+    ...(media.file ? { mimeType: media.file.mimeType } : {}),
+    ...(media.eventType ? { eventType: media.eventType } : {}),
+    available: !!media.file,
+  };
+}
+
 /**
  * Builds DTOs while applying the privacy rule. The birth dates of relatives
  * are needed to know whether a union is contemporary: they are provided by
@@ -109,17 +134,18 @@ export class PersonMapper {
 
   private toUnion(person: Person, family: FamilyWithDetails): UnionDto {
     const partnerId = family.partner1Id === person.id ? family.partner2Id : family.partner1Id;
-    const restricted =
-      !this.policy.canSeeContemporary &&
-      (this.isRestricted(person.id) ||
-        this.isRestricted(partnerId) ||
-        family.events.some((event) => this.policy.isContemporary(PrivacyPolicy.eventKey(event) ?? 0)));
+    const partners = [person.id, partnerId].filter((id): id is string => !!id);
+    const restricted = this.policy.isUnionRestricted(
+      partners.map((id) => this.birthKeys.get(id)),
+      family.events,
+    );
     return {
       familyId: family.id,
       ...(partnerId ? { partnerId } : {}),
       childIds: family.children.map((child) => child.childId),
       events: restricted ? [] : family.events.map(toEvent),
       restricted,
+      media: restricted ? [] : family.media.map(toMedia),
     };
   }
 
@@ -145,6 +171,7 @@ export class PersonMapper {
       unions,
       restricted,
       events: restricted ? [] : person.events.map(toEvent),
+      media: restricted ? [] : person.media.map(toMedia),
       ...(!restricted && person.occupation ? { occupation: person.occupation } : {}),
       ...(!restricted && person.note ? { note: person.note } : {}),
     };

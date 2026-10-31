@@ -1,4 +1,5 @@
 import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { INestApplication } from '@nestjs/common';
@@ -86,6 +87,8 @@ export async function seedGedcom(ctx: TestContext, content: Uint8Array | string)
     update: {},
   });
   const bytes = typeof content === 'string' ? new TextEncoder().encode(content) : content;
-  const preview = await imports.preview({ ...admin, role: 'ADMIN' }, 'seed.ged', bytes);
+  const path = join(await mkdtemp(join(tmpdir(), 'seed-')), 'seed.ged');
+  await writeFile(path, bytes);
+  const preview = await imports.preview({ ...admin, role: 'ADMIN' }, { path, fileName: 'seed.ged' });
   await imports.commit(preview.id);
 }

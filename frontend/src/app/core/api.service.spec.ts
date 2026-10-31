@@ -1,4 +1,4 @@
-import { provideHttpClient } from '@angular/common/http';
+import { HttpEventType, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { person } from '../../testing/test-helpers';
@@ -65,5 +65,18 @@ describe('ApiService', () => {
     expect((request.request.body as FormData).get('file')).toBeInstanceOf(File);
     request.flush({ id: 1 });
     await promise;
+  });
+
+  it('sends the documents archive along with the GEDCOM file and reports the upload progress', async () => {
+    const progress = vi.fn();
+    const promise = api.uploadGedcom(new File(['0 HEAD'], 'arbre.ged'), new File(['PK'], 'documents.zip'), progress);
+    const request = http.expectOne({ method: 'POST', url: '/api/admin/imports' });
+    const body = request.request.body as FormData;
+    expect((body.get('file') as File).name).toBe('arbre.ged');
+    expect((body.get('media') as File).name).toBe('documents.zip');
+    request.event({ type: HttpEventType.UploadProgress, loaded: 50, total: 200 });
+    expect(progress).toHaveBeenCalledWith(0.25);
+    request.flush({ id: 1 });
+    await expect(promise).resolves.toEqual({ id: 1 });
   });
 });

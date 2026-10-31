@@ -56,6 +56,8 @@ const envSchema = z.object({
   CONTEMPORARY_PRIVACY: z.enum(['names', 'hidden']).default('names'),
   /** Contact address shown on the privacy policy page. */
   CONTACT_EMAIL: z.email().optional(),
+  /** Directory of the imported documents (default: "media" next to the database). */
+  MEDIA_DIR: z.string().optional(),
   /** Directory containing the frontend build, served statically (Docker image). */
   STATIC_DIR: z.string().optional(),
 });

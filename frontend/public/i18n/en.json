@@ -71,6 +71,12 @@
     "note": "Notes",
     "hidden": "Contemporary person"
   },
+  "media": {
+    "title": "Documents",
+    "view": "View the document “{{title}}”",
+    "openInNewTab": "Open in a new tab",
+    "missing": "{{count}} document(s) not provided"
+  },
   "sex": {
     "M": "Male",
     "F": "Female",
@@ -186,18 +192,26 @@
     "imports": {
       "title": "GEDCOM import",
       "intro": "The file is analyzed first: you can check the statistics and warnings before applying it. Applying an import replaces all tree data.",
-      "choose": "Choose a .ged file",
+      "choose": "GEDCOM file (.ged or .zip)",
+      "chooseMedia": "Documents (.zip archive)",
+      "removeMedia": "Remove the documents archive",
+      "mediaHint": "The documents archive (photos, scanned records) is optional. You can also upload a single .zip archive containing the .ged file and its documents.",
+      "analyze": "Analyze",
+      "uploading": "Uploading the file",
+      "analyzing": "File uploaded, analysis in progress…",
       "preview": "Preview",
       "stats": {
         "persons": "People",
         "families": "Families",
         "events": "Events",
         "places": "Places",
-        "dated": "Known or estimated birth"
+        "dated": "Known or estimated birth",
+        "media": "Documents"
       },
       "encoding": "Encoding",
       "declared": "declared: {{charset}}",
       "software": "Software",
+      "mediaFound": "{{found}} / {{referenced}} provided",
       "warnings": "{{count}} warning(s)",
       "ignoredTags": "Data not imported",
       "apply": "Apply",

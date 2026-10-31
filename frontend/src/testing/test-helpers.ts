@@ -25,6 +25,7 @@ export function person(overrides: Partial<PersonDto> & { id: string }): PersonDt
     unions: [],
     restricted: false,
     events: [],
+    media: [],
     ...overrides,
   };
 }

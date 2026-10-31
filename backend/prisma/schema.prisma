@@ -38,6 +38,7 @@ model Person {
   birthKeyEstimated  Boolean @default(false)
 
   events        Event[]
+  media         Media[]
   childOf       FamilyChild[]
   asPartner1    Family[]      @relation("partner1")
   asPartner2    Family[]      @relation("partner2")
@@ -58,6 +59,7 @@ model Family {
   partner2 Person?       @relation("partner2", fields: [partner2Id], references: [id], onDelete: SetNull)
   children FamilyChild[]
   events   Event[]
+  media    Media[]
 
   @@index([partner1Id])
   @@index([partner2Id])
@@ -135,6 +137,56 @@ model Place {
   @@index([searchName])
 }
 
+/// Document (photo, scanned record…) of a person or a family, replaced on each import.
+model Media {
+  id        Int     @id @default(autoincrement())
+  personId  String?
+  familyId  String?
+  /// Related event (BIRT, MARR…), if any.
+  eventType String?
+  title     String?
+  /// File name as given in the GEDCOM file.
+  fileName  String
+  /// Stored file (null when the file was not provided with the import).
+  hash      String?
+  /// Order within the person or family (GEDCOM file order).
+  position  Int     @default(0)
+
+  person Person?    @relation(fields: [personId], references: [id], onDelete: Cascade)
+  family Family?    @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  file   MediaFile? @relation(fields: [hash], references: [hash])
+
+  @@index([personId])
+  @@index([familyId])
+  @@index([hash])
+}
+
+/// File stored on disk (MEDIA_DIR), named after the SHA-256 of its content.
+model MediaFile {
+  hash      String   @id
+  size      Int
+  mimeType  String
+  createdAt DateTime @default(now())
+
+  media   Media[]
+  imports ImportFile[]
+}
+
+/// Documents provided with an import, by file name, to be linked on commit.
+model ImportFile {
+  importId Int
+  /// Lowercase file name (see mediaKey).
+  key      String
+  fileName String
+  hash     String
+
+  importRun ImportRun @relation(fields: [importId], references: [id], onDelete: Cascade)
+  file      MediaFile @relation(fields: [hash], references: [hash])
+
+  @@id([importId, key])
+  @@index([hash])
+}
+
 model ImportRun {
   id             Int       @id @default(autoincrement())
   createdAt      DateTime  @default(now())
@@ -152,7 +204,8 @@ model ImportRun {
   content        Bytes
   userId         Int?
 
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user  User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  files ImportFile[]
 }
 
 // ---------------------------------------------------------------------------

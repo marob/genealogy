@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpEventType, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import type {
   ImportDto,
@@ -10,7 +10,7 @@ import type {
   TreeInfoDto,
   UserDto,
 } from '@genealogie/shared';
-import { firstValueFrom } from 'rxjs';
+import { filter, firstValueFrom, map, tap } from 'rxjs';
 
 export type Relatives = 'parents' | 'children' | 'unions';
 
@@ -155,10 +155,28 @@ export class ApiService {
     return firstValueFrom(this.http.get<ImportDto[]>('/api/admin/imports'));
   }
 
-  uploadGedcom(file: File): Promise<ImportDto> {
+  /**
+   * Sends a GEDCOM file (or a .zip containing it and its documents) for
+   * analysis, with an optional .zip of the documents. `onProgress` receives
+   * the fraction of the upload already sent (0 to 1).
+   */
+  uploadGedcom(file: File, media?: File, onProgress?: (sent: number) => void): Promise<ImportDto> {
     const body = new FormData();
     body.append('file', file, file.name);
-    return firstValueFrom(this.http.post<ImportDto>('/api/admin/imports', body));
+    if (media) {
+      body.append('media', media, media.name);
+    }
+    return firstValueFrom(
+      this.http.post<ImportDto>('/api/admin/imports', body, { reportUploadProgress: true, observe: 'events' }).pipe(
+        tap((event) => {
+          if (event.type === HttpEventType.UploadProgress && event.total) {
+            onProgress?.(event.loaded / event.total);
+          }
+        }),
+        filter((event) => event.type === HttpEventType.Response),
+        map((event) => event.body!),
+      ),
+    );
   }
 
   async commitImport(id: number): Promise<ImportDto> {

@@ -71,6 +71,12 @@
     "note": "Notes",
     "hidden": "Personne contemporaine"
   },
+  "media": {
+    "title": "Documents",
+    "view": "Afficher le document « {{title}} »",
+    "openInNewTab": "Ouvrir dans un nouvel onglet",
+    "missing": "{{count}} document(s) non fourni(s)"
+  },
   "sex": {
     "M": "Homme",
     "F": "Femme",
@@ -186,18 +192,26 @@
     "imports": {
       "title": "Import GEDCOM",
       "intro": "Le fichier est d’abord analysé : vous pourrez vérifier les statistiques et les avertissements avant de l’appliquer. L’application d’un import remplace toutes les données de l’arbre.",
-      "choose": "Choisir un fichier .ged",
+      "choose": "Fichier GEDCOM (.ged ou .zip)",
+      "chooseMedia": "Documents (archive .zip)",
+      "removeMedia": "Retirer l’archive de documents",
+      "mediaHint": "L’archive de documents (photos, actes numérisés) est facultative. Vous pouvez aussi envoyer une seule archive .zip contenant le fichier .ged et ses documents.",
+      "analyze": "Analyser",
+      "uploading": "Envoi du fichier",
+      "analyzing": "Fichier envoyé, analyse en cours…",
       "preview": "Aperçu",
       "stats": {
         "persons": "Personnes",
         "families": "Familles",
         "events": "Événements",
         "places": "Lieux",
-        "dated": "Naissance connue ou estimée"
+        "dated": "Naissance connue ou estimée",
+        "media": "Documents"
       },
       "encoding": "Encodage",
       "declared": "déclaré : {{charset}}",
       "software": "Logiciel",
+      "mediaFound": "{{found}} / {{referenced}} fournis",
       "warnings": "{{count}} avertissement(s)",
       "ignoredTags": "Informations non importées",
       "apply": "Appliquer",

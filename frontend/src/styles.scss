@@ -271,6 +271,39 @@ input[type='checkbox'] {
   cursor: pointer;
 }
 
+.import-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+
+  .hint {
+    margin: 0;
+    font-size: 0.875rem;
+  }
+}
+
+.import-file {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.file-name {
+  overflow-wrap: anywhere;
+}
+
+.upload-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  progress {
+    width: min(20rem, 100%);
+  }
+}
+
 .preview {
   margin: 1rem 0;
   padding: 1rem;

@@ -1,7 +1,8 @@
 import { sortKey } from '@genealogie/shared';
 import { normalizeForSearch } from '../common/normalize.js';
 import type { Prisma } from '../generated/prisma/client.js';
-import type { EventRecord, GenealogyData } from '../gedcom/model.js';
+import { baseName, mediaKey } from '../gedcom/media.js';
+import type { EventRecord, GenealogyData, MediaRecord } from '../gedcom/model.js';
 
 const CHUNK_SIZE = 500;
 
@@ -42,7 +43,13 @@ function eventData(
  * Replaces all genealogy data with that of the imported file. Must be called
  * within a transaction.
  */
-export async function replaceGenealogy(tx: Prisma.TransactionClient, data: GenealogyData): Promise<void> {
+export async function replaceGenealogy(
+  tx: Prisma.TransactionClient,
+  data: GenealogyData,
+  /** Hash of the stored file of each provided document, by key (see mediaKey). */
+  files: ReadonlyMap<string, string> = new Map(),
+): Promise<void> {
+  await tx.media.deleteMany();
   await tx.event.deleteMany();
   await tx.familyChild.deleteMany();
   await tx.family.deleteMany();
@@ -122,4 +129,32 @@ export async function replaceGenealogy(tx: Prisma.TransactionClient, data: Genea
   for (const chunk of chunks(events)) {
     await tx.event.createMany({ data: chunk });
   }
+
+  const media = [
+    ...data.persons.flatMap((person) =>
+      person.media.map((m, position) => mediaData(m, position, { personId: person.id }, files)),
+    ),
+    ...data.families.flatMap((family) =>
+      family.media.map((m, position) => mediaData(m, position, { familyId: family.id }, files)),
+    ),
+  ];
+  for (const chunk of chunks(media)) {
+    await tx.media.createMany({ data: chunk });
+  }
+}
+
+function mediaData(
+  media: MediaRecord,
+  position: number,
+  owner: { personId: string } | { familyId: string },
+  files: ReadonlyMap<string, string>,
+): Prisma.MediaCreateManyInput {
+  return {
+    ...owner,
+    eventType: media.eventType ?? null,
+    title: media.title ?? null,
+    fileName: baseName(media.file),
+    hash: files.get(mediaKey(media.file)) ?? null,
+    position,
+  };
 }

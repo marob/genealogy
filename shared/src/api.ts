@@ -23,6 +23,25 @@ export interface EventDto {
   value?: string;
 }
 
+/** Document (photo, scanned record…) attached to a person or a union. */
+export interface MediaDto {
+  id: number;
+  /** File name as given in the GEDCOM file. */
+  fileName: string;
+  title?: string;
+  /** MIME type of the stored file (image/jpeg, application/pdf…). */
+  mimeType?: string;
+  /** Event the document relates to (BIRT, MARR…), if any. */
+  eventType?: string;
+  /** false if the file was not provided with the import: only its name is known. */
+  available: boolean;
+}
+
+/** URL of a document's content (only for available documents). */
+export function mediaUrl(media: Pick<MediaDto, 'id'>): string {
+  return `/api/media/${media.id}`;
+}
+
 export interface UnionDto {
   familyId: string;
   partnerId?: string;
@@ -31,6 +50,8 @@ export interface UnionDto {
   events: EventDto[];
   /** true if the union details are hidden (less than 100 years old). */
   restricted: boolean;
+  /** Documents of the union (empty if the union is hidden). */
+  media: MediaDto[];
 }
 
 export interface PersonDto {
@@ -54,6 +75,8 @@ export interface PersonDto {
    */
   hidden?: boolean;
   events: EventDto[];
+  /** Documents of the person (empty if restricted). */
+  media: MediaDto[];
   occupation?: string;
   note?: string;
 }
@@ -99,6 +122,8 @@ export interface ImportStatsDto {
   places: number;
   datedPersons: number;
   ignoredTags: Record<string, number>;
+  /** Documents referenced by the GEDCOM file, and how many were provided. */
+  media?: { referenced: number; found: number };
 }
 
 export interface ImportDto {

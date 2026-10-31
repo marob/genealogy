@@ -12,6 +12,14 @@ export interface EventRecord {
   place?: string;
 }
 
+export interface MediaRecord {
+  /** File reference as written in the GEDCOM (path of the author's computer). */
+  file: string;
+  title?: string;
+  /** Event the document is attached to (BIRT, MARR…), if any. */
+  eventType?: string;
+}
+
 export interface PersonRecord {
   id: string;
   givenNames: string;
@@ -20,6 +28,7 @@ export interface PersonRecord {
   occupation?: string;
   note?: string;
   events: EventRecord[];
+  media: MediaRecord[];
   /** Families in which the person is a child. */
   parentFamilies: { familyId: string; pedigree?: string }[];
 }
@@ -30,6 +39,7 @@ export interface FamilyRecord {
   partner2Id?: string;
   childIds: string[];
   events: EventRecord[];
+  media: MediaRecord[];
 }
 
 interface GedcomHeader {
@@ -44,6 +54,8 @@ interface ImportStats {
   places: number;
   /** Persons whose birth year is known or could be estimated. */
   datedPersons: number;
+  /** Referenced documents (OBJE files). */
+  media: number;
   /** Tags encountered but not imported, with their number of occurrences. */
   ignoredTags: Record<string, number>;
 }

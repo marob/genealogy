@@ -1,5 +1,5 @@
-import { DatePipe, DecimalPipe, KeyValuePipe } from '@angular/common';
-import { Component, computed, inject, resource, signal } from '@angular/core';
+import { DatePipe, DecimalPipe, KeyValuePipe, PercentPipe } from '@angular/common';
+import { Component, computed, inject, resource, signal, type WritableSignal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import type { ImportDto } from '@genealogie/shared';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -8,15 +8,17 @@ import { LanguageService } from '../../core/language.service';
 import { NotificationsService } from '../../core/notifications.service';
 import { valueOf } from '../../core/resources';
 import { ConfirmService } from '../../ui/confirm-dialog';
-import { iconCheck, iconDelete, iconImport } from '../../ui/icons';
+import { iconArchive, iconCheck, iconClose, iconDelete, iconImport } from '../../ui/icons';
 
 /**
  * Two-step GEDCOM import: analysis (preview, statistics, warnings), then
- * application. The history allows re-applying a previous import.
+ * application. The history allows re-applying a previous import. The
+ * documents (photos, scanned records) are sent along with the GEDCOM file,
+ * either in a separate .zip or in a single .zip containing both.
  */
 @Component({
   selector: 'app-imports-admin',
-  imports: [FaIconComponent, TranslocoPipe, DatePipe, DecimalPipe, KeyValuePipe],
+  imports: [FaIconComponent, TranslocoPipe, DatePipe, DecimalPipe, KeyValuePipe, PercentPipe],
   templateUrl: './imports-admin.html',
 })
 export class ImportsAdmin {
@@ -30,16 +32,38 @@ export class ImportsAdmin {
   protected readonly preview = signal<ImportDto | undefined>(undefined);
   protected readonly busy = signal(false);
 
-  protected async upload(input: HTMLInputElement): Promise<void> {
-    const file = input.files?.[0];
+  /** Selected GEDCOM file (or .zip with the GEDCOM file and its documents). */
+  protected readonly gedcom = signal<File | undefined>(undefined);
+  /** Selected .zip of the documents (optional). */
+  protected readonly media = signal<File | undefined>(undefined);
+  /** Fraction of the upload already sent, while uploading. */
+  protected readonly progress = signal<number | undefined>(undefined);
+
+  protected select(input: HTMLInputElement, target: WritableSignal<File | undefined>): void {
+    target.set(input.files?.[0]);
+  }
+
+  protected clearMedia(input: HTMLInputElement): void {
     input.value = '';
+    this.media.set(undefined);
+  }
+
+  protected async upload(...inputs: HTMLInputElement[]): Promise<void> {
+    const file = this.gedcom();
     if (!file) {
       return;
     }
+    this.progress.set(0);
     await this.run(async () => {
-      this.preview.set(await this.api.uploadGedcom(file));
+      this.preview.set(await this.api.uploadGedcom(file, this.media(), (sent) => this.progress.set(sent)));
       this.history.reload();
+      for (const input of inputs) {
+        input.value = '';
+      }
+      this.gedcom.set(undefined);
+      this.media.set(undefined);
     });
+    this.progress.set(undefined);
   }
 
   protected async commit(run: ImportDto): Promise<void> {
@@ -92,5 +116,5 @@ export class ImportsAdmin {
     }
   }
 
-  protected readonly icons = { iconCheck, iconDelete, iconImport };
+  protected readonly icons = { iconArchive, iconCheck, iconClose, iconDelete, iconImport };
 }

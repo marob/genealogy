@@ -39,6 +39,7 @@ describe('Strict privacy mode (CONTEMPORARY_PRIVACY=hidden)', () => {
       unions: [],
       restricted: true,
       events: [],
+      media: [],
     });
   });
 

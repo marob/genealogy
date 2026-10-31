@@ -96,6 +96,7 @@ describe('Browsing persons', () => {
         unions: [],
         restricted: true,
         events: [],
+        media: [],
       });
     });
 

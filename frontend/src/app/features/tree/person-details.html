@@ -1,5 +1,15 @@
 @let p = person();
 <header>
+  @if (portrait(); as image) {
+    <button
+      type="button"
+      class="portrait"
+      [attr.aria-label]="'media.view' | transloco: { title: image.title || image.fileName }"
+      (click)="openPortrait(image)"
+    >
+      <img [src]="mediaUrl(image)" alt="" />
+    </button>
+  }
   <h2>
     <fa-icon
       class="sex"
@@ -56,6 +66,11 @@
   </ul>
 }
 
+@if (hasMedia(p.media)) {
+  <h3><fa-icon [icon]="icons.iconDocuments" /> {{ 'media.title' | transloco }}</h3>
+  <app-media-list [media]="p.media" />
+}
+
 @if (p.fatherId || p.motherId) {
   <h3>{{ 'person.parents' | transloco }}</h3>
   <ul class="links">
@@ -98,6 +113,10 @@
       </li>
     }
   </ul>
+  @if (hasMedia(union.media)) {
+    <h4><fa-icon [icon]="icons.iconDocuments" /> {{ 'media.title' | transloco }}</h4>
+    <app-media-list [media]="union.media" />
+  }
   @if (union.childIds.length) {
     <h4><fa-icon [icon]="icons.iconFamily" /> {{ 'person.children' | transloco }}</h4>
     <ul class="links">

@@ -107,12 +107,12 @@ describe('Import GEDCOM (/api/admin/imports)', () => {
     await ctx.prisma.person.updateMany({ data: { birthKey: 18_000_101 } });
     await ctx.prisma.setting.upsert({
       where: { key: 'derivedDataVersion' },
-      create: { key: 'derivedDataVersion', value: '1' },
-      update: { value: '1' },
+      create: { key: 'derivedDataVersion', value: '0' },
+      update: { value: '0' },
     });
     await ctx.app.get(ImportsService).onApplicationBootstrap();
     // Louise: recomputed from her 1905 marriage.
     expect((await ctx.prisma.person.findUniqueOrThrow({ where: { id: 'I5' } })).birthKey).toBe(19_051_231);
-    expect((await ctx.prisma.setting.findUniqueOrThrow({ where: { key: 'derivedDataVersion' } })).value).toBe('2');
+    expect((await ctx.prisma.setting.findUniqueOrThrow({ where: { key: 'derivedDataVersion' } })).value).toBe('3');
   });
 });

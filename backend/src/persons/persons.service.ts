@@ -227,6 +227,38 @@ export class PersonsService {
       .sort((a, b) => normalizeForSearch(a.surname).localeCompare(normalizeForSearch(b.surname)));
   }
 
+  /**
+   * Stored file of a document, if the user may see it: same rule as the
+   * details of its person or union. Otherwise "not found", so as not to
+   * reveal that it exists.
+   */
+  async mediaFile(
+    id: number,
+    user: AuthUser | undefined,
+  ): Promise<{ hash: string; mimeType: string; size: number; fileName: string }> {
+    const media = await this.prisma.media.findUnique({
+      where: { id },
+      include: {
+        file: true,
+        person: { select: { birthKey: true } },
+        family: { include: { events: true, partner1: true, partner2: true } },
+      },
+    });
+    const policy = this.policy(user);
+    const family = media?.family;
+    const personHidden = !!media?.person && policy.isPersonRestricted(media.person.birthKey);
+    const familyHidden =
+      !!family &&
+      policy.isUnionRestricted(
+        [family.partner1, family.partner2].flatMap((partner) => (partner ? [partner.birthKey] : [])),
+        family.events,
+      );
+    if (!media?.file || personHidden || familyHidden) {
+      throw new NotFoundException('Document not found.');
+    }
+    return { hash: media.file.hash, mimeType: media.file.mimeType, size: media.file.size, fileName: media.fileName };
+  }
+
   /** Tree root: the logged-in user's root if it still exists, otherwise the shared root. */
   async treeInfo(user?: AuthUser): Promise<TreeInfoDto> {
     const [globalRootPersonId, persons, account] = await Promise.all([

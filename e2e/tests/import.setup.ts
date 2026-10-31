@@ -7,7 +7,8 @@ setup('imports a GEDCOM file from the admin page', async ({ page }) => {
   await page.goto('/admin');
   await expect(page.getByRole('heading', { name: 'Import GEDCOM' })).toBeVisible();
 
-  await page.locator('input[type="file"]').setInputFiles(fixture);
+  await page.locator('input[type="file"]').first().setInputFiles(fixture);
+  await page.getByRole('button', { name: 'Analyser' }).click();
   const preview = page.getByRole('region', { name: 'Aperçu' });
   await expect(preview).toContainText('famille-martin.ged');
   await expect(preview).toContainText('Heredis 2024');

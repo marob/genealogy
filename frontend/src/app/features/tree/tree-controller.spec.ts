@@ -12,13 +12,13 @@ const family: Record<string, PersonDto> = {
   I0: person({
     id: 'I0',
     givenNames: 'Pierre',
-    unions: [{ familyId: 'F0', childIds: ['I1'], events: [], restricted: false }],
+    unions: [{ familyId: 'F0', childIds: ['I1'], events: [], restricted: false, media: [] }],
   }),
   I1: person({
     id: 'I1',
     givenNames: 'Émile',
     fatherId: 'I0',
-    unions: [{ familyId: 'F1', partnerId: 'I2', childIds: ['I3', 'I4'], events: [], restricted: false }],
+    unions: [{ familyId: 'F1', partnerId: 'I2', childIds: ['I3', 'I4'], events: [], restricted: false, media: [] }],
   }),
   I2: person({ id: 'I2', givenNames: 'Hélène', sex: 'F' }),
   I3: person({ id: 'I3', givenNames: 'François', fatherId: 'I1', motherId: 'I2' }),

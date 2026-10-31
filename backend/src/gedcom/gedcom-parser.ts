@@ -3,7 +3,9 @@ import { estimateBirthKeys } from './birth-estimation.js';
 import { parseGedcomDate } from './dates.js';
 import { type DecodedGedcom, decodeGedcom } from './encoding.js';
 import { child, childValue, children, type GedcomNode, parseLines, pointer } from './lines.js';
-import type { EventRecord, FamilyRecord, GenealogyData, PersonRecord } from './model.js';
+import { mediaKey } from './media.js';
+import { noteText } from './notes.js';
+import type { EventRecord, FamilyRecord, GenealogyData, MediaRecord, PersonRecord } from './model.js';
 import { type ParsedPlace, parsePlace, parsePlaceForm } from './places.js';
 
 /**
@@ -58,11 +60,39 @@ const FAMILY_EVENT_TAGS = new Set([
   'RESI',
 ]);
 /** Tags deliberately not imported for now (no individual warning). */
-const PERSON_HANDLED_TAGS = new Set(['NAME', 'SEX', 'FAMC', 'FAMS', 'NOTE', 'CHAN', 'RIN', 'UID', '_UID', 'REFN']);
-const FAMILY_HANDLED_TAGS = new Set(['HUSB', 'WIFE', 'CHIL', 'NOTE', 'CHAN', 'RIN', 'UID', '_UID', 'REFN', 'NCHI']);
+/** Containers of documents: standard OBJE, and the _IMAGE / _DOC tags of Généatique. */
+const MEDIA_TAGS = new Set(['OBJE', '_IMAGE', '_DOC']);
+const PERSON_HANDLED_TAGS = new Set([
+  'NAME',
+  'SEX',
+  'FAMC',
+  'FAMS',
+  'NOTE',
+  'CHAN',
+  'RIN',
+  'UID',
+  '_UID',
+  'REFN',
+  ...MEDIA_TAGS,
+]);
+const FAMILY_HANDLED_TAGS = new Set([
+  'HUSB',
+  'WIFE',
+  'CHIL',
+  'NOTE',
+  'CHAN',
+  'RIN',
+  'UID',
+  '_UID',
+  'REFN',
+  'NCHI',
+  ...MEDIA_TAGS,
+]);
 
 interface Context {
   notes: Map<string, string>;
+  /** Top-level OBJE records, referenced by pointer. */
+  objects: Map<string, GedcomNode>;
   placeForm: ReturnType<typeof parsePlaceForm>;
   places: Map<string, ParsedPlace>;
   warnings: string[];
@@ -77,7 +107,8 @@ function readNotes(node: GedcomNode, ctx: Context): string | undefined {
   const notes = children(node, 'NOTE')
     .map((note) => {
       const ref = pointer(note.value);
-      return (ref ? ctx.notes.get(ref) : note.value)?.trim();
+      const text = ref ? ctx.notes.get(ref) : note.value;
+      return text === undefined ? undefined : noteText(text);
     })
     .filter((note): note is string => !!note);
   return notes.length ? notes.join('\n\n') : undefined;
@@ -115,6 +146,42 @@ function readEvent(node: GedcomNode, ctx: Context): EventRecord {
   return event;
 }
 
+/**
+ * Documents of a record: every OBJE in its subtree (directly, under an event,
+ * or under a custom container such as _IMAGE), one per FILE, without duplicates.
+ */
+function readMedia(node: GedcomNode, eventTags: Set<string>, ctx: Context): MediaRecord[] {
+  const media: MediaRecord[] = [];
+  const seen = new Set<string>();
+  const visit = (parent: GedcomNode, eventType: string | undefined): void => {
+    for (const sub of parent.children) {
+      if (sub.tag === 'OBJE') {
+        const ref = pointer(sub.value);
+        const object = ref ? ctx.objects.get(ref) : sub;
+        if (!object) {
+          ctx.warnings.push(`Document ${ref ?? ''} referenced but not defined (line ${sub.line}).`);
+          continue;
+        }
+        const title = childValue(object, 'TITL')?.trim();
+        for (const fileNode of children(object, 'FILE')) {
+          const file = fileNode.value.trim();
+          const key = mediaKey(file);
+          if (!key || seen.has(key)) {
+            continue;
+          }
+          seen.add(key);
+          const fileTitle = childValue(fileNode, 'TITL')?.trim() ?? title;
+          media.push({ file, ...(fileTitle ? { title: fileTitle } : {}), ...(eventType ? { eventType } : {}) });
+        }
+      } else if (sub.tag !== 'NOTE') {
+        visit(sub, eventTags.has(sub.tag) ? sub.tag : eventType);
+      }
+    }
+  };
+  visit(node, undefined);
+  return media;
+}
+
 function readName(node: GedcomNode): { givenNames: string; surname: string } {
   const nameNode = child(node, 'NAME');
   const raw = nameNode?.value ?? '';
@@ -141,6 +208,7 @@ function readPerson(node: GedcomNode, ctx: Context): PersonRecord {
     ...readName(node),
     sex: readSex(childValue(node, 'SEX')),
     events: [],
+    media: readMedia(node, PERSON_EVENT_TAGS, ctx),
     parentFamilies: children(node, 'FAMC')
       .map((famc) => ({ familyId: pointer(famc.value), pedigree: childValue(famc, 'PEDI')?.toLowerCase() }))
       .filter((famc): famc is { familyId: string; pedigree: string | undefined } => !!famc.familyId)
@@ -171,6 +239,7 @@ function readFamily(node: GedcomNode, ctx: Context): FamilyRecord {
       .map((chil) => pointer(chil.value))
       .filter((id): id is string => !!id),
     events: [],
+    media: readMedia(node, FAMILY_EVENT_TAGS, ctx),
   };
   const partner1Id = pointer(childValue(node, 'HUSB'));
   const partner2Id = pointer(childValue(node, 'WIFE'));
@@ -287,6 +356,7 @@ export function parseGedcom(bytes: Uint8Array): ParseResult {
   }
   const ctx: Context = {
     notes: new Map(records.filter((r) => r.tag === 'NOTE' && r.xref).map((r) => [r.xref!, r.value])),
+    objects: new Map(records.filter((r) => r.tag === 'OBJE' && r.xref).map((r) => [r.xref!, r])),
     placeForm: parsePlaceForm(childValue(child(head, 'PLAC'), 'FORM')),
     places: new Map(),
     warnings,
@@ -346,6 +416,7 @@ export function parseGedcom(bytes: Uint8Array): ParseResult {
       events: persons.reduce((n, p) => n + p.events.length, 0) + families.reduce((n, f) => n + f.events.length, 0),
       places: ctx.places.size,
       datedPersons: birthKeys.size,
+      media: persons.reduce((n, p) => n + p.media.length, 0) + families.reduce((n, f) => n + f.media.length, 0),
       ignoredTags: ctx.ignoredTags,
     },
   };

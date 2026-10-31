@@ -37,6 +37,21 @@ export class PrivacyPolicy {
     return !this.canSeeContemporary && this.isContemporary(birthKey);
   }
 
+  /**
+   * The details of a union (events, documents) are hidden if a partner or
+   * one of its events is contemporary.
+   */
+  isUnionRestricted(
+    partnerBirthKeys: (number | null | undefined)[],
+    events: { dateQualifier: string | null; dateSortKey: number | null; dateEndSortKey: number | null }[],
+  ): boolean {
+    return (
+      !this.canSeeContemporary &&
+      (partnerBirthKeys.some((key) => this.isContemporary(key)) ||
+        events.some((event) => this.isContemporary(PrivacyPolicy.eventKey(event) ?? 0)))
+    );
+  }
+
   isIdentityHidden(birthKey: number | null | undefined): boolean {
     return this.hideIdentity && this.isPersonRestricted(birthKey);
   }

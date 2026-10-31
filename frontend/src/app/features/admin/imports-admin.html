@@ -2,12 +2,66 @@
   <h2>{{ 'admin.imports.title' | transloco }}</h2>
   <p class="muted">{{ 'admin.imports.intro' | transloco }}</p>
 
-  <label class="btn btn-primary file-button" [class.disabled]="busy()">
-    <fa-icon [icon]="icons.iconImport" />
-    {{ 'admin.imports.choose' | transloco }}
-    <input #file type="file" accept=".ged,.GED,.gedcom" [disabled]="busy()" (change)="upload(file)" hidden />
-  </label>
-  @if (busy()) {
+  <div class="import-form">
+    <div class="import-file">
+      <label class="btn file-button" [class.disabled]="busy()">
+        <fa-icon [icon]="icons.iconImport" />
+        {{ 'admin.imports.choose' | transloco }}
+        <input
+          #fileInput
+          type="file"
+          accept=".ged,.GED,.gedcom,.zip"
+          [disabled]="busy()"
+          (change)="select(fileInput, gedcom)"
+          hidden
+        />
+      </label>
+      @if (gedcom(); as selected) {
+        <span class="file-name">{{ selected.name }}</span>
+      }
+    </div>
+    <div class="import-file">
+      <label class="btn file-button" [class.disabled]="busy()">
+        <fa-icon [icon]="icons.iconArchive" />
+        {{ 'admin.imports.chooseMedia' | transloco }}
+        <input #mediaInput type="file" accept=".zip" [disabled]="busy()" (change)="select(mediaInput, media)" hidden />
+      </label>
+      @if (media(); as selected) {
+        <span class="file-name">{{ selected.name }}</span>
+        <button
+          type="button"
+          class="btn-icon"
+          [disabled]="busy()"
+          [attr.aria-label]="'admin.imports.removeMedia' | transloco"
+          (click)="clearMedia(mediaInput)"
+        >
+          <fa-icon [icon]="icons.iconClose" />
+        </button>
+      }
+    </div>
+    <p class="muted hint">{{ 'admin.imports.mediaHint' | transloco }}</p>
+    <div>
+      <button
+        type="button"
+        class="btn btn-primary"
+        [disabled]="busy() || !gedcom()"
+        (click)="upload(fileInput, mediaInput)"
+      >
+        {{ 'admin.imports.analyze' | transloco }}
+      </button>
+    </div>
+  </div>
+  @let sent = progress();
+  @if (sent !== undefined) {
+    @if (sent < 1) {
+      <div class="upload-progress">
+        <progress max="1" [value]="sent" [attr.aria-label]="'admin.imports.uploading' | transloco"></progress>
+        <output class="muted">{{ sent | percent: '1.0-0' : lang() }}</output>
+      </div>
+    } @else {
+      <output class="muted">{{ 'admin.imports.analyzing' | transloco }}</output>
+    }
+  } @else if (busy()) {
     <output class="muted">{{ 'common.loading' | transloco }}</output>
   }
 
@@ -34,6 +88,19 @@
             <span class="muted">({{ 'admin.imports.declared' | transloco: { charset: run.declaredCharset } }})</span>
           }
         </dd>
+        @if (run.stats.media; as documents) {
+          <dt>{{ 'admin.imports.stats.media' | transloco }}</dt>
+          <dd>
+            {{
+              'admin.imports.mediaFound'
+                | transloco
+                  : {
+                      found: (documents.found | number: '1.0-0' : lang()),
+                      referenced: (documents.referenced | number: '1.0-0' : lang()),
+                    }
+            }}
+          </dd>
+        }
         @if (run.sourceSoftware) {
           <dt>{{ 'admin.imports.software' | transloco }}</dt>
           <dd>{{ run.sourceSoftware }} — GEDCOM {{ run.gedcomVersion }}</dd>
@@ -80,6 +147,7 @@
           <th scope="col">{{ 'admin.imports.file' | transloco }}</th>
           <th scope="col">{{ 'admin.imports.date' | transloco }}</th>
           <th scope="col">{{ 'admin.imports.stats.persons' | transloco }}</th>
+          <th scope="col">{{ 'admin.imports.stats.media' | transloco }}</th>
           <th scope="col">{{ 'admin.imports.status' | transloco }}</th>
           <th scope="col">
             <span class="sr-only">{{ 'common.actions' | transloco }}</span>
@@ -92,6 +160,11 @@
             <td>{{ run.fileName }}</td>
             <td>{{ run.createdAt | date: 'short' : undefined : lang() }}</td>
             <td>{{ run.stats.persons | number: '1.0-0' : lang() }}</td>
+            <td>
+              @if (run.stats.media; as documents) {
+                {{ documents.found | number: '1.0-0' : lang() }} / {{ documents.referenced | number: '1.0-0' : lang() }}
+              }
+            </td>
             <td>
               @if (run.current) {
                 <span class="badge badge-success">{{ 'admin.imports.current' | transloco }}</span>
@@ -119,9 +192,9 @@
         } @empty {
           <tr>
             @if (history.error()) {
-              <td colspan="5" class="error">{{ 'common.error' | transloco }}</td>
+              <td colspan="6" class="error">{{ 'common.error' | transloco }}</td>
             } @else {
-              <td colspan="5" class="muted">{{ 'admin.imports.none' | transloco }}</td>
+              <td colspan="6" class="muted">{{ 'admin.imports.none' | transloco }}</td>
             }
           </tr>
         }

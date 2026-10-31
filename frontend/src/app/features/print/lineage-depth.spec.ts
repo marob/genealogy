@@ -2,7 +2,7 @@ import { person } from '../../../testing/test-helpers';
 import { lineageDepth } from './lineage-depth';
 
 describe('lineageDepth', () => {
-  const union = (childIds: string[]) => ({ familyId: 'F', childIds, events: [], restricted: false });
+  const union = (childIds: string[]) => ({ familyId: 'F', childIds, events: [], restricted: false, media: [] });
 
   it('counts the generations of ancestors and descendants', () => {
     const people = [

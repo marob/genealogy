@@ -1,0 +1,44 @@
+@if (images().length) {
+  <ul class="thumbnails">
+    @for (image of images(); track image.id) {
+      <li>
+        <button
+          type="button"
+          class="thumbnail"
+          [attr.aria-label]="'media.view' | transloco: { title: image.title || image.fileName }"
+          (click)="open($index)"
+        >
+          <img loading="lazy" [src]="url(image)" [alt]="image.title || image.fileName" />
+        </button>
+        @if (image.eventType) {
+          <span class="event muted">{{ 'events.' + image.eventType | transloco }}</span>
+        }
+      </li>
+    }
+  </ul>
+}
+
+@if (files().length) {
+  <ul class="files">
+    @for (file of files(); track file.id) {
+      <li>
+        <fa-icon [icon]="fileIcon(file)" />
+        <a [href]="url(file)" target="_blank" rel="noopener">{{ file.title || file.fileName }}</a>
+        @if (file.eventType) {
+          <span class="muted"> — {{ 'events.' + file.eventType | transloco }}</span>
+        }
+      </li>
+    }
+  </ul>
+}
+
+@if (session.isAdmin() && missing().length) {
+  <details class="missing muted">
+    <summary>{{ 'media.missing' | transloco: { count: missing().length } }}</summary>
+    <ul>
+      @for (item of missing(); track item.id) {
+        <li>{{ item.fileName }}</li>
+      }
+    </ul>
+  </details>
+}
