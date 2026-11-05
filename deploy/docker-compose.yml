@@ -8,6 +8,13 @@ services:
     ports:
       - '127.0.0.1:3100:3000'
     env_file: .env
+    # Sized for a small server (1 GB of RAM): measured at about 180 MB at rest
+    # and 380 MB at the peak of an import with its documents.
+    environment:
+      NODE_OPTIONS: --max-old-space-size=192
+      MALLOC_ARENA_MAX: '2'
+      VIPS_CONCURRENCY: '1'
+    mem_limit: 600m
     volumes:
       - genealogie-data:/data
     restart: unless-stopped
