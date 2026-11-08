@@ -400,6 +400,10 @@ export function parseGedcom(bytes: Uint8Array): ParseResult {
   if (gedcomVersion) {
     header.gedcomVersion = gedcomVersion;
   }
+  const placeForm = childValue(child(head, 'PLAC'), 'FORM')?.trim();
+  if (placeForm) {
+    header.placeForm = placeForm;
+  }
 
   const { text: _text, ...decodedInfo } = decoded;
   return {

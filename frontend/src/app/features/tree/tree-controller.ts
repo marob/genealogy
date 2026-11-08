@@ -121,7 +121,74 @@ export class TreeController {
     }
   }
 
-  focus(person: PersonDto): void {
+  /**
+   * Reloads the displayed people from the server (e.g. after a proposal,
+   * which changes the data returned to its author), keeping the root, the
+   * expanded relatives and the view; the selected person is refreshed.
+   * `expand`: relatives to show in addition (e.g. the parents just proposed).
+   */
+  async reload(expand?: { personId: string; direction: 'parents' | 'children' }): Promise<void> {
+    const previous = this.root();
+    if (!previous) {
+      return;
+    }
+    const request = ++this.request;
+    const current = () => request === this.request;
+    this.api.clearCache();
+    this.loading.set(true);
+    try {
+      const person = await this.api.person(previous.person.id, ['parents', 'children', 'unions']);
+      if (!current()) {
+        return;
+      }
+      if (!person) {
+        this.notFound.set(true);
+        this.root.set(undefined);
+        return;
+      }
+      const root = new TreeNode(person, previous.uid);
+      await Promise.all([this.restore(previous, root), this.showPartners(root)]);
+      if (expand) {
+        await this.expandShown(root, expand.personId, expand.direction);
+      }
+      const selected = this.selected();
+      // A withdrawn proposed person no longer exists: their record closes.
+      const refreshed =
+        selected &&
+        (await this.api.person(selected.id).catch((error: unknown) => {
+          if (isNotFound(error)) {
+            return undefined;
+          }
+          throw error;
+        }));
+      if (!current()) {
+        return;
+      }
+      // The root card stays still on screen.
+      this.beforeChange?.(previous);
+      this.root.set(root);
+      if (selected && this.selected() === selected) {
+        this.selected.set(refreshed);
+      }
+    } catch (error) {
+      if (!current()) {
+        return;
+      }
+      if (isNotFound(error)) {
+        // The root was a proposed person, withdrawn meanwhile.
+        this.root.set(undefined);
+        this.notFound.set(true);
+      } else {
+        this.notifications.error(error);
+      }
+    } finally {
+      if (current()) {
+        this.loading.set(false);
+      }
+    }
+  }
+
+  focus(person: Pick<PersonDto, 'id'>): void {
     void this.router.navigate(['/tree', person.id]);
   }
 
@@ -228,6 +295,37 @@ export class TreeController {
       children.map((child) => this.expandChildren(child, depth - 1, new Set(path).add(child.person.id), budget)),
     );
     node.children.set(children.length ? children : undefined);
+  }
+
+  /** Shows the parents or children of the displayed nodes of a person, if hidden. */
+  private async expandShown(node: TreeNode, personId: string, direction: 'parents' | 'children'): Promise<void> {
+    if (node.person.id === personId && !node[direction]()) {
+      await (direction === 'parents' ? this.showParents(node) : this.showChildren(node));
+      return;
+    }
+    await Promise.all(
+      [...(node.parents() ?? []), ...(node.children() ?? [])].map((next) =>
+        this.expandShown(next, personId, direction),
+      ),
+    );
+  }
+
+  /** Expands the relatives of `node` that were expanded in `previous`. */
+  private async restore(previous: TreeNode, node: TreeNode): Promise<void> {
+    const expand = async (direction: 'parents' | 'children'): Promise<void> => {
+      const shown = previous[direction]();
+      if (!shown) {
+        return;
+      }
+      await (direction === 'parents' ? this.showParents(node) : this.showChildren(node));
+      await Promise.all(
+        (node[direction]() ?? []).flatMap((next) => {
+          const before = shown.find((old) => old.person.id === next.person.id);
+          return before ? [this.restore(before, next)] : [];
+        }),
+      );
+    };
+    await Promise.all([expand('parents'), expand('children')]);
   }
 
   private async showParents(node: TreeNode): Promise<void> {

@@ -31,6 +31,10 @@
   box-shadow: var(--shadow-md);
 }
 
+:host(.proposed-new) {
+  border-style: dashed;
+}
+
 .content {
   display: flex;
   flex-direction: column;
@@ -104,4 +108,14 @@
 .muted {
   color: var(--text-muted);
   font-style: italic;
+}
+
+/* The current user's proposals, not yet integrated (hidden when printing). */
+.proposal-badge {
+  padding: 0 0.4rem;
+  border: 1px solid var(--warning);
+  border-radius: 999px;
+  color: var(--warning);
+  font-size: 0.75rem;
+  white-space: nowrap;
 }

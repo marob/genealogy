@@ -8,6 +8,7 @@ import { validateEnv } from './config/env.js';
 import { HealthController } from './health/health.controller.js';
 import { ImportsModule } from './imports/imports.module.js';
 import { PersonsModule } from './persons/persons.module.js';
+import { ContributionsModule } from './contributions/contributions.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 
 /** In production (Docker image), the backend also serves the frontend build. */
@@ -53,6 +54,7 @@ function withoutAuthQuery(req: { url?: string; query?: unknown }): unknown {
     AuthModule,
     ImportsModule,
     PersonsModule,
+    ContributionsModule,
     ...staticModules(),
   ],
   controllers: [HealthController],

@@ -13,8 +13,9 @@ import type { AuthUser } from '../auth/auth-user.js';
 import { parseGedcom } from '../gedcom/gedcom-parser.js';
 import type { ImportRun } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { ROOT_PERSON_KEY, SettingsService } from '../settings/settings.service.js';
+import { PLACE_FORM_KEY, ROOT_PERSON_KEY, SettingsService } from '../settings/settings.service.js';
 import { baseName, mediaKey, mimeTypeOf } from '../gedcom/media.js';
+import { ContributionsService } from '../contributions/contributions.service.js';
 import { MediaStore } from '../media/media-store.service.js';
 import { type ArchiveEntry, isZip, openZip } from '../media/zip-archive.js';
 import { replaceGenealogy } from './genealogy-writer.js';
@@ -92,6 +93,7 @@ export class ImportsService implements OnApplicationBootstrap {
     private readonly prisma: PrismaService,
     private readonly settings: SettingsService,
     private readonly mediaStore: MediaStore,
+    private readonly contributions: ContributionsService,
   ) {}
 
   /** Recomputes the derived data when the rules changed since the last import. */
@@ -291,6 +293,11 @@ export class ImportsService implements OnApplicationBootstrap {
     );
 
     await this.mediaStore.collectGarbage();
+    if (data.header.placeForm) {
+      await this.settings.set(PLACE_FORM_KEY, data.header.placeForm);
+    }
+    // Contributions now present in the genealogy software's data.
+    await this.contributions.reconcile();
     const rootId = await this.settings.get(ROOT_PERSON_KEY);
     if (!rootId || !data.persons.some((person) => person.id === rootId)) {
       await this.settings.set(ROOT_PERSON_KEY, data.persons[0]!.id);

@@ -2,7 +2,8 @@
   "app": {
     "title": "Genealogy",
     "devBypass": "Dev mode",
-    "devBypassHint": "Authentication disabled: everyone is an administrator."
+    "devBypassHint": "Authentication disabled: everyone is an administrator.",
+    "devAccount": "Test account"
   },
   "nav": {
     "skip": "Skip to content",
@@ -183,6 +184,107 @@
       "given-first": "Given names SURNAME"
     }
   },
+  "contributions": {
+    "propose": "Suggest a change",
+    "proposeHint": "Your suggestions are reviewed by an administrator before being added to the genealogy.",
+    "edit": "Correct the record",
+    "addRelative": "Add a relative",
+    "addMedia": "Add a document",
+    "editTitle": "Correct the record of {{name}}",
+    "editIntro": "Change the information to correct: only the changes will be sent.",
+    "addRelativeTitle": "Add a relative of {{name}}",
+    "addMediaTitle": "Add a document for {{name}}",
+    "relation": "Relationship",
+    "relations": {
+      "child": "Child",
+      "parent": "Parent",
+      "spouse": "Spouse",
+      "parents": "Parents"
+    },
+    "newRelative": {
+      "child": "New child",
+      "parent": "New parent",
+      "spouse": "New spouse"
+    },
+    "unknownPartner": "Unknown partner",
+    "fields": {
+      "givenNames": "Given names",
+      "surname": "Surname",
+      "sex": "Sex",
+      "occupation": "Occupation",
+      "birthDate": "Date of birth",
+      "birthPlace": "Place of birth",
+      "deathDate": "Date of death",
+      "deathPlace": "Place of death",
+      "marriageDate": "Marriage date",
+      "marriagePlace": "Marriage place"
+    },
+    "dateHint": "Accepted formats: 12/03/1850 (day/month/year), 03/1850, 1850, vers 1850, avant 1850, après 1850, entre 1850 et 1855, ABT 1850",
+    "comment": "Comment",
+    "commentHint": "Source, explanation… (optional)",
+    "file": "File (image or PDF)",
+    "documentTitle": "Title",
+    "submit": "Send the suggestion",
+    "thanks": "Thank you! Your suggestion will be reviewed by an administrator.",
+    "labelled": "{{label}}:",
+    "cleared": "cleared",
+    "none": "not given",
+    "kinds": {
+      "edit": "Correction",
+      "add-person": "New relative",
+      "add-media": "Document",
+      "edit-union": "Union"
+    },
+    "status": {
+      "pending": "Pending",
+      "approved": "Accepted",
+      "rejected": "Rejected",
+      "exported": "Sent",
+      "integrated": "Integrated"
+    },
+    "mine": {
+      "title": "My contributions",
+      "intro": "The changes you suggested from the records of people. Once accepted, they are sent to the genealogy manager, then appear on the site after the next update.",
+      "none": "You have not suggested any change yet.",
+      "withdraw": "Withdraw",
+      "withdrawTitle": "Withdraw this suggestion?",
+      "withdrawMessage": "It will not be reviewed.",
+      "withdrawn": "Suggestion withdrawn."
+    },
+    "overlay": {
+      "badgeNew": "Proposed",
+      "badgeEdited": "Edited",
+      "pendingTooltip": "Proposal awaiting review",
+      "acceptedTooltip": "Proposal accepted, waiting to be added to Généatique",
+      "newPending": "Person you proposed — awaiting review.",
+      "newAccepted": "Person you proposed — accepted, waiting to be added to Généatique.",
+      "editPending": "Some information comes from your proposals, awaiting review.",
+      "editAccepted": "Some information comes from your proposals, accepted and waiting to be added to Généatique.",
+      "pendingMarker": "pending",
+      "acceptedMarker": "accepted",
+      "withdrawTitle": "Withdraw your proposal?",
+      "withdrawNew": "This person will be withdrawn, with your pending proposals about them (parents, children, union, documents…).",
+      "withdrawEdit": "The values you proposed for this record will be withdrawn.",
+      "withdrawUnion": "The details you proposed for this union will be withdrawn.",
+      "withdrawNewButton": "Withdraw this person",
+      "withdrawEditButton": "Withdraw my changes",
+      "withdrawUnionButton": "Withdraw the proposed details"
+    },
+    "otherParent": "Other parent",
+    "noOtherParent": "Unknown",
+    "unionDetails": "Union",
+    "parentsIntro": "Fill in one parent or both: they will form a couple, whose union you can describe.",
+    "father": "Father",
+    "mother": "Mother",
+    "knownParent": "Already known: {{name}}",
+    "parentsUnion": "Union of the parents",
+    "editUnion": "Complete the union",
+    "editUnionTitle": "Union of {{name}} and {{partner}}",
+    "editUnionTitleAlone": "Union of {{name}}",
+    "sharedChildren": "Other parent of",
+    "newUnion": "No children in common (new union)",
+    "noChildren": "Union without children or partner"
+  },
   "roles": {
     "ADMIN": "Administrator",
     "MEMBER": "Member"
@@ -247,6 +349,28 @@
       "roleOf": "Role of {{name}}",
       "contemporaryOf": "{{name}} sees contemporaries",
       "deleteUser": "Delete {{name}}"
+    },
+    "contributions": {
+      "title": "Contributions",
+      "export": "Export for Généatique ({{count}})",
+      "exportHint": "The export is a .zip file containing the accepted contributions as a GEDCOM file, with their documents. In Généatique, import it as a new genealogy, then use “ajout des fiches d’un autre arbre” (add the records of another tree) and merge the duplicates. Contributions are marked “Integrated” automatically when a later import of the genealogy contains them.",
+      "exported": "{{count}} contribution(s) exported.",
+      "filter": "Status",
+      "all": "All",
+      "none": "No contributions.",
+      "deletedAuthor": "Deleted account",
+      "field": "Field",
+      "current": "Current value",
+      "proposed": "Suggested value",
+      "approve": "Accept",
+      "reject": "Reject",
+      "approved": "Contribution accepted.",
+      "rejected": "Contribution rejected.",
+      "rejectTitle": "Reject this contribution?",
+      "rejectMessage": "The suggestion about {{person}} will be rejected and not exported.",
+      "withPartner": "with",
+      "documentDeleted": "Document \"{{name}}\" deleted (proposal rejected).",
+      "unionWith": "Union with"
     }
   },
   "print": {

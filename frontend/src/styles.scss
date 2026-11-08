@@ -265,6 +265,16 @@ input[type='checkbox'] {
   background: color-mix(in srgb, var(--warning) 15%, transparent);
 }
 
+.badge-danger {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 15%, transparent);
+}
+
+.badge-info {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
 .muted {
   color: var(--text-muted);
 }
@@ -476,13 +486,26 @@ input[type='checkbox'] {
   color: var(--text-muted);
 }
 
-/* Portraits of the tree cards: not in the print layouts (fixed card sizes). */
+/*
+ * Portraits and proposal markers of the tree cards: not in the print layouts
+ * (fixed card sizes; proposals are not part of the genealogy).
+ */
 .print-area .person-card .portrait,
-.tile-content .person-card .portrait {
+.tile-content .person-card .portrait,
+.print-area .person-card .proposal-badge,
+.tile-content .person-card .proposal-badge {
   display: none;
 }
+.print-area .person-card.proposed-new,
+.tile-content .person-card.proposed-new {
+  border-style: solid;
+}
 @media print {
-  .person-card .portrait {
+  .person-card .portrait,
+  .person-card .proposal-badge {
     display: none;
+  }
+  .person-card.proposed-new {
+    border-style: solid;
   }
 }

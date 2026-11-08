@@ -21,6 +21,7 @@ import { PersonName } from '../../ui/person-name';
   host: {
     '[class]': '"person-card part-" + part() + " sex-" + person().sex',
     '[class.restricted]': 'person().restricted',
+    '[class.proposed-new]': '!!person().proposal?.isNew',
   },
 })
 export class PersonCard {
@@ -42,6 +43,21 @@ export class PersonCard {
       { key: 'CHR', event: find('CHR', 'BAPM') },
       { key: 'DEAT', event: find('DEAT') ?? find('BURI') ?? find('CREM') },
     ].flatMap(({ key, event }) => (event ? [{ key, event, icon: eventIcon(event.type) }] : []));
+  });
+
+  /** Marker of the current user's proposals not yet integrated (not printed). */
+  protected readonly proposal = computed(() => {
+    const proposal = this.person().proposal;
+    if (!proposal) {
+      return undefined;
+    }
+    return {
+      label: proposal.isNew ? 'contributions.overlay.badgeNew' : 'contributions.overlay.badgeEdited',
+      tooltip:
+        proposal.status === 'pending'
+          ? 'contributions.overlay.pendingTooltip'
+          : 'contributions.overlay.acceptedTooltip',
+    };
   });
 
   protected readonly sexIcon = computed(() => sexIcon(this.person().sex));

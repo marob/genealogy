@@ -12,9 +12,7 @@
   <app-quick-search class="quick-search" />
   <div class="header-end">
     @if (session.devBypass()) {
-      <span class="badge badge-warning" [title]="'app.devBypassHint' | transloco">{{
-        'app.devBypass' | transloco
-      }}</span>
+      <app-dev-account-switcher />
     }
     @if (!session.user()) {
       <a class="btn btn-small btn-primary" routerLink="/login">{{ 'nav.login' | transloco }}</a>

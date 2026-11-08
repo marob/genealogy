@@ -79,4 +79,30 @@ describe('ApiService', () => {
     request.flush({ id: 1 });
     await expect(promise).resolves.toEqual({ id: 1 });
   });
+
+  it('sends a proposed document as multipart', async () => {
+    const promise = api.proposeMedia('I1', new File(['%PDF'], 'acte.pdf'), { title: 'Acte' });
+    const request = http.expectOne({ method: 'POST', url: '/api/contributions/media' });
+    const body = request.request.body as FormData;
+    expect(body.get('personId')).toBe('I1');
+    expect(body.get('title')).toBe('Acte');
+    expect(body.has('comment')).toBe(false);
+    expect((body.get('file') as File).name).toBe('acte.pdf');
+    request.flush({ id: 1 });
+    await promise;
+  });
+
+  it('filters the contributions by status', async () => {
+    const promise = api.contributions('pending');
+    http.expectOne('/api/admin/contributions?status=pending').flush([]);
+    await expect(promise).resolves.toEqual([]);
+  });
+
+  it('receives the export of the contributions as a file', async () => {
+    const promise = api.exportContributions();
+    const request = http.expectOne({ method: 'POST', url: '/api/admin/contributions/export' });
+    expect(request.request.responseType).toBe('blob');
+    request.flush(new Blob(['PK']));
+    await expect(promise).resolves.toBeInstanceOf(Blob);
+  });
 });

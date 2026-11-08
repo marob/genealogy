@@ -9,6 +9,18 @@ import { PrismaService } from '../prisma/prisma.service.js';
 
 const DEV_USER_EMAIL = 'dev@localhost';
 
+/** Accounts available in development mode, to try the site as different users. */
+export const DEV_ACCOUNTS = [
+  { email: DEV_USER_EMAIL, displayName: 'Developer', role: 'ADMIN', canSeeContemporary: true },
+  { email: 'alice@localhost', displayName: 'Alice (membre)', role: 'MEMBER', canSeeContemporary: false },
+  {
+    email: 'bruno@localhost',
+    displayName: 'Bruno (membre, voit les contemporains)',
+    role: 'MEMBER',
+    canSeeContemporary: true,
+  },
+] as const;
+
 export function toUserDto(user: User): UserDto {
   return {
     id: user.id,
@@ -44,11 +56,16 @@ export class UsersService {
 
   /** Fake user for development mode (AUTH_DEV_BYPASS). */
   devUser(): Promise<User> {
-    return this.prisma.user.upsert({
-      where: { email: DEV_USER_EMAIL },
-      create: { email: DEV_USER_EMAIL, displayName: 'Developer', role: 'ADMIN', canSeeContemporary: true },
-      update: {},
-    });
+    return this.devAccount(DEV_USER_EMAIL);
+  }
+
+  /** One of the development accounts (created on first use). */
+  devAccount(email: string): Promise<User> {
+    const account = DEV_ACCOUNTS.find((candidate) => candidate.email === email);
+    if (!account) {
+      throw new NotFoundException('Unknown development account.');
+    }
+    return this.prisma.user.upsert({ where: { email }, create: { ...account }, update: {} });
   }
 
   /**

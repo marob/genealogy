@@ -1,3 +1,4 @@
+import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import type { PersonDto } from '@genealogie/shared';
 import { person, provideTestTransloco } from '../../../testing/test-helpers';
@@ -10,6 +11,15 @@ function render(value: PersonDto, part: 'root' | 'parents' = 'root') {
   fixture.componentRef.setInput('part', part);
   fixture.detectChanges();
   return fixture.nativeElement as HTMLElement;
+}
+
+/** Text of the tooltip of an element, shown on keyboard focus. */
+async function tooltipOf(element: HTMLElement): Promise<string> {
+  element.dispatchEvent(new FocusEvent('focusin'));
+  await TestBed.inject(ApplicationRef).whenStable();
+  const text = document.getElementById(element.getAttribute('aria-describedby')!)?.textContent.trim() ?? '';
+  element.dispatchEvent(new FocusEvent('focusout'));
+  return text;
 }
 
 describe('PersonCard', () => {
@@ -62,6 +72,28 @@ describe('PersonCard', () => {
     expect(element.textContent).toContain('MARTIN Zoé');
     expect(element.textContent).toContain('Contemporain');
     expect(element.classList).toContain('restricted');
+  });
+
+  it('marks the people proposed by the current user', async () => {
+    const element = render(person({ id: 'W12', proposal: { status: 'pending', isNew: true } }));
+    expect(element.classList).toContain('proposed-new');
+    const badge = element.querySelector<HTMLElement>('.proposal-badge')!;
+    expect(badge.textContent.trim()).toBe('Proposé');
+    expect(await tooltipOf(badge)).toBe('Proposition en attente de validation');
+  });
+
+  it('marks the people edited by the current user', async () => {
+    const element = render(person({ id: 'I1', proposal: { status: 'approved', fields: ['birthDate'] } }));
+    expect(element.classList).not.toContain('proposed-new');
+    const badge = element.querySelector<HTMLElement>('.proposal-badge')!;
+    expect(badge.textContent.trim()).toBe('Modifié');
+    expect(await tooltipOf(badge)).toBe('Proposition acceptée, en attente de report dans Généatique');
+  });
+
+  it('shows no proposal marker without proposal', () => {
+    const element = render(person({ id: 'I1' }));
+    expect(element.classList).not.toContain('proposed-new');
+    expect(element.querySelector('.proposal-badge')).toBeNull();
   });
 
   it('offers to recentre the tree except on the root', () => {

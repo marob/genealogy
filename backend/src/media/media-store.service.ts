@@ -105,7 +105,7 @@ export class MediaStore {
   /** Deletes the files no longer referenced by an import or a document. */
   async collectGarbage(): Promise<void> {
     const unused = await this.prisma.mediaFile.findMany({
-      where: { imports: { none: {} }, media: { none: {} } },
+      where: { imports: { none: {} }, media: { none: {} }, contributions: { none: {} } },
       select: { hash: true },
     });
     if (unused.length === 0) {

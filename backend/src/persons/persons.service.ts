@@ -8,6 +8,7 @@ import type { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { ROOT_PERSON_KEY, SettingsService } from '../settings/settings.service.js';
 import { PersonMapper, type PersonWithDetails, personInclude } from './person-mapper.js';
+import { ProposalOverlay } from './proposal-overlay.js';
 import { PrivacyPolicy, todayKey } from './privacy.js';
 
 export type Relatives = 'parents' | 'children' | 'unions';
@@ -72,7 +73,14 @@ export class PersonsService {
     }
     const mapper = new PersonMapper(this.policy(user), birthKeys);
     const byId = new Map(persons.map((person) => [person.id, mapper.toPerson(person)]));
-    return unique.map((id) => byId.get(id)).filter((person): person is PersonDto => !!person);
+    // The member's own proposals, not yet integrated (see ProposalOverlay).
+    const overlay = await ProposalOverlay.of(this.prisma, user?.id);
+    return unique
+      .map((id) => {
+        const person = byId.get(id);
+        return person ? overlay.apply(person) : overlay.proposedPerson(id);
+      })
+      .filter((person): person is PersonDto => !!person);
   }
 
   findMany(ids: string[], user: AuthUser | undefined): Promise<PersonDto[]> {

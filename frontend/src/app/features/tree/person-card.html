@@ -18,6 +18,11 @@
     <fa-icon class="sex" role="img" [icon]="sexIcon()" [attr.aria-label]="'sex.' + p.sex | transloco" />
     <app-person-name [person]="p" />
   </button>
+  @if (proposal(); as marker) {
+    <span class="proposal-badge" [appTooltip]="marker.tooltip | transloco" tooltipPosition="left" tabindex="0">
+      {{ marker.label | transloco }}
+    </span>
+  }
   @if (p.restricted) {
     <div class="attribute muted">{{ 'person.contemporary' | transloco }}</div>
   } @else {

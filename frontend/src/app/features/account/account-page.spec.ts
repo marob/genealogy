@@ -1,7 +1,7 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import type { UserDto } from '@genealogie/shared';
+import type { ContributionDto, UserDto } from '@genealogie/shared';
 import { person, provideTestTransloco } from '../../../testing/test-helpers';
 import { ApiService } from '../../core/api.service';
 import { SessionStore } from '../../core/session.store';
@@ -24,9 +24,15 @@ describe('AccountPage', () => {
 
   const deleteAccount = vi.fn(() => Promise.resolve());
   const confirm = vi.fn(() => Promise.resolve(true));
+  const myContributions = vi.fn<() => Promise<ContributionDto[]>>();
+  const withdrawContribution = vi.fn(() => Promise.resolve());
+  const clearCache = vi.fn();
 
   beforeEach(() => {
     deleteAccount.mockClear();
+    myContributions.mockReset().mockResolvedValue([]);
+    withdrawContribution.mockClear();
+    clearCache.mockClear();
     TestBed.configureTestingModule({
       providers: [
         provideTestTransloco(),
@@ -43,7 +49,12 @@ describe('AccountPage', () => {
         },
         {
           provide: ApiService,
-          useValue: { person: (id: string) => Promise.resolve(person({ id, givenNames: 'Louis' })) },
+          useValue: {
+            person: (id: string) => Promise.resolve(person({ id, givenNames: 'Louis' })),
+            myContributions,
+            withdrawContribution,
+            clearCache,
+          },
         },
         { provide: ConfirmService, useValue: { confirm } },
       ],
@@ -70,6 +81,46 @@ describe('AccountPage', () => {
 
     element.querySelector<HTMLButtonElement>('.root button')!.click();
     expect(setPersonalRoot).toHaveBeenCalledWith(null);
+  });
+
+  it('lists the contributions of the user', async () => {
+    myContributions.mockResolvedValue([
+      {
+        id: 7,
+        kind: 'edit',
+        status: 'pending',
+        personId: 'I5',
+        person: { givenNames: 'Jean', surname: 'MARTIN' },
+        fields: { birthPlace: 'Lyon', occupation: '' },
+        createdAt: '2026-11-01T10:00:00Z',
+      },
+      {
+        id: 8,
+        kind: 'add-person',
+        status: 'exported',
+        personId: 'I5',
+        person: { givenNames: 'Jean', surname: 'MARTIN' },
+        relation: 'child',
+        fields: { givenNames: 'Pierre', surname: 'MARTIN' },
+        createdAt: '2026-11-02T10:00:00Z',
+      },
+    ]);
+    const element = await render();
+    const items = [...element.querySelectorAll('.contributions li')];
+    expect(items).toHaveLength(2);
+    expect(items[0]!.querySelector('.badge')!.textContent).toContain('En attente');
+    expect(items[0]!.querySelector('a')!.getAttribute('href')).toBe('/tree/I5');
+    const text = (item: Element) => item.textContent.replace(/\s+/g, ' ');
+    expect(text(items[0]!)).toContain('Profession : effacé · Lieu de naissance : Lyon');
+    expect(items[1]!.querySelector('.badge')!.textContent).toContain('Transmise');
+    expect(text(items[1]!)).toContain('Nouvel enfant : Pierre MARTIN');
+    // Only pending contributions can be withdrawn.
+    expect(items[1]!.querySelector('.withdraw')).toBeNull();
+
+    items[0]!.querySelector<HTMLButtonElement>('.withdraw')!.click();
+    await vi.waitFor(() => expect(withdrawContribution).toHaveBeenCalledWith(7));
+    // The withdrawn proposal no longer shows in the tree.
+    expect(clearCache).toHaveBeenCalled();
   });
 
   it('deletes the account after confirmation', async () => {

@@ -9,5 +9,6 @@ import { PersonsService } from './persons.service.js';
   imports: [SettingsModule, MediaModule],
   controllers: [PersonsController, MediaController],
   providers: [PersonsService],
+  exports: [PersonsService],
 })
 export class PersonsModule {}

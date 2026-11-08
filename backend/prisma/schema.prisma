@@ -168,8 +168,9 @@ model MediaFile {
   mimeType  String
   createdAt DateTime @default(now())
 
-  media   Media[]
-  imports ImportFile[]
+  media         Media[]
+  imports       ImportFile[]
+  contributions Contribution[]
 }
 
 /// Documents provided with an import, by file name, to be linked on commit.
@@ -229,8 +230,10 @@ model User {
   createdAt          DateTime  @default(now())
   lastLoginAt        DateTime?
 
-  identities Identity[]
-  imports    ImportRun[]
+  identities    Identity[]
+  imports       ImportRun[]
+  contributions Contribution[] @relation("author")
+  reviews       Contribution[] @relation("reviewer")
 }
 
 model Identity {
@@ -244,6 +247,51 @@ model Identity {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, subject])
+}
+
+/// Change proposed by a member, reviewed by an administrator, then exported
+/// as GEDCOM to be merged into the genealogy software (the source of truth).
+/// Never applied to the genealogy tables.
+model Contribution {
+  id           Int       @id @default(autoincrement())
+  /// edit, add-person, add-media
+  kind         String
+  /// pending, approved, rejected, exported, integrated
+  status       String    @default("pending")
+  /// Existing person the contribution starts from (GEDCOM reference, no
+  /// foreign key: persons are recreated on each import).
+  personId     String
+  /// Name of that person when the contribution was made.
+  personGivenNames String
+  personSurname    String
+  /// child, parent, spouse (add-person)
+  relation     String?
+  familyId     String?
+  /// Proposed fields (JSON, see PersonFieldsDto).
+  fields       String    @default("{}")
+  /// Values of the changed fields when the contribution was made (JSON).
+  previous     String?
+  comment      String?
+  /// Proposed document (add-media).
+  fileName     String?
+  title        String?
+  hash         String?
+  authorId     Int?
+  reviewerId   Int?
+  createdAt    DateTime  @default(now())
+  reviewedAt   DateTime?
+  exportedAt   DateTime?
+  integratedAt DateTime?
+  /// Proposed person (add-person) as found in a later import: lets the
+  /// proposals about that person ("W<id>") follow it.
+  integratedPersonId String?
+
+  author   User?      @relation("author", fields: [authorId], references: [id], onDelete: SetNull)
+  reviewer User?      @relation("reviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  file     MediaFile? @relation(fields: [hash], references: [hash])
+
+  @@index([status])
+  @@index([authorId])
 }
 
 model Setting {

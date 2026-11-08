@@ -1,4 +1,4 @@
-import type { MeDto } from '@genealogie/shared';
+import type { DevAccountDto, MeDto } from '@genealogie/shared';
 import request from 'supertest';
 import { createTestApp, type TestContext } from './utils/test-app.js';
 
@@ -25,5 +25,22 @@ describe('Development mode (AUTH_DEV_BYPASS)', () => {
       .body as MeDto;
     expect(me.user).toBeUndefined();
     await request(ctx.app.getHttpServer()).get('/api/admin/users').set('Host', 'example.com').expect(401);
+  });
+
+  it('switches between development accounts', async () => {
+    const accounts = (await request(ctx.app.getHttpServer()).get('/api/dev/accounts').expect(200))
+      .body as DevAccountDto[];
+    expect(accounts.map((a) => [a.email, a.role])).toEqual([
+      ['dev@localhost', 'ADMIN'],
+      ['alice@localhost', 'MEMBER'],
+      ['bruno@localhost', 'MEMBER'],
+    ]);
+    const response = await request(ctx.app.getHttpServer()).post('/api/dev/accounts/alice@localhost/login').expect(204);
+    const cookie = String(response.headers['set-cookie']).split(';')[0]!;
+    const me = (await request(ctx.app.getHttpServer()).get('/api/me').set('Cookie', cookie).expect(200)).body as MeDto;
+    expect(me.user).toMatchObject({ email: 'alice@localhost', role: 'MEMBER', canSeeContemporary: false });
+    await request(ctx.app.getHttpServer()).get('/api/admin/users').set('Cookie', cookie).expect(403);
+    await request(ctx.app.getHttpServer()).post('/api/dev/accounts/unknown@localhost/login').expect(404);
+    await request(ctx.app.getHttpServer()).get('/api/dev/accounts').set('Host', 'example.com').expect(404);
   });
 });

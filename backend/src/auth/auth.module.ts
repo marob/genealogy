@@ -6,10 +6,11 @@ import { UsersService } from '../users/users.service.js';
 import { AuthProvidersService } from './auth-providers.service.js';
 import { AuthController } from './auth.controller.js';
 import { AuthGuard } from './auth.guard.js';
+import { DevController } from './dev.controller.js';
 import { SessionService } from './session.service.js';
 
 @Module({
-  controllers: [AuthController, UsersController],
+  controllers: [AuthController, UsersController, DevController],
   providers: [AuthProvidersService, SessionService, UsersService, { provide: APP_GUARD, useClass: AuthGuard }],
   exports: [SessionService, UsersService],
 })

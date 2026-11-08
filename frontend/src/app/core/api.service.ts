@@ -1,14 +1,19 @@
 import { HttpClient, HttpEventType, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import type {
+  ContributionDto,
+  ContributionStatus,
   ImportDto,
   MeDto,
+  NewContributionDto,
   PersonDto,
+  PersonFieldsDto,
   Role,
   SearchResultDto,
   SurnameDto,
   TreeInfoDto,
   UserDto,
+  DevAccountDto,
 } from '@genealogie/shared';
 import { filter, firstValueFrom, map, tap } from 'rxjs';
 
@@ -47,6 +52,15 @@ export class ApiService {
 
   deleteMe(): Promise<void> {
     return firstValueFrom(this.http.delete<void>('/api/me'));
+  }
+
+  /** Development mode: test accounts, and opening a session as one of them. */
+  devAccounts(): Promise<DevAccountDto[]> {
+    return firstValueFrom(this.http.get<DevAccountDto[]>('/api/dev/accounts'));
+  }
+
+  devLogin(email: string): Promise<void> {
+    return firstValueFrom(this.http.post<void>(`/api/dev/accounts/${encodeURIComponent(email)}/login`, null));
   }
 
   logout(): Promise<void> {
@@ -137,7 +151,59 @@ export class ApiService {
     return firstValueFrom(this.http.get<SurnameDto[]>('/api/surnames'));
   }
 
+  // Contributions (changes proposed by members, reviewed by an administrator)
+
+  /** Proposes changes; resolves to the contributions created (several for parents, a union…). */
+  propose(contribution: NewContributionDto): Promise<ContributionDto[]> {
+    return firstValueFrom(this.http.post<ContributionDto[]>('/api/contributions', contribution));
+  }
+
+  /** Proposes a document (photo, scanned record…) for a person. */
+  proposeMedia(
+    personId: string,
+    file: File,
+    details: { title?: string; comment?: string } = {},
+  ): Promise<ContributionDto> {
+    const body = new FormData();
+    body.append('personId', personId);
+    if (details.title) {
+      body.append('title', details.title);
+    }
+    if (details.comment) {
+      body.append('comment', details.comment);
+    }
+    body.append('file', file, file.name);
+    return firstValueFrom(this.http.post<ContributionDto>('/api/contributions/media', body));
+  }
+
+  myContributions(): Promise<ContributionDto[]> {
+    return firstValueFrom(this.http.get<ContributionDto[]>('/api/contributions/mine'));
+  }
+
+  withdrawContribution(id: number): Promise<void> {
+    return firstValueFrom(this.http.delete<void>(`/api/contributions/${id}`));
+  }
+
   // Administration
+
+  /** All contributions, or only those with the given status. */
+  contributions(status?: ContributionStatus): Promise<ContributionDto[]> {
+    return firstValueFrom(
+      this.http.get<ContributionDto[]>('/api/admin/contributions', status ? { params: { status } } : {}),
+    );
+  }
+
+  reviewContribution(
+    id: number,
+    review: { status: 'approved' | 'rejected'; fields?: PersonFieldsDto },
+  ): Promise<ContributionDto> {
+    return firstValueFrom(this.http.patch<ContributionDto>(`/api/admin/contributions/${id}`, review));
+  }
+
+  /** Zip (GEDCOM file + documents) of the approved contributions, which become "exported". */
+  exportContributions(): Promise<Blob> {
+    return firstValueFrom(this.http.post('/api/admin/contributions/export', null, { responseType: 'blob' }));
+  }
 
   users(): Promise<UserDto[]> {
     return firstValueFrom(this.http.get<UserDto[]>('/api/admin/users'));

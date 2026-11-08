@@ -12,7 +12,11 @@ describe('parseGedcom', () => {
   const family = (id: string) => result.families.find((f) => f.id === id)!;
 
   it('reads the header', () => {
-    expect(result.header).toEqual({ sourceSoftware: 'Heredis 2024', gedcomVersion: '5.5.1' });
+    expect(result.header).toEqual({
+      sourceSoftware: 'Heredis 2024',
+      gedcomVersion: '5.5.1',
+      placeForm: 'Ville, Code INSEE, Département, Région, Pays',
+    });
     expect(result.decoded).toMatchObject({ encoding: 'UTF-8', declaredCharset: 'UTF-8' });
   });
 

@@ -19,11 +19,45 @@
       [attr.aria-label]="'sex.' + p.sex | transloco"
     />
     <app-person-name [person]="p" />
+    @if (isProposed(nameFields)) {
+      <ng-container [ngTemplateOutlet]="pendingMarker" />
+    }
   </h2>
   <button type="button" class="btn-icon" [attr.aria-label]="'common.close' | transloco" (click)="closed.emit()">
     <fa-icon [icon]="icons.iconClose" />
   </button>
 </header>
+
+<ng-template #pendingMarker>
+  @if (proposal(); as proposal) {
+    <span class="pending-marker">{{ proposal.marker | transloco }}</span>
+  }
+</ng-template>
+
+@if (proposal(); as proposal) {
+  <div class="proposal-notice" role="note">
+    <p>{{ proposal.notice | transloco }}</p>
+    @if (withdrawable(); as pending) {
+      <button
+        type="button"
+        class="btn btn-small btn-text"
+        (click)="
+          withdraw(
+            pending.ids,
+            pending.isNew ? 'contributions.overlay.withdrawNew' : 'contributions.overlay.withdrawEdit',
+            pending.isNew
+          )
+        "
+      >
+        <fa-icon [icon]="icons.iconUndo" />
+        {{
+          (pending.isNew ? 'contributions.overlay.withdrawNewButton' : 'contributions.overlay.withdrawEditButton')
+            | transloco
+        }}
+      </button>
+    }
+  </div>
+}
 
 <div class="actions">
   <button type="button" class="btn btn-small" (click)="focused.emit(p)">
@@ -41,18 +75,49 @@
   }
 </div>
 
+@if (canPropose()) {
+  <details class="propose">
+    <summary>{{ 'contributions.propose' | transloco }}</summary>
+    <div class="propose-actions">
+      <button type="button" class="btn btn-small btn-text" (click)="propose('edit')">
+        <fa-icon [icon]="icons.iconEdit" /> {{ 'contributions.edit' | transloco }}
+      </button>
+      <button type="button" class="btn btn-small btn-text" (click)="propose('add-person')">
+        <fa-icon [icon]="icons.iconAddPerson" /> {{ 'contributions.addRelative' | transloco }}
+      </button>
+      <button type="button" class="btn btn-small btn-text" (click)="propose('add-media')">
+        <fa-icon [icon]="icons.iconUpload" /> {{ 'contributions.addMedia' | transloco }}
+      </button>
+    </div>
+    <p class="muted">{{ 'contributions.proposeHint' | transloco }}</p>
+  </details>
+}
+
 @if (p.restricted) {
   <p class="notice">{{ 'person.restrictedNotice' | transloco }}</p>
-} @else if (p.events.length) {
+} @else if (events().length || proposedOccupation()) {
   <h3>{{ 'person.events' | transloco }}</h3>
   <ul class="events">
-    @for (event of p.events; track $index) {
+    @if (proposedOccupation(); as occupation) {
+      <li>
+        <fa-icon class="event-icon" [icon]="eventIcon('OCCU')" />
+        <div>
+          <strong>{{ 'events.OCCU' | transloco }}</strong>
+          <span> — {{ occupation }}</span>
+          <ng-container [ngTemplateOutlet]="pendingMarker" />
+        </div>
+      </li>
+    }
+    @for (event of events(); track $index) {
       <li>
         <fa-icon class="event-icon" [icon]="eventIcon(event.type)" />
         <div>
           <strong>{{ 'events.' + event.type | transloco }}</strong>
           @if (event.value) {
             <span> — {{ event.value }}</span>
+          }
+          @if (proposedEvents().has(event)) {
+            <ng-container [ngTemplateOutlet]="pendingMarker" />
           }
           @if (event.date) {
             <div class="line"><fa-icon [icon]="icons.iconDate" /> {{ event.date | genealogyDate: lang() }}</div>
@@ -88,7 +153,39 @@
 }
 
 @for (union of p.unions; track union.familyId) {
-  <h3>{{ 'person.union' | transloco }}</h3>
+  <h3 class="union-title">
+    {{ 'person.union' | transloco }}
+    @if (union.proposal; as unionProposal) {
+      <span class="pending-marker">{{
+        (unionProposal.status === 'pending'
+          ? 'contributions.overlay.pendingMarker'
+          : 'contributions.overlay.acceptedMarker'
+        ) | transloco
+      }}</span>
+    }
+    @if (canPropose() && !union.restricted) {
+      <button
+        type="button"
+        class="btn-icon"
+        [attr.aria-label]="'contributions.editUnion' | transloco"
+        [title]="'contributions.editUnion' | transloco"
+        (click)="proposeUnion(union)"
+      >
+        <fa-icon [icon]="icons.iconEdit" />
+      </button>
+    }
+    @if (union.proposal?.pending; as pending) {
+      <button
+        type="button"
+        class="btn-icon"
+        [attr.aria-label]="'contributions.overlay.withdrawUnionButton' | transloco"
+        [title]="'contributions.overlay.withdrawUnionButton' | transloco"
+        (click)="withdraw(pending, 'contributions.overlay.withdrawUnion')"
+      >
+        <fa-icon [icon]="icons.iconUndo" />
+      </button>
+    }
+  </h3>
   @if (relative(union.partnerId); as partner) {
     <p class="line">
       <fa-icon [class]="'sex sex-' + partner.sex" [icon]="sexIcon(partner.sex)" />

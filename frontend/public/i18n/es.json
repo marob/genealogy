@@ -2,7 +2,8 @@
   "app": {
     "title": "Genealogía",
     "devBypass": "Modo dev",
-    "devBypassHint": "Autenticación desactivada: todos son administradores."
+    "devBypassHint": "Autenticación desactivada: todos son administradores.",
+    "devAccount": "Cuenta de prueba"
   },
   "nav": {
     "skip": "Ir al contenido",
@@ -183,6 +184,107 @@
       "given-first": "Nombre APELLIDO"
     }
   },
+  "contributions": {
+    "propose": "Proponer un cambio",
+    "proposeHint": "Sus propuestas son revisadas por un administrador antes de incorporarse a la genealogía.",
+    "edit": "Corregir la ficha",
+    "addRelative": "Añadir un familiar",
+    "addMedia": "Añadir un documento",
+    "editTitle": "Corregir la ficha de {{name}}",
+    "editIntro": "Modifique la información que desea corregir: solo se enviarán los cambios.",
+    "addRelativeTitle": "Añadir un familiar de {{name}}",
+    "addMediaTitle": "Añadir un documento para {{name}}",
+    "relation": "Parentesco",
+    "relations": {
+      "child": "Hijo/a",
+      "parent": "Padre/madre",
+      "spouse": "Cónyuge",
+      "parents": "Padres"
+    },
+    "newRelative": {
+      "child": "Nuevo hijo/a",
+      "parent": "Nuevo padre/madre",
+      "spouse": "Nuevo cónyuge"
+    },
+    "unknownPartner": "Cónyuge desconocido",
+    "fields": {
+      "givenNames": "Nombres",
+      "surname": "Apellido",
+      "sex": "Sexo",
+      "occupation": "Profesión",
+      "birthDate": "Fecha de nacimiento",
+      "birthPlace": "Lugar de nacimiento",
+      "deathDate": "Fecha de defunción",
+      "deathPlace": "Lugar de defunción",
+      "marriageDate": "Fecha del matrimonio",
+      "marriagePlace": "Lugar del matrimonio"
+    },
+    "dateHint": "Formatos aceptados: 12/03/1850 (día/mes/año), 03/1850, 1850, vers 1850, avant 1850, après 1850, entre 1850 et 1855, ABT 1850",
+    "comment": "Comentario",
+    "commentHint": "Fuente, explicación… (opcional)",
+    "file": "Archivo (imagen o PDF)",
+    "documentTitle": "Título",
+    "submit": "Enviar la propuesta",
+    "thanks": "¡Gracias! Su propuesta será revisada por un administrador.",
+    "labelled": "{{label}}:",
+    "cleared": "borrado",
+    "none": "sin dato",
+    "kinds": {
+      "edit": "Corrección",
+      "add-person": "Nuevo familiar",
+      "add-media": "Documento",
+      "edit-union": "Unión"
+    },
+    "status": {
+      "pending": "Pendiente",
+      "approved": "Aceptada",
+      "rejected": "Rechazada",
+      "exported": "Enviada",
+      "integrated": "Integrada"
+    },
+    "mine": {
+      "title": "Mis contribuciones",
+      "intro": "Los cambios que ha propuesto desde las fichas de las personas. Una vez aceptados, se envían al responsable de la genealogía y aparecen en el sitio tras la próxima actualización.",
+      "none": "Todavía no ha propuesto ningún cambio.",
+      "withdraw": "Retirar",
+      "withdrawTitle": "¿Retirar esta propuesta?",
+      "withdrawMessage": "No será revisada.",
+      "withdrawn": "Propuesta retirada."
+    },
+    "overlay": {
+      "badgeNew": "Propuesto",
+      "badgeEdited": "Modificado",
+      "pendingTooltip": "Propuesta pendiente de validación",
+      "acceptedTooltip": "Propuesta aceptada, pendiente de incorporarse a Généatique",
+      "newPending": "Persona que usted propuso — pendiente de validación.",
+      "newAccepted": "Persona que usted propuso — aceptada, pendiente de incorporarse a Généatique.",
+      "editPending": "Parte de la información procede de sus propuestas, pendientes de validación.",
+      "editAccepted": "Parte de la información procede de sus propuestas, aceptadas y pendientes de incorporarse a Généatique.",
+      "pendingMarker": "pendiente",
+      "acceptedMarker": "aceptada",
+      "withdrawTitle": "¿Retirar su propuesta?",
+      "withdrawNew": "Esta persona será retirada, junto con sus propuestas pendientes que le conciernen (padres, hijos, unión, documentos…).",
+      "withdrawEdit": "Los valores que propuso para esta ficha serán retirados.",
+      "withdrawUnion": "Los datos que propuso para esta unión serán retirados.",
+      "withdrawNewButton": "Retirar esta persona",
+      "withdrawEditButton": "Retirar mis cambios",
+      "withdrawUnionButton": "Retirar los datos propuestos"
+    },
+    "otherParent": "Otro progenitor",
+    "noOtherParent": "Desconocido",
+    "unionDetails": "Unión",
+    "parentsIntro": "Indique uno o ambos progenitores: formarán una pareja, cuya unión puede detallar.",
+    "father": "Padre",
+    "mother": "Madre",
+    "knownParent": "Ya conocido: {{name}}",
+    "parentsUnion": "Unión de los padres",
+    "editUnion": "Completar la unión",
+    "editUnionTitle": "Unión de {{name}} y {{partner}}",
+    "editUnionTitleAlone": "Unión de {{name}}",
+    "sharedChildren": "Otro progenitor de",
+    "newUnion": "Ningún hijo en común (nueva unión)",
+    "noChildren": "Unión sin hijos ni cónyuge"
+  },
   "roles": {
     "ADMIN": "Administrador",
     "MEMBER": "Miembro"
@@ -247,6 +349,28 @@
       "roleOf": "Rol de {{name}}",
       "contemporaryOf": "{{name}} ve a los contemporáneos",
       "deleteUser": "Eliminar a {{name}}"
+    },
+    "contributions": {
+      "title": "Contribuciones",
+      "export": "Exportar para Généatique ({{count}})",
+      "exportHint": "La exportación es un archivo .zip que contiene las contribuciones aceptadas en forma de archivo GEDCOM, con sus documentos. En Généatique, impórtelo como una nueva genealogía, luego use «ajout des fiches d’un autre arbre» (añadir las fichas de otro árbol) y fusione los duplicados. Las contribuciones pasan automáticamente a «Integrada» cuando una importación posterior de la genealogía las contiene.",
+      "exported": "{{count}} contribución(es) exportada(s).",
+      "filter": "Estado",
+      "all": "Todas",
+      "none": "Ninguna contribución.",
+      "deletedAuthor": "Cuenta eliminada",
+      "field": "Campo",
+      "current": "Valor actual",
+      "proposed": "Valor propuesto",
+      "approve": "Aceptar",
+      "reject": "Rechazar",
+      "approved": "Contribución aceptada.",
+      "rejected": "Contribución rechazada.",
+      "rejectTitle": "¿Rechazar esta contribución?",
+      "rejectMessage": "La propuesta sobre {{person}} será rechazada y no se exportará.",
+      "withPartner": "con",
+      "documentDeleted": "Documento «{{name}}» eliminado (propuesta rechazada).",
+      "unionWith": "Unión con"
     }
   },
   "print": {

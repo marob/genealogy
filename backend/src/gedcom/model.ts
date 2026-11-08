@@ -45,6 +45,8 @@ export interface FamilyRecord {
 interface GedcomHeader {
   sourceSoftware?: string;
   gedcomVersion?: string;
+  /** Declared order of the place parts (HEAD.PLAC.FORM), as written. */
+  placeForm?: string;
 }
 
 interface ImportStats {

@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, computed, inject, resource } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import type { ContributionDto } from '@genealogie/shared';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ApiService } from '../../core/api.service';
 import { NotificationsService } from '../../core/notifications.service';
@@ -9,11 +10,13 @@ import { valueOf } from '../../core/resources';
 import { SessionStore } from '../../core/session.store';
 import { ConfirmService } from '../../ui/confirm-dialog';
 import { PersonName } from '../../ui/person-name';
+import { statusBadge } from '../contributions/contribution-fields';
+import { ContributionSummary } from '../contributions/contribution-summary';
 import { isNameOrder, NAME_ORDERS, NameOrderService } from '../../core/name-order.service';
 
 @Component({
   selector: 'app-account-page',
-  imports: [PersonName, TranslocoPipe, DatePipe, RouterLink],
+  imports: [PersonName, TranslocoPipe, DatePipe, RouterLink, ContributionSummary],
   template: `
     <h1>{{ 'nav.account' | transloco }}</h1>
     <section class="card">
@@ -78,6 +81,35 @@ import { isNameOrder, NAME_ORDERS, NameOrderService } from '../../core/name-orde
         @if (!session.canSeeContemporary()) {
           <p class="hint">{{ 'account.askAdmin' | transloco }}</p>
         }
+      </section>
+      <section class="card">
+        <h2>{{ 'contributions.mine.title' | transloco }}</h2>
+        <p class="hint">{{ 'contributions.mine.intro' | transloco }}</p>
+        <ul class="contributions">
+          @for (contribution of contributionList(); track contribution.id) {
+            <li>
+              <div class="contribution-header">
+                <span [class]="statusBadge(contribution.status)">
+                  {{ 'contributions.status.' + contribution.status | transloco }}
+                </span>
+                <a [routerLink]="['/tree', contribution.personId]"
+                  ><app-person-name [person]="contribution.person"
+                /></a>
+                <span class="muted">{{ contribution.createdAt | date: 'shortDate' : undefined : lang() }}</span>
+                @if (contribution.status === 'pending') {
+                  <button type="button" class="btn btn-small btn-text withdraw" (click)="withdraw(contribution)">
+                    {{ 'contributions.mine.withdraw' | transloco }}
+                  </button>
+                }
+              </div>
+              <app-contribution-summary [contribution]="contribution" />
+            </li>
+          } @empty {
+            <li class="muted">
+              {{ (contributions.error() ? 'common.error' : 'contributions.mine.none') | transloco }}
+            </li>
+          }
+        </ul>
       </section>
       <section class="card">
         <h2>{{ 'account.deleteTitle' | transloco }}</h2>
@@ -147,6 +179,25 @@ import { isNameOrder, NAME_ORDERS, NameOrderService } from '../../core/name-orde
       color: var(--text-muted);
       font-size: 0.9rem;
     }
+    .contributions {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      li {
+        padding: 0.5rem 0;
+        border-top: 1px solid var(--border);
+      }
+    }
+    .contribution-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.25rem 0.75rem;
+      margin-bottom: 0.25rem;
+    }
+    .withdraw {
+      margin-left: auto;
+    }
     .legal {
       display: flex;
       justify-content: center;
@@ -188,6 +239,35 @@ export class AccountPage {
   });
 
   protected readonly rootValue = computed(() => valueOf(this.rootPerson));
+
+  /** Changes proposed by the user, whatever their status. */
+  protected readonly contributions = resource({
+    params: () => this.session.user()?.id,
+    loader: () => this.api.myContributions(),
+  });
+  protected readonly contributionList = computed(() => valueOf(this.contributions) ?? []);
+  protected readonly statusBadge = statusBadge;
+
+  protected async withdraw(contribution: ContributionDto): Promise<void> {
+    const confirmed = await this.confirmService.confirm({
+      title: 'contributions.mine.withdrawTitle',
+      message: 'contributions.mine.withdrawMessage',
+      confirmLabel: 'contributions.mine.withdraw',
+      danger: true,
+    });
+    if (!confirmed) {
+      return;
+    }
+    try {
+      await this.api.withdrawContribution(contribution.id);
+      // The withdrawn proposal no longer shows in the tree.
+      this.api.clearCache();
+      this.notifications.show('success', 'contributions.mine.withdrawn');
+    } catch (error) {
+      this.notifications.error(error);
+    }
+    this.contributions.reload();
+  }
 
   protected async resetRoot(): Promise<void> {
     try {

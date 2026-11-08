@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 export const ROOT_PERSON_KEY = 'rootPersonId';
+/** Place format of the applied GEDCOM file, repeated in the exports. */
+export const PLACE_FORM_KEY = 'gedcomPlaceForm';
 
 /** Application settings stored in the database (key/value). */
 @Injectable()

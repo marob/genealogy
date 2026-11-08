@@ -8,14 +8,22 @@ let nextUid = 1;
 
 /** Displayed tree node; parents and children are expanded on demand. */
 export class TreeNode {
-  /** Display identifier (the same person may appear several times). */
-  readonly uid = nextUid++;
+  /**
+   * Display identifier (the same person may appear several times); kept by
+   * the node replacing this one when the tree is reloaded.
+   */
+  readonly uid: number;
 
   readonly parents = signal<TreeNode[] | undefined>(undefined);
   readonly children = signal<TreeNode[] | undefined>(undefined);
   readonly partners = signal<TreeNode[]>([]);
 
-  constructor(readonly person: PersonDto) {}
+  constructor(
+    readonly person: PersonDto,
+    uid?: number,
+  ) {
+    this.uid = uid ?? nextUid++;
+  }
 
   get hasParents(): boolean {
     return !!this.person.fatherId || !!this.person.motherId;

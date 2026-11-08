@@ -10,10 +10,20 @@ import { iconLogout, iconSettings } from './ui/icons';
 import { QuickSearch } from './ui/quick-search';
 import { Toasts } from './ui/toasts';
 import { switchMap } from 'rxjs';
+import { DevAccountSwitcher } from './ui/dev-account-switcher';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, FaIconComponent, TranslocoPipe, Toasts, QuickSearch],
+  imports: [
+    DevAccountSwitcher,
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    FaIconComponent,
+    TranslocoPipe,
+    Toasts,
+    QuickSearch,
+  ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

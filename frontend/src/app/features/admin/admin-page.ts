@@ -1,14 +1,16 @@
 import { Component } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { ContributionsAdmin } from './contributions-admin';
 import { ImportsAdmin } from './imports-admin';
 import { UsersAdmin } from './users-admin';
 
 @Component({
   selector: 'app-admin-page',
-  imports: [TranslocoPipe, ImportsAdmin, UsersAdmin],
+  imports: [TranslocoPipe, ImportsAdmin, ContributionsAdmin, UsersAdmin],
   template: `
     <h1>{{ 'admin.title' | transloco }}</h1>
     <app-imports-admin />
+    <app-contributions-admin />
     <app-users-admin />
   `,
   styles: `

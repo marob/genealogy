@@ -57,6 +57,11 @@ export interface UnionDto {
   restricted: boolean;
   /** Documents of the union (empty if the union is hidden). */
   media: MediaDto[];
+  /**
+   * The current user's proposals applied to this union (a proposed union, or
+   * proposed marriage details), not yet integrated into the genealogy software.
+   */
+  proposal?: PersonProposal;
 }
 
 export interface PersonDto {
@@ -82,11 +87,40 @@ export interface PersonDto {
   events: EventDto[];
   /** Documents of the person (empty if restricted). */
   media: MediaDto[];
+  /**
+   * Only for the author of contributions: this person was proposed by them
+   * (`isNew`), or some of their fields (`fields`) come from their proposals,
+   * not yet integrated into the genealogy software.
+   */
+  proposal?: PersonProposal;
   occupation?: string;
   note?: string;
 }
 
+/** Proposals of the current user applied to a person or a union. */
+export interface PersonProposal {
+  /** Most advanced status among the proposals applied. */
+  status: 'pending' | 'approved' | 'exported';
+  /** Proposed person or union, not in the genealogy. */
+  isNew?: boolean;
+  /** Proposed fields shown in place of the genealogy data (see ContributionFieldsDto). */
+  fields?: string[];
+  /** Pending contributions behind it, which their author can still withdraw. */
+  pending?: number[];
+}
+
 export type Role = 'ADMIN' | 'MEMBER';
+
+/**
+ * Account to try the site as another user, in development mode only:
+ * GET /api/dev/accounts, POST /api/dev/accounts/:email/login (opens a session).
+ */
+export interface DevAccountDto {
+  email: string;
+  name: string;
+  role: Role;
+  canSeeContemporary: boolean;
+}
 
 export interface UserDto {
   id: number;

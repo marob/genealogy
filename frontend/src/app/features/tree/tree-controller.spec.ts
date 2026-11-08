@@ -62,6 +62,78 @@ describe('TreeController', () => {
     expect(tree.focusVersion()).toBe(1);
   });
 
+  it('reloads the tree, keeping the expanded relatives and refreshing the selection', async () => {
+    const clearCache = vi.fn();
+    api.clearCache = clearCache;
+    await tree.load('I0');
+    const root = tree.root()!;
+    const child = root.children()![0]!;
+    await tree.toggleChildren(child);
+    tree.select(family['I3']);
+    const version = tree.focusVersion();
+
+    // A proposal adds a child to François and renames him.
+    const proposed = person({
+      id: 'W1',
+      givenNames: 'Paul',
+      fatherId: 'I3',
+      proposal: { status: 'pending', isNew: true },
+    });
+    const francois = person({
+      ...family['I3']!,
+      givenNames: 'François Xavier',
+      unions: [{ familyId: 'W1F', childIds: ['W1'], events: [], restricted: false, media: [] }],
+      proposal: { status: 'pending', fields: ['givenNames'] },
+    });
+    const updated: Record<string, PersonDto> = { ...family, I3: francois, W1: proposed };
+    api.person = (id) => Promise.resolve(updated[id]);
+    api.people = (ids) =>
+      Promise.resolve(ids.filter((id): id is string => !!id && !!updated[id]).map((id) => updated[id]!));
+
+    await tree.reload();
+    expect(clearCache).toHaveBeenCalled();
+    const reloaded = tree.root()!;
+    expect(reloaded).not.toBe(root);
+    expect(reloaded.uid).toBe(root.uid);
+    const grandChildren = reloaded.children()![0]!.children()!;
+    expect(grandChildren.map((n) => n.person.id)).toEqual(['I3', 'I4']);
+    // François's children were not displayed: they stay collapsed.
+    expect(grandChildren[0]!.person.givenNames).toBe('François Xavier');
+    expect(grandChildren[0]!.children()).toBeUndefined();
+    expect(tree.selected()).toBe(francois);
+    // The view is not recentred.
+    expect(tree.focusVersion()).toBe(version);
+  });
+
+  it('shows the relatives just proposed when reloading', async () => {
+    api.clearCache = vi.fn();
+    await tree.load('I0');
+    const child = tree.root()!.children()![0]!;
+    expect(child.children()).toBeUndefined();
+
+    // Émile's children were collapsed: a child is proposed for him.
+    await tree.reload({ personId: 'I1', direction: 'children' });
+    expect(
+      tree
+        .root()!
+        .children()![0]!
+        .children()
+        ?.map((n) => n.person.id),
+    ).toEqual(['I3', 'I4']);
+  });
+
+  it('closes the record of a person withdrawn meanwhile when reloading', async () => {
+    api.clearCache = vi.fn();
+    await tree.load('I1');
+    tree.select(person({ id: 'W1' }));
+    const known = api.person!;
+    const withdrawn = vi.fn().mockRejectedValue(new HttpErrorResponse({ status: 404 }));
+    api.person = (id) => (id === 'W1' ? (withdrawn() as Promise<PersonDto>) : known(id));
+    await tree.reload();
+    expect(tree.root()!.person.id).toBe('I1');
+    expect(tree.selected()).toBeUndefined();
+  });
+
   it('expands and collapses ancestors and descendants', async () => {
     await tree.load('I1');
     const root = tree.root()!;

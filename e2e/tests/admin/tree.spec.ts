@@ -202,7 +202,9 @@ test.describe('on a small screen with a mouse', () => {
     await toggle.click();
     await expect(search).toBeFocused();
     await search.fill('helene');
-    await expect(page.getByRole('option')).toHaveCount(1);
+    await expect(
+      page.getByRole('listbox', { name: 'Recherche rapide d’une personne' }).getByRole('option'),
+    ).toHaveCount(1);
     await page.mouse.click(300, 500);
     await expect(search).toBeHidden();
     await toggle.click();

@@ -45,6 +45,29 @@ header {
   margin: 0.75rem 0;
 }
 
+.propose {
+  margin: -0.25rem 0 0.75rem;
+  font-size: 0.875rem;
+
+  summary {
+    width: fit-content;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+
+  .propose-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-top: 0.4rem;
+  }
+
+  p {
+    margin: 0.25rem 0 0;
+    font-size: 0.8rem;
+  }
+}
+
 .sex {
   margin-right: 0.3rem;
   color: var(--sex-unknown);
@@ -111,4 +134,49 @@ h4 {
 .notice {
   color: var(--text-muted);
   font-style: italic;
+}
+
+/* The current user's proposals, not yet integrated. */
+.proposal-notice {
+  margin: 0.75rem 0 0;
+  padding: 0.4rem 0.6rem;
+  border-left: 3px solid var(--warning);
+  border-radius: var(--radius);
+  background: var(--highlight);
+  font-size: 0.875rem;
+}
+
+.pending-marker {
+  margin-left: 0.4rem;
+  padding: 0 0.4rem;
+  border: 1px solid var(--warning);
+  border-radius: 999px;
+  color: var(--warning);
+  font-size: 0.75rem;
+  font-weight: normal;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.proposal-notice p {
+  margin: 0;
+}
+
+.proposal-notice .btn {
+  margin-top: 0.25rem;
+  margin-left: -0.5rem;
+}
+
+.union-title {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+
+  .pending-marker {
+    margin-left: 0.15rem;
+  }
+
+  .btn-icon:first-of-type {
+    margin-left: auto;
+  }
 }
